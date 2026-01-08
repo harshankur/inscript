@@ -17,7 +17,7 @@ const getDemoPosts = () => {
             tags: ['demo', 'welcome'],
             categories: ['Guide'],
             isUnpublished: false,
-            content: '<h1>Welcome to Inscript!</h1><p>This is a <strong>live demo</strong> running entirely in your browser.</p><p>Feel free to edit this post, create new ones, or try out the slash commands (type <code>/</code>).</p><blockquote><p>Note: Changes are saved to your browser\'s LocalStorage.</p></blockquote>'
+            content: '<h1>Welcome to Inscript!</h1><p>This is a <strong>live demo</strong> running entirely in your browser.</p><p>Feel free to edit this post or create new ones.</p><blockquote><p>Note: Changes are saved to your browser\'s LocalStorage.</p></blockquote>'
         }
     ];
 };
