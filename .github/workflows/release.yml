@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'package.json'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check version and Create Release
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const version = `v${packageJson.version}`;
+            
+            console.log(`Current version in package.json: ${version}`);
+
+            try {
+              // Check if tag already exists
+              await github.rest.git.getRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `tags/${version}`
+              });
+              console.log(`Tag ${version} already exists. Skipping release.`);
+            } catch (e) {
+              if (e.status === 404) {
+                console.log(`Tag ${version} not found. Creating release...`);
+                
+                // Create Release
+                await github.rest.repos.createRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  tag_name: version,
+                  name: `Release ${version}`,
+                  generate_release_notes: true,
+                  draft: false,
+                  prerelease: false
+                });
+                console.log(`Created release ${version}`);
+              } else {
+                throw e;
+              }
+            }
