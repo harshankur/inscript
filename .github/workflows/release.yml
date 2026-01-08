@@ -48,7 +48,7 @@ jobs:
                   tag_name: version,
                   name: `Release ${version}`,
                   generate_release_notes: true,
-                  draft: false,
+                  draft: true,
                   prerelease: false
                 });
                 console.log(`Created release ${version}`);
