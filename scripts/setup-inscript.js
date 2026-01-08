@@ -57,7 +57,8 @@ async function setup() {
     // 1. Validate Required Variables
     // Check if we have what we need (either from .env or system/Netlify environment)
     const requiredVars = ['TITLE', 'SITE_URL', 'CONTENT_DIR', 'STATIC_DIR'];
-    const missingVars = requiredVars.filter(v => !process.env[v]);
+    // In demo mode, we don't need these
+    const missingVars = process.env.DEMO_MODE === 'true' ? [] : requiredVars.filter(v => !process.env[v]);
 
     if (missingVars.length > 0) {
         // Variables are missing.
@@ -124,9 +125,16 @@ async function setup() {
     // 4. Generate Dynamic Assets (Manifest & Robots)
 
     // Strict requirement: No defaults in code, must come from Env.
+
+    // Check for DEMO_MODE to skip env vars
+    const isDemo = process.env.DEMO_MODE === 'true';
+    if (isDemo) {
+        console.log('🎭 DEMO MODE: Using default values for Demo build.');
+    }
+
     const config = {
-        title: process.env.TITLE,
-        siteUrl: process.env.SITE_URL
+        title: isDemo ? 'Inscript Demo' : process.env.TITLE,
+        siteUrl: isDemo ? 'https://harshankur.github.io/inscript' : process.env.SITE_URL
     };
 
     // Process Manifest

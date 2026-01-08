@@ -3,6 +3,13 @@
 A modern, "plug and play" CMS for your markdown-based blog. Built with React, Vite, Express, and Tailwind CSS.
 Designed to be a seamless submodule for any static site generator (Hugo, Astro, Next.js, etc.).
 
+## 🎮 Live Demo
+Try the editor in your browser without installing anything!
+[**Launch Live Demo**](https://harshankur.github.io/inscript/)
+
+> **Note**: The demo runs entirely in your browser using `localStorage`. No data is sent to a server.
+
+
 ## Features
 
 ### 📝 Rich Text Editor

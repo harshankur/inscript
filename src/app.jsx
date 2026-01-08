@@ -9,7 +9,7 @@ import TextStyle from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline';
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import axios from 'axios';
+import api from './lib/api';
 import * as Diff from 'diff';
 import {
     Activity,
@@ -1034,7 +1034,7 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
 
         setSearching(true);
         try {
-            const res = await axios.get(`/api/youtube/search?q=${encodeURIComponent(query)}`);
+            const res = await api.get(`/api/youtube/search?q=${encodeURIComponent(query)}`);
             setResults(res.data.items || []);
         } catch (err) {
             console.error('YouTube Search Failed:', err);
@@ -1796,7 +1796,7 @@ const App = () => {
         const timeout = setTimeout(async () => {
             try {
                 // Ensure we are saving the CURRENT state of history
-                await axios.post(`/api/drafts/${filename}`, {
+                await api.post(`/api/drafts/${filename}`, {
                     history: history,
                     currentIndex: historyIndex
                 });
@@ -1846,7 +1846,7 @@ const App = () => {
 
     const fetchPosts = async () => {
         try {
-            const loadedPosts = (await axios.get(isReadonlyEnv ? '/data.json' : '/api/posts')).data;
+            const loadedPosts = (await api.get(isReadonlyEnv ? '/data.json' : '/api/posts')).data;
             setPosts(loadedPosts);
 
             // Handle Deep Linking on Initial Load
@@ -1871,7 +1871,7 @@ const App = () => {
 
     const fetchLibraryImages = async () => {
         try {
-            const res = await axios.get('/api/images');
+            const res = await api.get('/api/images');
             setLibraryImages(res.data);
         } catch (error) {
             console.error('Error fetching library images:', error);
@@ -1924,7 +1924,7 @@ const App = () => {
                     throw new Error('Post not found in static data');
                 }
             } else {
-                res = await axios.get(`/api/posts/${file}?t=${Date.now()}`); // Cache bust
+                res = await api.get(`/api/posts/${file}?t=${Date.now()}`); // Cache bust
             }
 
             const postTitle = res.data.title || res.data.frontmatter.title || file;
@@ -2024,7 +2024,7 @@ const App = () => {
                 console.log(`[HistorySync] Syncing pointer to ${newIndex}`);
                 setSaveStatus('saving');
                 // Use Refs to ensure we send the latest history array if it changed recently
-                await axios.post(`/api/drafts/${filename}`, {
+                await api.post(`/api/drafts/${filename}`, {
                     history: historyRef.current,
                     currentIndex: newIndex
                 });
@@ -2081,7 +2081,7 @@ const App = () => {
             confirmText: 'Delete',
             onConfirm: async () => {
                 try {
-                    await axios.delete(`/api/posts/${filename}`);
+                    await api.delete(`/api/posts/${filename}`);
                     setFilename(null);
                     setCurrentPost(null);
                     setIsDirty(false);
@@ -2105,7 +2105,7 @@ const App = () => {
             confirmText: 'Discard Changes',
             onConfirm: async () => {
                 try {
-                    await axios.delete(`/api/drafts/${filename}`);
+                    await api.delete(`/api/drafts/${filename}`);
                     await performLoadPost(filename);
                     fetchPosts();
                     setModalConfig(null);
@@ -2125,7 +2125,7 @@ const App = () => {
             const html = editor.getHTML();
             console.log('[Save] Sending to /api/posts:', { filename, title });
 
-            const res = await axios.post('/api/posts', {
+            const res = await api.post('/api/posts', {
                 filename,
                 frontmatter: { ...currentPost?.frontmatter, title, tags: postTags, categories: postCategories },
                 html
@@ -2169,7 +2169,7 @@ const App = () => {
                 if (currentStep === 'save') {
                     setSaveStatus('saving');
                     const html = editor.getHTML();
-                    await axios.post('/api/posts', {
+                    await api.post('/api/posts', {
                         filename,
                         frontmatter: { ...currentPost?.frontmatter, title, tags: postTags, categories: postCategories },
                         html
@@ -2179,7 +2179,7 @@ const App = () => {
                     setTimeout(() => setSaveStatus('saved'), 2000);
                 } else if (currentStep === 'publish') {
                     setDeployStatus('publishing');
-                    await axios.post('/api/publish');
+                    await api.post('/api/publish');
                 } else if (currentStep === 'commit') {
                     if (!workflow.commitMessage) {
                         setWorkflow(prev => ({ ...prev, status: 'paused' }));
@@ -2187,13 +2187,13 @@ const App = () => {
                         return;
                     }
                     setDeployStatus('committing');
-                    await axios.post('/api/git/commit', {
+                    await api.post('/api/git/commit', {
                         message: workflow.commitMessage,
                         filename
                     });
                 } else if (currentStep === 'push') {
                     setDeployStatus('pushing');
-                    await axios.post('/api/git/push');
+                    await api.post('/api/git/push');
                 }
 
                 // Proceed to next step or complete (using functional updates to ensure latest state)
@@ -2272,7 +2272,7 @@ const App = () => {
         const formData = new FormData();
         formData.append('image', file);
 
-        await axios.post('/api/upload', formData);
+        await api.post('/api/upload', formData);
         fetchLibraryImages();
     };
 

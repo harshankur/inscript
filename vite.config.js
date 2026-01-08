@@ -21,8 +21,9 @@ export default defineConfig(({ mode }) => {
             }
         },
         build: {
-            outDir: env.DIST_DIR,
+            outDir: mode === 'demo' ? 'docs' : env.DIST_DIR,
             emptyOutDir: true
-        }
+        },
+        base: mode === 'demo' ? './' : '/'
     }
 })
