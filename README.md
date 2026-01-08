@@ -1,6 +1,6 @@
 # Inscript
 
-A modern, "plug and play" CMS for your markdown-based blog. Built with React, Vite, Express, and Tailwind CSS.
+A unified system that helps you write and publish your markdown-based blog. A modern, "plug and play" CMS built with React, Vite, Express, and Tailwind CSS.
 Designed to be a seamless submodule for any static site generator (Hugo, Astro, Next.js, etc.).
 
 ## 🎮 Live Demo
@@ -19,6 +19,7 @@ Try the editor in your browser without installing anything!
     -   **Images**: Drag & drop upload, resize, and extensive media library integration.
     -   **YouTube**: Embed videos directly via URL or search.
     -   **Highlights**: Multi-color highlighting text.
+-   **WYSIWYG**: The look and feel of the CMS is exactly the same as the published blog. It is essentially the same application, ensuring there are no surprises in the final UI.
 
 ### 🗂️ Organization & Metadata
 -   **Taxonomy**: Manage Tags and Categories with an intuitive UI.
