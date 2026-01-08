@@ -1,5 +1,5 @@
 {
-    "name": "blog-inscript",
+    "name": "inscript",
     "version": "1.0.0",
     "main": "server.js",
     "type": "module",

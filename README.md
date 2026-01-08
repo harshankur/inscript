@@ -1,6 +1,6 @@
-# Blog Inscript
+# Inscript
 
-A modern, "plug and play" Inscript for your markdown-based blog. Built with React, Vite, Express, and Tailwind CSS.
+A modern, "plug and play" CMS for your markdown-based blog. Built with React, Vite, Express, and Tailwind CSS.
 Designed to be a seamless submodule for any static site generator (Hugo, Astro, Next.js, etc.).
 
 ## Features
@@ -37,7 +37,7 @@ Designed to be a seamless submodule for any static site generator (Hugo, Astro, 
 
 ## Installation
 
-This Inscript is best installed as a **Git Submodule** within your blog's repository.
+This tool is best installed as a **Git Submodule** within your blog's repository.
 
 ### 1. Add Submodule
 Run this from your project root:
@@ -55,7 +55,7 @@ npm install
 ```
 
 ### 3. Configure Environment
-The Inscript automatically creates a `.env` file on first run. You can also manually create one in `inscript/.env`:
+Inscript automatically creates a `.env` file on first run. You can also manually create one in `inscript/.env`:
 
 ```env
 # Display Name
@@ -69,7 +69,7 @@ SITE_URL=https://myblog.com
 CONTENT_DIR=../content
 # Where static assets (images) live
 STATIC_DIR=../static
-# Where the built Inscript and data.json should go
+# Where the built Inscript app and data.json should go
 DIST_DIR=../dist
 
 # OPTIONAL
@@ -82,7 +82,7 @@ ALLOW_PUSH=false
 ## Usage
 
 ### Development (Writing Content)
-Run the Inscript locally alongside your blog generator:
+Run Inscript locally alongside your blog generator:
 
 ```bash
 cd inscript
