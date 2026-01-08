@@ -1,7 +1,41 @@
 {
   "name": "inscript",
   "version": "1.0.0",
+  "description": "A modern, plug-and-play CMS for markdown-based blogs. Built with React, Vite, and Express.",
+  "author": "Harsh Ankur <harsh@harshankur.com>",
+  "license": "MIT",
+  "homepage": "https://harshankur.github.io/inscript/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harshankur/inscript.git"
+  },
+  "bugs": {
+    "url": "https://github.com/harshankur/inscript/issues"
+  },
+  "keywords": [
+    "cms",
+    "blog",
+    "markdown",
+    "editor",
+    "react",
+    "vite",
+    "tiptap",
+    "headless-cms"
+  ],
   "main": "server.js",
+  "files": [
+    "src",
+    "dist",
+    "scripts",
+    "docs",
+    "server.js",
+    "vite.config.js",
+    "index.html",
+    "tailwind.config.js",
+    "postcss.config.js",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "scripts": {
     "server": "node --watch server.js",
