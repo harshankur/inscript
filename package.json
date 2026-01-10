@@ -45,7 +45,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "publish": "npm run setup && vite build --mode readonly && node scripts/generate-data.js && node scripts/generate-sitemap.js",
-    "build:demo": "cross-env DEMO_MODE=true npm run setup && vite build --mode demo",
+    "build:demo": "cross-env DEMO_MODE=true npm run setup && vite build --mode demo && mv docs/index.html docs/inscript_demo.html && mv docs/assets/landing_source.html docs/index.html",
     "prepare": "husky"
   },
   "dependencies": {

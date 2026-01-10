@@ -28,7 +28,51 @@ const saveDemoPosts = (posts) => {
 
 const getDemoDrafts = () => {
     const stored = localStorage.getItem(DEMO_DRAFTS_KEY);
-    return stored ? JSON.parse(stored) : {};
+    if (stored) return JSON.parse(stored);
+
+    // Default demo drafts with version history for the welcome post
+    return {
+        'welcome-to-inscript.md': {
+            history: [
+                {
+                    html: '<h1>My First Post</h1><p>Just getting started...</p>',
+                    title: 'My First Post',
+                    tags: [],
+                    categories: [],
+                    timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() // 4 days ago
+                },
+                {
+                    html: '<h1>Getting Started with Inscript</h1><p>This is my first blog post using Inscript.</p><p>It\'s pretty cool!</p>',
+                    title: 'Getting Started with Inscript',
+                    tags: ['first-post'],
+                    categories: ['Personal'],
+                    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days ago
+                },
+                {
+                    html: '<h1>Welcome to Inscript</h1><p>This is a <strong>live demo</strong> running entirely in your browser.</p><p>Feel free to explore the editor!</p>',
+                    title: 'Welcome to Inscript',
+                    tags: ['demo', 'tutorial'],
+                    categories: ['Guide'],
+                    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
+                },
+                {
+                    html: '<h1>Welcome to Inscript!</h1><p>This is a <strong>live demo</strong> running entirely in your browser.</p><p>Feel free to edit this post or create new ones.</p><blockquote><p>Tip: All changes are saved to your browser\'s LocalStorage.</p></blockquote>',
+                    title: 'Welcome to Inscript!',
+                    tags: ['demo', 'welcome', 'tutorial'],
+                    categories: ['Guide', 'Documentation'],
+                    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+                },
+                {
+                    html: '<h1>Welcome to Inscript!</h1><p>This is a <strong>live demo</strong> running entirely in your browser.</p><p>Feel free to edit this post or create new ones.</p><blockquote><p>Note: Changes are saved to your browser\'s LocalStorage.</p></blockquote>',
+                    title: 'Welcome to Inscript (Demo)',
+                    tags: ['demo', 'welcome'],
+                    categories: ['Guide'],
+                    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
+                }
+            ],
+            currentIndex: 4 // Point to the latest version
+        }
+    };
 };
 
 const saveDemoDraft = (filename, draftData) => {

@@ -85,5 +85,4 @@ typings/
 dist
 
 # Generated Files
-public/manifest.json
-public/robots.txt
+public/

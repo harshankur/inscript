@@ -84,8 +84,9 @@ async function setup() {
     }
 
     // Directories
-    const STATIC_DIR_REL = process.env.STATIC_DIR;
-    const STATIC_DIR = path.resolve(INSCRIPT_ROOT, STATIC_DIR_REL);
+    const isDemo = process.env.DEMO_MODE === 'true';
+    const STATIC_DIR_REL = process.env.STATIC_DIR || (isDemo ? 'static' : '');
+    const STATIC_DIR = STATIC_DIR_REL ? path.resolve(INSCRIPT_ROOT, STATIC_DIR_REL) : null;
     const PUBLIC_DIR = path.join(INSCRIPT_ROOT, 'public');
     const ASSETS_DIR = path.join(INSCRIPT_ROOT, 'assets');
 
@@ -127,7 +128,6 @@ async function setup() {
     // Strict requirement: No defaults in code, must come from Env.
 
     // Check for DEMO_MODE to skip env vars
-    const isDemo = process.env.DEMO_MODE === 'true';
     if (isDemo) {
         console.log('🎭 DEMO MODE: Using default values for Demo build.');
     }

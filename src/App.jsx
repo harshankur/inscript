@@ -12,7 +12,7 @@ import StarterKit from '@tiptap/starter-kit';
 import api from './lib/api';
 import * as Diff from 'diff';
 import {
-    Activity,
+    Activity, Moon, Sun,
     ALargeSmall,
     AlertCircle,
     AlertTriangle,
@@ -111,7 +111,7 @@ const Youtube = Node.create({
             'div',
             {
                 'data-youtube-video': id,
-                class: 'youtube-embed relative w-full aspect-video rounded-lg overflow-hidden my-4 bg-zinc-800',
+                class: 'youtube-embed relative w-full aspect-video rounded-lg overflow-hidden my-4 bg-zinc-100 dark:bg-zinc-800',
             },
             [
                 'iframe',
@@ -218,41 +218,56 @@ const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCatego
         setSearch('');
     };
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (filteredItems.length > 0) {
+                // Select/toggle the first filtered item
+                toggleItem(filteredItems[0]);
+                setSearch('');
+            } else if (search) {
+                // No results, create new item
+                handleCreate();
+            }
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200">
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-                    <h2 className="text-lg font-bold text-zinc-100">Metadata</h2>
-                    <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors">
+                <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Metadata</h2>
+                    <button onClick={onClose} className="p-2 hover:bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:text-white transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex p-2 gap-2 border-b border-zinc-800">
+                <div className="flex p-2 gap-2 border-b border-zinc-200 dark:border-zinc-800">
                     <button
                         onClick={() => { setActiveTab('tags'); setSearch(''); }}
-                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'tags' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'tags' ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:text-zinc-300'}`}
                     >
                         Tags ({postTags.length})
                     </button>
                     <button
                         onClick={() => { setActiveTab('categories'); setSearch(''); }}
-                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'categories' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'categories' ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:text-zinc-300'}`}
                     >
                         Categories ({postCategories.length})
                     </button>
                 </div>
 
                 {/* Search */}
-                <div className="p-4 border-b border-zinc-800">
+                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
                     <input
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         placeholder={`Search or create ${activeTab}...`}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-3 text-zinc-900 dark:text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
                         autoFocus
                     />
                 </div>
@@ -269,7 +284,7 @@ const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCatego
                         </button>
                     )}
 
-                    <div className="mb-2 text-[10px] font-bold uppercase text-zinc-500 tracking-wider">
+                    <div className="mb-2 text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">
                         {search ? 'Matching Results' : 'Available Items'}
                     </div>
 
@@ -280,20 +295,20 @@ const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCatego
                                 onClick={() => toggleItem(item)}
                                 className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${currentSelected.includes(item)
                                     ? 'bg-emerald-500 text-black border-emerald-500'
-                                    : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-500 hover:text-white'
+                                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border-zinc-300 dark:border-zinc-700 hover:border-zinc-500 hover:text-zinc-900 dark:text-white'
                                     }`}
                             >
                                 {item}
                             </button>
                         ))}
                         {filteredItems.length === 0 && !search && (
-                            <span className="text-zinc-500 text-sm italic">No items found.</span>
+                            <span className="text-zinc-400 dark:text-zinc-500 text-sm italic">No items found.</span>
                         )}
                     </div>
                 </div>
 
                 {/* Footer (Selected Summary) */}
-                <div className="p-4 bg-zinc-950/50 border-t border-zinc-800 text-xs text-zinc-500">
+                <div className="p-4 bg-white dark:bg-zinc-950/50 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-400 dark:text-zinc-500">
                     Selected: {currentSelected.length > 0 ? currentSelected.join(', ') : 'None'}
                 </div>
             </div>
@@ -309,31 +324,31 @@ const ImageSelectorModal = ({ isOpen, onClose, images, onSelect, onUpload }) => 
 
     return (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-4xl flex flex-col h-[80vh] animate-in zoom-in-95 duration-200">
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl shadow-2xl w-full max-w-4xl flex flex-col h-[80vh] animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-                    <h2 className="text-lg font-bold text-zinc-100">Media Library</h2>
-                    <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors">
+                <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Media Library</h2>
+                    <button onClick={onClose} className="p-2 hover:bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:text-white transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
                 {/* Toolbar */}
-                <div className="p-4 border-b border-zinc-800 flex gap-4">
+                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex gap-4">
                     <div className="flex-1 relative">
                         <input
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search images..."
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg pl-10 pr-4 py-2 text-zinc-900 dark:text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
                             autoFocus
                         />
-                        <div className="absolute left-3 top-2.5 text-zinc-500">
+                        <div className="absolute left-3 top-2.5 text-zinc-400 dark:text-zinc-500">
                             <Filter size={16} />
                         </div>
                     </div>
-                    <label className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-2 shadow-lg shadow-emerald-900/20">
+                    <label className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-zinc-900 dark:text-white font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-2 shadow-lg shadow-emerald-900/20">
                         <Plus size={18} />
                         <span>Upload New</span>
                         <input type="file" className="hidden" onChange={onUpload} accept="image/*" />
@@ -341,13 +356,13 @@ const ImageSelectorModal = ({ isOpen, onClose, images, onSelect, onUpload }) => 
                 </div>
 
                 {/* Grid */}
-                <div className="flex-1 overflow-y-auto p-4 bg-zinc-950/30">
+                <div className="flex-1 overflow-y-auto p-4 bg-white dark:bg-zinc-950/30">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {filteredImages.map((img) => (
                             <button
                                 key={img.url}
                                 onClick={() => onSelect(img.url)}
-                                className="group relative aspect-square bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:ring-2 hover:ring-emerald-500 transition-all hover:scale-[1.02]"
+                                className="group relative aspect-square bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden hover:ring-2 hover:ring-emerald-500 transition-all hover:scale-[1.02]"
                             >
                                 <img
                                     src={img.url}
@@ -355,13 +370,13 @@ const ImageSelectorModal = ({ isOpen, onClose, images, onSelect, onUpload }) => 
                                     className="w-full h-full object-cover"
                                 />
                                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <p className="text-xs text-white truncate font-medium">{img.name}</p>
+                                    <p className="text-xs text-zinc-900 dark:text-white truncate font-medium">{img.name}</p>
                                 </div>
                             </button>
                         ))}
                     </div>
                     {filteredImages.length === 0 && (
-                        <div className="flex flex-col items-center justify-center h-full text-zinc-500 gap-2">
+                        <div className="flex flex-col items-center justify-center h-full text-zinc-400 dark:text-zinc-500 gap-2">
                             <ImageIcon size={48} className="opacity-20" />
                             <p>No images found</p>
                         </div>
@@ -386,7 +401,7 @@ const ToolbarButton = ({ onClick, active, disabled, children, title, className =
         disabled={disabled}
         title={title}
         style={{ width: `${width}px`, height: `${TOOLBAR_SIZES.BUTTON}px` }}
-        className={`flex items-center justify-center rounded transition-colors shrink-0 ${active ? 'bg-zinc-800 text-white shadow-inner' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+        className={`flex items-center justify-center rounded transition-colors shrink-0 ${active ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-inner' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white'
             } ${disabled ? 'opacity-20 cursor-not-allowed grayscale' : ''} ${className}`}
     >
         {children}
@@ -403,7 +418,7 @@ const ColorSelector = ({ icon: Icon, title, activeColor, onChange, onRemove, pre
                 title={title}
             >
                 <div className="relative flex items-center justify-center">
-                    <Icon size={18} style={{ color: variant === 'text' ? activeColor : undefined }} />
+                    <Icon size={16} style={{ color: variant === 'text' ? activeColor : undefined }} />
                     {variant === 'highlight' && activeColor && (
                         <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-sm" style={{ backgroundColor: activeColor }} />
                     )}
@@ -412,24 +427,24 @@ const ColorSelector = ({ icon: Icon, title, activeColor, onChange, onRemove, pre
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-[70]" onClick={() => setIsOpen(false)} />
-                    <div className="absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 mt-2 p-3 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl z-[80] min-w-[200px] animate-in slide-in-from-top-2 fade-in">
-                        <div className="text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wider">Presets</div>
+                    <div className="absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 mt-2 p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-xl z-[80] min-w-[200px] animate-in slide-in-from-top-2 fade-in">
+                        <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2 uppercase tracking-wider">Presets</div>
                         <div className="grid grid-cols-5 gap-1.5 mb-3">
                             {presets.map(color => (
                                 <button
                                     key={color}
                                     onClick={() => { onChange(color); setIsOpen(false); }}
-                                    className={`w-6 h-6 rounded border ${activeColor === color ? 'border-white ring-1 ring-white' : 'border-zinc-700 hover:scale-110 active:scale-95'} transition-all`}
+                                    className={`w-6 h-6 rounded border ${activeColor === color ? 'border-white ring-1 ring-white' : 'border-zinc-300 dark:border-zinc-700 hover:scale-110 active:scale-95'} transition-all`}
                                     style={{ backgroundColor: color }}
                                     title={color}
                                 />
                             ))}
                         </div>
 
-                        <div className="h-px bg-zinc-800 my-2" />
+                        <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-2" />
 
                         <div className="flex flex-col gap-2">
-                            <label className="flex items-center gap-2 text-xs text-zinc-300 hover:text-white cursor-pointer px-1 py-1 rounded hover:bg-zinc-800 transition-colors">
+                            <label className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white cursor-pointer px-1 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                                 <div className="w-5 h-5 rounded border border-zinc-600 bg-gradient-to-br from-red-500 via-green-500 to-blue-500 relative overflow-hidden flex items-center justify-center">
                                     <input
                                         type="color"
@@ -477,12 +492,12 @@ const FontSizeSelector = ({ editor }) => {
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-[70]" onClick={() => setIsOpen(false)} />
-                    <div className="absolute top-full left-0 mt-2 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl z-[80] flex flex-col min-w-[80px] max-h-[200px] overflow-y-auto animate-in slide-in-from-top-2 fade-in">
+                    <div className="absolute top-full left-0 mt-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-xl z-[80] flex flex-col min-w-[80px] max-h-[200px] overflow-y-auto animate-in slide-in-from-top-2 fade-in">
                         {sizes.map(size => (
                             <button
                                 key={size}
                                 onClick={() => { editor.chain().focus().setFontSize(size).run(); setIsOpen(false); }}
-                                className={`px-3 py-2 text-left hover:bg-zinc-800 transition-colors text-sm flex items-center justify-between ${currentSize == size ? 'text-white bg-zinc-800' : 'text-zinc-400'}`}
+                                className={`px-3 py-2 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-sm flex items-center justify-between ${currentSize == size ? 'text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800' : 'text-zinc-500 dark:text-zinc-400'}`}
                             >
                                 <span>{size}px</span>
                                 {currentSize == size && <CheckCircle size={12} className="text-emerald-500" />}
@@ -490,7 +505,7 @@ const FontSizeSelector = ({ editor }) => {
                         ))}
                         <button
                             onClick={() => { editor.chain().focus().unsetFontSize().run(); setIsOpen(false); }}
-                            className="px-3 py-2 text-left hover:bg-zinc-800 transition-colors text-xs text-red-400 border-t border-zinc-800 mt-1 flex items-center gap-2"
+                            className="px-3 py-2 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-xs text-red-400 border-t border-zinc-200 dark:border-zinc-800 mt-1 flex items-center gap-2"
                         >
                             <XCircle size={12} />
                             Reset
@@ -624,7 +639,7 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
     const overflowTools = tools.slice(visibleCount);
 
     const renderTool = (tool, idx) => {
-        if (tool.type === 'divider') return <div key={idx} style={{ width: `${TOOLBAR_SIZES.DIVIDER}px` }} className="h-6 flex items-center justify-center shrink-0"><div className="w-px h-full bg-zinc-800" /></div>;
+        if (tool.type === 'divider') return <div key={idx} style={{ width: `${TOOLBAR_SIZES.DIVIDER}px` }} className="h-6 flex items-center justify-center shrink-0"><div className="w-px h-full bg-zinc-100 dark:bg-zinc-800" /></div>;
         if (tool.type === 'custom') return <React.Fragment key={tool.id}>{tool.render()}</React.Fragment>;
 
         const Icon = tool.icon;
@@ -646,7 +661,7 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
 
 
     return (
-        <div ref={containerRef} className="px-4 py-2 border-b border-zinc-800 flex items-center gap-1 bg-zinc-900/20 w-full relative">
+        <div ref={containerRef} className="px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-1 bg-zinc-50 dark:bg-zinc-900/20 w-full relative">
             {visibleTools.map((t, i) => renderTool(t, i))}
 
             {overflowTools.length > 0 && (
@@ -654,7 +669,7 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
                     <button
                         onClick={() => setShowMore(!showMore)}
                         style={{ width: `${TOOLBAR_SIZES.BUTTON}px`, height: `${TOOLBAR_SIZES.BUTTON}px` }}
-                        className={`flex items-center justify-center rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors shrink-0 ${showMore ? 'bg-zinc-800 text-white' : ''}`}
+                        className={`flex items-center justify-center rounded hover:bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:text-white transition-colors shrink-0 ${showMore ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' : ''}`}
                         title="More tools"
                     >
                         <ChevronsRight size={18} />
@@ -662,7 +677,7 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
                     {showMore && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setShowMore(false)} />
-                            <div className="absolute right-0 top-full mt-2 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl p-2 z-[60] flex flex-col gap-1 min-w-[150px] animate-in slide-in-from-top-2 fade-in">
+                            <div className="absolute right-0 top-full mt-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-xl p-2 z-[60] flex flex-col gap-1 min-w-[150px] animate-in slide-in-from-top-2 fade-in">
                                 <div className="flex flex-wrap gap-1 max-w-[200px]">
                                     {overflowTools.map((t, i) => renderTool(t, i))}
                                 </div>
@@ -683,7 +698,7 @@ const SortDropdown = ({ value, onChange, options }) => {
         <div className="relative flex-1">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-1.5 px-3 text-xs text-left text-zinc-300 hover:border-zinc-500 transition-colors flex justify-between items-center"
+                className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg py-1.5 px-3 text-xs text-left text-zinc-700 dark:text-zinc-300 hover:border-zinc-500 transition-colors flex justify-between items-center"
             >
                 <span>{selectedOption ? selectedOption.label : 'Sort by...'}</span>
                 <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
@@ -691,7 +706,7 @@ const SortDropdown = ({ value, onChange, options }) => {
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-[70]" onClick={() => setIsOpen(false)} />
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl z-[80] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl z-[80] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
                         {options.map(opt => (
                             <button
                                 key={opt.value}
@@ -701,7 +716,7 @@ const SortDropdown = ({ value, onChange, options }) => {
                                 }}
                                 className={`w-full text-left px-3 py-2 text-xs transition-colors ${value === opt.value
                                     ? 'bg-emerald-500/10 text-emerald-500'
-                                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                                    : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:bg-zinc-800 hover:text-zinc-900 dark:text-white'
                                     }`}
                             >
                                 {opt.label}
@@ -717,8 +732,8 @@ const SortDropdown = ({ value, onChange, options }) => {
 const MultiSelect = ({ options, selected, onChange, placeholder, label }) => {
     return (
         <div className="space-y-1">
-            <label className="text-[10px] uppercase font-bold text-zinc-500 ml-1">{label}</label>
-            <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-1 max-h-32 overflow-y-auto custom-scrollbar">
+            <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 ml-1">{label}</label>
+            <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg p-1 max-h-32 overflow-y-auto custom-scrollbar">
                 {options.length > 0 ? options.map(opt => (
                     <button
                         key={opt}
@@ -731,7 +746,7 @@ const MultiSelect = ({ options, selected, onChange, placeholder, label }) => {
                         }}
                         className={`w-full text-left px-2 py-1.5 rounded text-[11px] transition-all flex items-center justify-between group ${selected.includes(opt)
                             ? 'bg-emerald-500/10 text-emerald-500'
-                            : 'text-zinc-400 hover:bg-zinc-700 hover:text-white'
+                            : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-700 hover:text-zinc-900 dark:text-white'
                             }`}
                     >
                         <span>{opt}</span>
@@ -846,8 +861,8 @@ const CalendarRangePicker = ({ label, range, onChange }) => {
                                         : isInRange
                                             ? 'bg-emerald-500/20 text-emerald-500'
                                             : isToday
-                                                ? 'bg-zinc-700 text-white font-bold ring-1 ring-zinc-500'
-                                                : 'text-zinc-400 hover:bg-zinc-700'
+                                                ? 'bg-zinc-700 text-zinc-900 dark:text-white font-bold ring-1 ring-zinc-500'
+                                                : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-700'
                                         }`}
                                 >
                                     {d ? new Date(d).getDate() : ''}
@@ -870,7 +885,7 @@ const CalendarRangePicker = ({ label, range, onChange }) => {
                                 setViewDate(m);
                                 setViewMode('days');
                             }}
-                            className="p-2 text-[10px] rounded text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                            className="p-2 text-[10px] rounded text-zinc-500 dark:text-zinc-400 hover:bg-zinc-700 hover:text-zinc-900 dark:text-white"
                         >
                             {m.toLocaleString('default', { month: 'short' })}
                         </button>
@@ -891,7 +906,7 @@ const CalendarRangePicker = ({ label, range, onChange }) => {
                                 setViewDate(new Date(y, 0, 1));
                                 setViewMode('months');
                             }}
-                            className={`p-2 text-[10px] rounded hover:bg-zinc-700 hover:text-white ${y === new Date().getFullYear() ? 'text-emerald-500 font-bold' : 'text-zinc-400'}`}
+                            className={`p-2 text-[10px] rounded hover:bg-zinc-700 hover:text-zinc-900 dark:text-white ${y === new Date().getFullYear() ? 'text-emerald-500 font-bold' : 'text-zinc-500 dark:text-zinc-400'}`}
                         >
                             {y}
                         </button>
@@ -912,7 +927,7 @@ const CalendarRangePicker = ({ label, range, onChange }) => {
                                 setViewDate(new Date(d, 0, 1));
                                 setViewMode('years');
                             }}
-                            className="p-2 text-[10px] rounded text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                            className="p-2 text-[10px] rounded text-zinc-500 dark:text-zinc-400 hover:bg-zinc-700 hover:text-zinc-900 dark:text-white"
                         >
                             {d}-{d + 9}
                         </button>
@@ -925,7 +940,7 @@ const CalendarRangePicker = ({ label, range, onChange }) => {
     return (
         <div className="space-y-1">
             <div className="flex justify-between items-center px-1">
-                <label className="text-[10px] uppercase font-bold text-zinc-500">{label}</label>
+                <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500">{label}</label>
                 <button
                     onClick={handleTodayClick}
                     className="text-[9px] font-bold text-emerald-500 hover:text-emerald-400 transition-colors bg-emerald-500/5 px-1.5 py-0.5 rounded border border-emerald-500/10"
@@ -933,17 +948,17 @@ const CalendarRangePicker = ({ label, range, onChange }) => {
                     Today
                 </button>
             </div>
-            <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-3">
+            <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg p-3">
                 <div className="flex justify-between items-center mb-3">
-                    <button onClick={handlePrevClick} className="p-1 hover:bg-zinc-700 rounded text-zinc-400"><ChevronLeft size={14} /></button>
-                    <button onClick={handleHeaderClick} className="text-[11px] font-bold text-zinc-300 hover:text-white hover:underline transition-all">
+                    <button onClick={handlePrevClick} className="p-1 hover:bg-zinc-700 rounded text-zinc-500 dark:text-zinc-400"><ChevronLeft size={14} /></button>
+                    <button onClick={handleHeaderClick} className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:text-white hover:underline transition-all">
                         {renderHeader()}
                     </button>
-                    <button onClick={handleNextClick} className="p-1 hover:bg-zinc-700 rounded text-zinc-400"><ChevronRight size={14} /></button>
+                    <button onClick={handleNextClick} className="p-1 hover:bg-zinc-700 rounded text-zinc-500 dark:text-zinc-400"><ChevronRight size={14} /></button>
                 </div>
                 {renderGrid()}
                 {viewMode === 'days' && (range.start || range.end) && (
-                    <div className="mt-3 flex items-center justify-between text-[9px] text-zinc-500 border-t border-zinc-700 pt-2">
+                    <div className="mt-3 flex items-center justify-between text-[9px] text-zinc-400 dark:text-zinc-500 border-t border-zinc-300 dark:border-zinc-700 pt-2">
                         <span>{range.start ? new Date(range.start).toLocaleDateString() : '...'} - {range.end ? new Date(range.end).toLocaleDateString() : '...'}</span>
                         <button onClick={() => onChange({ start: null, end: null })} className="text-red-400 hover:underline">Reset</button>
                     </div>
@@ -968,33 +983,33 @@ const NewPostModal = ({ isOpen, onClose, onConfirm }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-white">
-            <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100 opacity-100">
-                <div className="p-6 text-white">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-zinc-900 dark:text-white">
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100 opacity-100">
+                <div className="p-6 text-zinc-900 dark:text-white">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg">
                             <Plus size={20} />
                         </div>
                         <h3 className="text-lg font-bold">Create New Post</h3>
                     </div>
-                    <p className="text-zinc-400 text-sm mb-4">Enter a filename for your new post.</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-4">Enter a filename for your new post.</p>
                     <input
                         autoFocus
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="My New Post"
-                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2.5 px-4 text-white focus:outline-none focus:border-emerald-500 transition-colors shadow-inner"
+                        className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg py-2.5 px-4 text-zinc-900 dark:text-white focus:outline-none focus:border-emerald-500 transition-colors shadow-inner"
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSubmit();
                             if (e.key === 'Escape') onClose();
                         }}
                     />
                 </div>
-                <div className="px-6 py-4 bg-zinc-950/50 flex justify-end gap-3 border-t border-zinc-800">
+                <div className="px-6 py-4 bg-white dark:bg-zinc-950/50 flex justify-end gap-3 border-t border-zinc-200 dark:border-zinc-800">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:text-white hover:bg-zinc-100 dark:bg-zinc-800 transition-colors"
                     >
                         Cancel
                     </button>
@@ -1056,35 +1071,35 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-white">
-            <div className="bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-zinc-900 dark:text-white">
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
                 {/* Header */}
-                <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+                <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-red-500/10 text-red-500 rounded-lg">
                             <YoutubeIcon size={24} />
                         </div>
                         <div>
                             <h3 className="text-lg font-bold">Embed YouTube Video</h3>
-                            <p className="text-xs text-zinc-500">Search or paste a link to embed</p>
+                            <p className="text-xs text-zinc-400 dark:text-zinc-500">Search or paste a link to embed</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-colors">
+                    <button onClick={onClose} className="p-2 hover:bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex px-6 pt-2 border-b border-zinc-800 gap-6">
+                <div className="flex px-6 pt-2 border-b border-zinc-200 dark:border-zinc-800 gap-6">
                     <button
                         onClick={() => setActiveTab('search')}
-                        className={`py-3 text-sm font-medium border-b-2 transition-all ${activeTab === 'search' ? 'border-emerald-500 text-emerald-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                        className={`py-3 text-sm font-medium border-b-2 transition-all ${activeTab === 'search' ? 'border-emerald-500 text-emerald-500' : 'border-transparent text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:text-zinc-300'}`}
                     >
                         Search YouTube
                     </button>
                     <button
                         onClick={() => setActiveTab('link')}
-                        className={`py-3 text-sm font-medium border-b-2 transition-all ${activeTab === 'link' ? 'border-emerald-500 text-emerald-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                        className={`py-3 text-sm font-medium border-b-2 transition-all ${activeTab === 'link' ? 'border-emerald-500 text-emerald-500' : 'border-transparent text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:text-zinc-300'}`}
                     >
                         Direct Link
                     </button>
@@ -1099,7 +1114,7 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
                                     autoFocus
                                     type="text"
                                     placeholder="Search for videos..."
-                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl py-3 pl-4 pr-12 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition-all shadow-inner"
+                                    className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl py-3 pl-4 pr-12 text-zinc-900 dark:text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition-all shadow-inner"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                 />
@@ -1116,8 +1131,8 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
                                 <div className="grid grid-cols-2 gap-4 animate-pulse">
                                     {[1, 2, 3, 4].map(i => (
                                         <div key={i} className="space-y-2">
-                                            <div className="aspect-video bg-zinc-800 rounded-lg" />
-                                            <div className="h-4 bg-zinc-800 rounded w-3/4" />
+                                            <div className="aspect-video bg-zinc-100 dark:bg-zinc-800 rounded-lg" />
+                                            <div className="h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-3/4" />
                                         </div>
                                     ))}
                                 </div>
@@ -1127,16 +1142,16 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
                                         <button
                                             key={video.url}
                                             onClick={() => onConfirm(video.url.split('v=')[1] || video.url.split('/').pop())}
-                                            className="group text-left space-y-2 hover:bg-zinc-800/50 p-2 rounded-xl transition-all"
+                                            className="group text-left space-y-2 hover:bg-zinc-100 dark:bg-zinc-800/50 p-2 rounded-xl transition-all"
                                         >
-                                            <div className="relative aspect-video rounded-lg overflow-hidden bg-zinc-800">
+                                            <div className="relative aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                                                 <img
                                                     src={video.thumbnail}
                                                     alt={video.title}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                 />
                                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                                    <Plus size={32} className="text-white bg-emerald-500 rounded-full p-2" />
+                                                    <Plus size={32} className="text-zinc-900 dark:text-white bg-emerald-500 rounded-full p-2" />
                                                 </div>
                                                 <span className="absolute bottom-2 right-2 bg-black/80 text-[10px] px-1.5 py-0.5 rounded font-mono">
                                                     {video.duration ? Math.floor(video.duration / 60) + ':' + (video.duration % 60).toString().padStart(2, '0') : ''}
@@ -1144,7 +1159,7 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
                                             </div>
                                             <div className="space-y-1">
                                                 <h4 className="text-sm font-medium line-clamp-2 leading-tight group-hover:text-emerald-400 transition-colors">{video.title}</h4>
-                                                <p className="text-[10px] text-zinc-500 flex items-center gap-1">
+                                                <p className="text-[10px] text-zinc-400 dark:text-zinc-500 flex items-center gap-1">
                                                     {video.uploaderName} • {video.views?.toLocaleString()} views
                                                 </p>
                                             </div>
@@ -1152,9 +1167,9 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
                                     ))}
                                 </div>
                             ) : query && !searching ? (
-                                <div className="text-center py-12 text-zinc-500 italic">No videos found. Try a different search.</div>
+                                <div className="text-center py-12 text-zinc-400 dark:text-zinc-500 italic">No videos found. Try a different search.</div>
                             ) : (
-                                <div className="text-center py-12 flex flex-col items-center gap-4 text-zinc-500">
+                                <div className="text-center py-12 flex flex-col items-center gap-4 text-zinc-400 dark:text-zinc-500">
                                     <YoutubeIcon size={48} className="opacity-10" />
                                     <p>Enter a topic or video name to find content</p>
                                 </div>
@@ -1163,12 +1178,12 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
                     ) : (
                         <div className="space-y-6">
                             <div>
-                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 block">Video URL or ID</label>
+                                <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-2 block">Video URL or ID</label>
                                 <input
                                     autoFocus
                                     type="text"
                                     placeholder="https://youtube.com/watch?v=..."
-                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl py-3 px-4 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition-all shadow-inner"
+                                    className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl py-3 px-4 text-zinc-900 dark:text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition-all shadow-inner"
                                     value={linkInput}
                                     onChange={(e) => setLinkInput(e.target.value)}
                                 />
@@ -1176,7 +1191,7 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
 
                             {previewId && (
                                 <div className="space-y-3">
-                                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest block">Live Preview</label>
+                                    <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest block">Live Preview</label>
                                     <div className="aspect-video rounded-xl overflow-hidden bg-black ring-1 ring-zinc-800 relative shadow-2xl">
                                         <iframe
                                             src={`https://www.youtube.com/embed/${previewId}?controls=0&modestbranding=1`}
@@ -1193,8 +1208,8 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 bg-zinc-950/50 border-t border-zinc-800 flex justify-end gap-3">
-                    <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors">Cancel</button>
+                <div className="p-6 bg-white dark:bg-zinc-950/50 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:text-white transition-colors">Cancel</button>
                     <button
                         onClick={() => previewId && onConfirm(previewId)}
                         disabled={!previewId}
@@ -1247,7 +1262,7 @@ const SaveSplitButton = ({ onSave, onAction, isSaving, isDirty, deployStatus }) 
                 disabled={isSaving || !!deployStatus || !isDirty}
                 className={`flex items-center gap-2 pl-4 pr-3 rounded-l-lg font-bold transition-all justify-center text-sm border-r border-black/10 ${isDirty
                     ? 'bg-yellow-400 text-zinc-950 hover:bg-yellow-300 shadow-[0_0_20px_rgba(250,204,21,0.2)]'
-                    : 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
                     }`}
                 title={isSaving ? 'Saving...' : 'Save Changes'}
             >
@@ -1265,7 +1280,7 @@ const SaveSplitButton = ({ onSave, onAction, isSaving, isDirty, deployStatus }) 
                 disabled={!!deployStatus}
                 className={`px-2 rounded-r-lg transition-all border-l border-white/10 ${isDirty
                     ? 'bg-yellow-400 text-zinc-950 hover:bg-yellow-300'
-                    : 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
                     }`}
             >
                 <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
@@ -1273,7 +1288,7 @@ const SaveSplitButton = ({ onSave, onAction, isSaving, isDirty, deployStatus }) 
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 w-72 bg-zinc-900 border border-zinc-700 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[200] overflow-hidden">
+                <div className="absolute top-full right-0 mt-2 w-72 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[200] overflow-hidden">
                     <div className="p-2 space-y-1">
                         {options.map((opt) => (
                             <button
@@ -1284,14 +1299,14 @@ const SaveSplitButton = ({ onSave, onAction, isSaving, isDirty, deployStatus }) 
                                     onAction(opt.steps);
                                     setIsOpen(false);
                                 }}
-                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-zinc-800 text-left transition-colors group"
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-zinc-100 dark:bg-zinc-800 text-left transition-colors group"
                             >
-                                <div className={`p-1.5 rounded-md bg-zinc-800 group-hover:bg-zinc-700 ${opt.color}`}>
+                                <div className={`p-1.5 rounded-md bg-zinc-100 dark:bg-zinc-800 group-hover:bg-zinc-700 ${opt.color}`}>
                                     <opt.icon size={16} />
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium text-zinc-200">{opt.label}</span>
-                                    <span className="text-[10px] text-zinc-500 uppercase tracking-tighter">Workflow</span>
+                                    <span className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter">Workflow</span>
                                 </div>
                             </button>
                         ))}
@@ -1336,19 +1351,19 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
 
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 <div className="p-6">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-8">
-                        <h2 className="text-xl font-bold text-white">Workflow Progress</h2>
-                        <button onClick={onAbort} className="text-zinc-500 hover:text-red-400 transition-colors">
+                        <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Workflow Progress</h2>
+                        <button onClick={onAbort} className="text-zinc-400 dark:text-zinc-500 hover:text-red-400 transition-colors">
                             <X size={20} />
                         </button>
                     </div>
 
                     {/* Timeline */}
                     <div className="relative mb-12">
-                        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-zinc-800 -translate-y-1/2" />
+                        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-zinc-100 dark:bg-zinc-800 -translate-y-1/2" />
                         <div className="relative flex justify-between items-center">
                             {steps.map((step, idx) => {
                                 const Info = stepInfo[step];
@@ -1364,14 +1379,14 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                                     <div key={step} className="relative flex flex-col items-center group">
                                         {/* Connector line for finished steps */}
                                         {idx > 0 && idx <= currentIndex && (
-                                            <div className={`absolute top-1/2 right-full w-full h-0.5 -translate-y-1/2 z-0 ${(isCompleted || isActive) && !isTargetedForCancel ? 'bg-emerald-500' : 'bg-zinc-800'}`} style={{ width: '100%' }} />
+                                            <div className={`absolute top-1/2 right-full w-full h-0.5 -translate-y-1/2 z-0 ${(isCompleted || isActive) && !isTargetedForCancel ? 'bg-emerald-500' : 'bg-zinc-100 dark:bg-zinc-800'}`} style={{ width: '100%' }} />
                                         )}
 
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all duration-300 relative ${isTargetedForCancel ? 'bg-red-500/20 text-red-500 ring-2 ring-red-500/30' :
                                             isCompleted ? 'bg-emerald-500 text-zinc-950' :
                                                 isActive ? 'bg-emerald-500/20 text-emerald-500 ring-4 ring-emerald-500/10' :
                                                     isError ? 'bg-red-500/20 text-red-500' :
-                                                        'bg-zinc-800 text-zinc-500'
+                                                        'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500'
                                             }`}>
                                             {isCompleted && !isTargetedForCancel ? <CheckCircle size={20} /> : <Info.icon size={20} className={isActive ? 'animate-pulse' : ''} />}
 
@@ -1381,14 +1396,14 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                                                     onClick={(e) => { e.stopPropagation(); onCancelStep(idx); }}
                                                     onMouseEnter={() => setHoveredCancelIdx(idx)}
                                                     onMouseLeave={() => setHoveredCancelIdx(null)}
-                                                    className="absolute -top-1 -right-1 bg-zinc-700 text-zinc-400 hover:bg-red-500 hover:text-white rounded-full p-0.5 opacity-40 hover:opacity-100 transition-opacity z-20"
+                                                    className="absolute -top-1 -right-1 bg-zinc-700 text-zinc-500 dark:text-zinc-400 hover:bg-red-500 hover:text-zinc-900 dark:text-white rounded-full p-0.5 opacity-40 hover:opacity-100 transition-opacity z-20"
                                                     title="Cancel this and following steps"
                                                 >
                                                     <X size={10} />
                                                 </button>
                                             )}
                                         </div>
-                                        <span className={`absolute top-full mt-2 text-[10px] font-bold uppercase tracking-wider ${isTargetedForCancel ? 'text-red-500' : isActive ? 'text-emerald-500' : 'text-zinc-500'}`}>
+                                        <span className={`absolute top-full mt-2 text-[10px] font-bold uppercase tracking-wider ${isTargetedForCancel ? 'text-red-500' : isActive ? 'text-emerald-500' : 'text-zinc-400 dark:text-zinc-500'}`}>
                                             {Info.label}
                                         </span>
                                     </div>
@@ -1410,12 +1425,12 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                         ) : isPausedForCommit ? (
                             <div className="space-y-4 animate-in slide-in-from-bottom-2">
                                 <div>
-                                    <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Commit Message</label>
+                                    <label className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2">Commit Message</label>
                                     <textarea
                                         autoFocus
                                         value={commitMsg}
                                         onChange={(e) => setCommitMsg(e.target.value)}
-                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-zinc-200 text-sm outline-none focus:border-emerald-500/50 transition-colors min-h-[80px] resize-none"
+                                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 text-zinc-200 text-sm outline-none focus:border-emerald-500/50 transition-colors min-h-[80px] resize-none"
                                         placeholder="What changed?"
                                     />
                                 </div>
@@ -1428,14 +1443,14 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                             </div>
                         ) : (
                             <div className="text-center py-4">
-                                <div className="text-sm text-zinc-300 font-medium mb-1">
+                                <div className="text-sm text-zinc-700 dark:text-zinc-300 font-medium mb-1">
                                     {status === 'completed' ? 'Workflow Successful!' :
                                         currentStep === 'save' ? 'Saving post content...' :
                                             currentStep === 'publish' ? 'Generating static site...' :
                                                 currentStep === 'commit' ? 'Recording changes to Git...' :
                                                     currentStep === 'push' ? 'Pushing to remote repository...' : 'Processing...'}
                                 </div>
-                                <div className="text-xs text-zinc-500">
+                                <div className="text-xs text-zinc-400 dark:text-zinc-500">
                                     {status === 'completed' ? 'All steps finished. You can now close this modal.' : 'Please wait while we handle the deployment.'}
                                 </div>
                             </div>
@@ -1458,7 +1473,7 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                                                     setDontShowPushWarning(val);
                                                     localStorage.setItem('inscript_hide_push_warning', val ? 'true' : 'false');
                                                 }}
-                                                className="w-3 h-3 rounded border-zinc-700 bg-zinc-800 text-emerald-500"
+                                                className="w-3 h-3 rounded border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-emerald-500"
                                             />
                                             <span className="text-[9px] text-orange-200/40 group-hover:text-orange-200/60 transition-colors">Don't show again</span>
                                         </label>
@@ -1482,7 +1497,7 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                                                     setDontShowPushInfo(val);
                                                     localStorage.setItem('inscript_hide_push_info', val ? 'true' : 'false');
                                                 }}
-                                                className="w-3 h-3 rounded border-zinc-700 bg-zinc-800 text-blue-500"
+                                                className="w-3 h-3 rounded border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-blue-500"
                                             />
                                             <span className="text-[9px] text-blue-200/40 group-hover:text-blue-200/60 transition-colors">Don't show this tip again</span>
                                         </label>
@@ -1494,7 +1509,7 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                 </div>
 
                 {/* Global Footer Actions */}
-                <div className="px-6 py-4 bg-zinc-950/50 flex justify-between items-center border-t border-zinc-800">
+                <div className="px-6 py-4 bg-white dark:bg-zinc-950/50 flex justify-between items-center border-t border-zinc-200 dark:border-zinc-800">
                     <button
                         onClick={onAbort}
                         onMouseEnter={() => setIsAborting(true)}
@@ -1506,7 +1521,7 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                     {status === 'completed' && (
                         <button
                             onClick={onClose}
-                            className="px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded text-xs font-bold transition-all"
+                            className="px-4 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 text-zinc-900 dark:text-white rounded text-xs font-bold transition-all"
                         >
                             Close
                         </button>
@@ -1523,28 +1538,28 @@ const ConfirmationModal = ({ config, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100 opacity-100">
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100 opacity-100">
                 <div className="p-6">
                     <div className="flex items-start gap-4">
                         <div className={`p-3 rounded-full ${type === 'danger' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
                             {type === 'danger' ? <Trash2 size={24} /> : <AlertTriangle size={24} />}
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-                            <p className="text-zinc-400 text-sm leading-relaxed">{message}</p>
+                            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">{title}</h3>
+                            <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed">{message}</p>
                         </div>
                     </div>
                 </div>
-                <div className="px-6 py-4 bg-zinc-950/50 flex justify-end gap-3 border-t border-zinc-800">
+                <div className="px-6 py-4 bg-white dark:bg-zinc-950/50 flex justify-end gap-3 border-t border-zinc-200 dark:border-zinc-800">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:text-white hover:bg-zinc-100 dark:bg-zinc-800 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={onConfirm}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold text-white shadow-lg transition-all ${type === 'danger'
+                        className={`px-4 py-2 rounded-lg text-sm font-bold text-zinc-900 dark:text-white shadow-lg transition-all ${type === 'danger'
                             ? 'bg-red-600 hover:bg-red-500 shadow-red-900/20'
                             : 'bg-yellow-600 hover:bg-yellow-500 shadow-yellow-900/20'
                             }`}
@@ -1558,6 +1573,23 @@ const ConfirmationModal = ({ config, onClose }) => {
 };
 
 const App = () => {
+    const [theme, setTheme] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('theme') || 'dark';
+        }
+        return 'dark';
+    });
+
+    useEffect(() => {
+        const root = window.document.documentElement;
+        root.classList.remove('light', 'dark');
+        root.classList.add(theme);
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
+    const APP_TITLE = import.meta.env.MODE === 'demo' ? 'Inscript Demo' : import.meta.env.TITLE;
     const [posts, setPosts] = useState([]);
     const [isCopied, setIsCopied] = useState(false);
     const [currentPost, setCurrentPost] = useState(null);
@@ -1822,7 +1854,7 @@ const App = () => {
 
     // Routing: Sync URL with filename
     useEffect(() => {
-        const appTitle = import.meta.env.TITLE;
+        const appTitle = APP_TITLE;
         if (filename) {
             const url = new URL(window.location);
             url.searchParams.set('post', filename.replace('.md', ''));
@@ -2288,14 +2320,18 @@ const App = () => {
     const allTags = useMemo(() => {
         const tags = new Set();
         posts.forEach(p => (p.tags || []).forEach(t => tags.add(t)));
+        // Also include current post's tags (even if not saved yet)
+        (postTags || []).forEach(t => tags.add(t));
         return Array.from(tags).sort();
-    }, [posts]);
+    }, [posts, postTags]);
 
     const allCategories = useMemo(() => {
         const cats = new Set();
         posts.forEach(p => (p.categories || []).forEach(c => cats.add(c)));
+        // Also include current post's categories (even if not saved yet)
+        (postCategories || []).forEach(c => cats.add(c));
         return Array.from(cats).sort();
-    }, [posts]);
+    }, [posts, postCategories]);
 
     const introductionPost = useMemo(() => posts.find(p => p.type === 'introduction'), [posts]);
 
@@ -2456,10 +2492,10 @@ const App = () => {
             {/* Sidebar */}
             {showSidebar && (
                 <div
-                    className="fixed inset-y-0 left-0 z-50 md:sticky md:top-0 md:h-screen md:relative md:z-30 bg-zinc-900 border-r border-zinc-800 flex flex-col flex-shrink-0 group/sidebar shadow-2xl md:shadow-none"
+                    className="fixed inset-y-0 left-0 z-50 md:sticky md:top-0 md:h-screen md:relative md:z-30 bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col flex-shrink-0 group/sidebar shadow-2xl md:shadow-none"
                     style={{ width: Math.min(sidebarWidth, typeof window !== 'undefined' ? window.innerWidth - 60 : 300) }}
                 >
-                    <div className="p-6 border-b border-zinc-800">
+                    <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
                         <div className="flex justify-between items-center mb-6 min-h-14">
                             <button onClick={() => {
                                 setFilename(null);
@@ -2470,16 +2506,23 @@ const App = () => {
                                 setSaveStatus(null);
                                 setOriginalContent({ title: '', html: '', tags: [], categories: [] });
                             }} className="hover:opacity-80 transition-opacity text-left">
-                                <h1 className="text-xl font-bold tracking-tight text-white">{import.meta.env.TITLE}</h1>
+                                <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">{APP_TITLE}</h1>
                             </button>
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] bg-zinc-800 text-zinc-500 px-2 py-1 rounded font-mono hidden sm:inline-block">
+                                <button
+                                    onClick={toggleTheme}
+                                    className="w-10 h-10 flex items-center justify-center p-0 rounded-lg transition-colors text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-zinc-500 dark:text-zinc-400 dark:hover:text-zinc-900 dark:text-white bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                                    title={'Switch to ' + (theme === 'dark' ? 'light' : 'dark') + ' mode'}
+                                >
+                                    {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                                </button>
+                                <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 px-2 py-1 rounded font-mono hidden sm:inline-block">
                                     {posts.length} POSTS
                                 </span>
                                 {/* Mobile Close Button */}
                                 <button
                                     onClick={() => setShowSidebar(false)}
-                                    className="w-10 h-10 flex items-center justify-center p-0 md:hidden text-zinc-400 hover:text-white bg-zinc-800/50 hover:bg-zinc-800 rounded-lg transition-colors"
+                                    className="w-10 h-10 flex items-center justify-center p-0 md:hidden text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:bg-zinc-800 rounded-lg transition-colors"
                                 >
                                     <PanelLeftClose size={20} />
                                 </button>
@@ -2503,12 +2546,12 @@ const App = () => {
                                         placeholder="Search posts..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2 pl-3 pr-10 text-sm focus:outline-none focus:border-white transition-colors"
+                                        className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg py-2 pl-3 pr-10 text-sm focus:outline-none focus:border-white transition-colors"
                                     />
                                     {searchTerm && (
                                         <button
                                             onClick={() => setSearchTerm('')}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white"
                                         >
                                             <X size={14} />
                                         </button>
@@ -2518,7 +2561,7 @@ const App = () => {
                                     onClick={() => setShowFilters(!showFilters)}
                                     className={`w-10 h-10 flex items-center justify-center p-0 rounded-lg border transition-all ${showFilters || selectedTags.length > 0 || selectedCategories.length > 0 || createdRange.start || modifiedRange.start
                                         ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
-                                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-white'
+                                        : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-white'
                                         }`}
                                     title="Toggle Filters"
                                 >
@@ -2531,12 +2574,12 @@ const App = () => {
 
                             {/* Filters Panel */}
                             {showFilters && (
-                                <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-4 space-y-4 shadow-xl max-h-[60vh] overflow-y-auto custom-scrollbar">
-                                    <div className="flex justify-between items-center pb-2 border-b border-zinc-800">
-                                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Advanced Filters</span>
+                                <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl p-4 space-y-4 shadow-xl max-h-[60vh] overflow-y-auto custom-scrollbar">
+                                    <div className="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                                        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Advanced Filters</span>
                                         <button
                                             onClick={clearAllFilters}
-                                            className="text-[10px] text-zinc-500 hover:text-red-400 transition-colors uppercase font-bold tracking-wide flex items-center gap-1"
+                                            className="text-[10px] text-zinc-400 dark:text-zinc-500 hover:text-red-400 transition-colors uppercase font-bold tracking-wide flex items-center gap-1"
                                         >
                                             <XCircle size={10} />
                                             Clear All
@@ -2545,15 +2588,15 @@ const App = () => {
 
                                     {!isReadonly && (
                                         <div className="space-y-2">
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 ml-1">Status</label>
-                                            <div className="flex p-1 bg-zinc-900 rounded-lg border border-zinc-700">
+                                            <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 ml-1">Status</label>
+                                            <div className="flex p-1 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-300 dark:border-zinc-700">
                                                 {['all', 'drafts', 'unpublished'].map(tab => (
                                                     <button
                                                         key={tab}
                                                         onClick={() => setActiveTab(tab)}
                                                         className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wide rounded-md transition-all ${activeTab === tab
-                                                            ? 'bg-zinc-800 text-white shadow-sm'
-                                                            : 'text-zinc-500 hover:text-zinc-300'
+                                                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                                                            : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:text-zinc-300'
                                                             }`}
                                                     >
                                                         {tab}
@@ -2594,7 +2637,7 @@ const App = () => {
                                     {(selectedTags.length > 0 || selectedCategories.length > 0 || createdRange.start || modifiedRange.start || (activeTab !== 'all' && !isReadonly)) && (
                                         <button
                                             onClick={clearAllFilters}
-                                            className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 text-xs font-bold uppercase tracking-wider rounded-lg transition-all"
+                                            className="w-full py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold uppercase tracking-wider rounded-lg transition-all"
                                         >
                                             Reset Filters
                                         </button>
@@ -2602,9 +2645,9 @@ const App = () => {
                                 </div>
                             )}
 
-                            <div className="space-y-1.5 pt-2 border-t border-zinc-800/50">
+                            <div className="space-y-1.5 pt-2 border-t border-zinc-200 dark:border-zinc-800/50">
                                 <div className="flex justify-between items-center px-1">
-                                    <label className="text-[10px] uppercase font-bold text-zinc-500">Sort by</label>
+                                    <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500">Sort by</label>
                                     <span className="text-[10px] text-zinc-600 font-mono">{sortOrder.toUpperCase()}</span>
                                 </div>
                                 <div className="flex gap-2">
@@ -2621,7 +2664,7 @@ const App = () => {
                                     />
                                     <button
                                         onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                                        className={`w-10 flex items-center justify-center p-0 rounded-lg border transition-all ${sortOrder === 'asc' ? 'bg-zinc-800 border-zinc-700' : 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
+                                        className={`w-10 flex items-center justify-center p-0 rounded-lg border transition-all ${sortOrder === 'asc' ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700' : 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
                                             } hover:border-white`}
                                         title={`Switch to ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
                                     >
@@ -2637,11 +2680,11 @@ const App = () => {
                             <button
                                 key={post.filename}
                                 onClick={() => loadPost(post.filename)}
-                                className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group ${filename === post.filename ? 'bg-zinc-800 shadow-lg border border-zinc-700' : 'hover:bg-zinc-800/50 border border-transparent'
+                                className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group ${filename === post.filename ? 'bg-zinc-100 dark:bg-zinc-800 shadow-lg border border-zinc-300 dark:border-zinc-700' : 'hover:bg-zinc-100 dark:bg-zinc-800/50 border border-transparent'
                                     }`}
                                 title={post.title}
                             >
-                                <FileText size={18} className="text-zinc-500 mt-1 flex-shrink-0" />
+                                <FileText size={18} className="text-zinc-400 dark:text-zinc-500 mt-1 flex-shrink-0" />
                                 {/* Show yellow dot if unsaved changes in editor OR if there's a saved draft on disk */}
                                 {!isReadonly && ((isDirty && filename === post.filename) || post.hasDraft) && (
                                     <div className={`absolute top-3 right-3 w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${post.isUnpublished ? 'bg-purple-400 text-purple-400' : 'bg-yellow-400 text-yellow-400'}`} title={post.isUnpublished ? "Unpublished Draft" : "Unsaved changes (Draft)"} />
@@ -2649,11 +2692,11 @@ const App = () => {
                                 <div className="min-w-0 flex-1">
                                     <div className="text-sm font-medium truncate">{post.title}</div>
                                     <div className="flex items-center gap-3 mt-1.5 opacity-60">
-                                        <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-mono" title={`Created: ${new Date(post.created).toLocaleString()}`}>
+                                        <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Created: ${new Date(post.created).toLocaleString()}`}>
                                             <Calendar size={10} />
                                             <span>{new Date(post.created).toLocaleDateString()}</span>
                                         </div>
-                                        <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-mono" title={`Modified: ${new Date(post.modified).toLocaleString()}`}>
+                                        <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Modified: ${new Date(post.modified).toLocaleString()}`}>
                                             <Edit3 size={10} />
                                             <span>{new Date(post.modified).toLocaleDateString()}</span>
                                         </div>
@@ -2665,13 +2708,13 @@ const App = () => {
 
                     {/* Pinned Introduction Post */}
                     {(introductionPost || !isReadonly) && (
-                        <div className="p-2 border-t border-zinc-800 bg-zinc-900/30">
+                        <div className="p-2 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30">
                             {introductionPost ? (
                                 <button
                                     onClick={() => loadPost(introductionPost.filename)}
                                     className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group border-2 ${filename === introductionPost.filename
-                                        ? 'bg-zinc-800 shadow-md border-emerald-500/50' // Highlight active pinned post
-                                        : 'hover:bg-zinc-800/50 border-emerald-500/20 hover:border-emerald-500/40' // Distinct border for pinned
+                                        ? 'bg-zinc-100 dark:bg-zinc-800 shadow-md border-emerald-500/50' // Highlight active pinned post
+                                        : 'hover:bg-zinc-100 dark:bg-zinc-800/50 border-emerald-500/20 hover:border-emerald-500/40' // Distinct border for pinned
                                         }`}
                                     title={introductionPost.title}
                                 >
@@ -2691,7 +2734,7 @@ const App = () => {
                             ) : (
                                 <button
                                     onClick={() => handleNewPostConfirm('Introduction', { type: 'introduction' })}
-                                    className="w-full text-left p-3 rounded-lg transition-all flex items-center gap-3 border-2 border-dashed border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-800/50 group text-zinc-500 hover:text-emerald-500"
+                                    className="w-full text-left p-3 rounded-lg transition-all flex items-center gap-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-100 dark:bg-zinc-800/50 group text-zinc-400 dark:text-zinc-500 hover:text-emerald-500"
                                     title="Create Introduction Post"
                                 >
                                     <div className="mt-0.5 flex-shrink-0">
@@ -2717,20 +2760,20 @@ const App = () => {
             }
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col bg-zinc-950 overflow-hidden relative">
+            <div className="flex-1 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden relative">
                 {filename ? (
                     <>
-                        <div className="h-16 border-b border-zinc-800 px-4 md:px-8 flex items-center justify-between bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-20">
+                        <div className="h-16 border-b border-zinc-200 dark:border-zinc-800 px-4 md:px-8 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-20">
                             <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 mr-2 md:mr-4">
                                 <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
                                     <button
                                         onClick={() => setShowSidebar(!showSidebar)}
-                                        className={`w-10 h-10 flex items-center justify-center p-0 rounded-lg transition-colors text-zinc-500 hover:text-white hover:bg-zinc-800/50`}
+                                        className={`w-10 h-10 flex items-center justify-center p-0 rounded-lg transition-colors text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white hover:bg-zinc-100 dark:bg-zinc-800/50`}
                                         title={showSidebar ? "Collapse Sidebar" : "Expand Sidebar"}
                                     >
                                         {showSidebar ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
                                     </button>
-                                    <div className={`h-6 w-px bg-zinc-800 ${!showSidebar && 'hidden'}`} />
+                                    <div className={`h-6 w-px bg-zinc-100 dark:bg-zinc-800 ${!showSidebar && 'hidden'}`} />
                                     {isReadonly ? (
                                         <h1 className="text-lg md:text-xl font-bold w-full truncate mb-0 flex justify-between items-center">{title}</h1>
                                     ) : (
@@ -2747,7 +2790,7 @@ const App = () => {
                                 <div className="flex-shrink-0 flex items-center justify-end">
                                     {/* Unified Status Badge */}
                                     {saveStatus === 'saving' && (
-                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-zinc-800 rounded text-zinc-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
                                             <div className="w-2 h-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                             <span className="hidden md:inline">Saving</span>
                                         </div>
@@ -2777,7 +2820,7 @@ const App = () => {
                                         if (navigator.share) {
                                             try {
                                                 await navigator.share({
-                                                    title: `${title} | ${import.meta.env.TITLE}`,
+                                                    title: `${title} | ${APP_TITLE}`,
                                                     text: `Check out "${title}"`,
                                                     url: shareUrl
                                                 });
@@ -2797,7 +2840,7 @@ const App = () => {
                                             console.error('Failed to copy', err);
                                         }
                                     }}
-                                    className={`w-10 h-10 flex items-center justify-center p-0 rounded-lg transition-colors mr-2 ${isCopied ? 'text-emerald-500 bg-emerald-500/10' : 'text-zinc-500 hover:text-white hover:bg-zinc-800/50'}`}
+                                    className={`w-10 h-10 flex items-center justify-center p-0 rounded-lg transition-colors mr-2 ${isCopied ? 'text-emerald-500 bg-emerald-500/10' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white hover:bg-zinc-100 dark:bg-zinc-800/50'}`}
                                     title={isCopied ? "Link Copied!" : "Share Link"}
                                 >
                                     {isCopied ? <CheckCircle size={20} /> : <Share2 size={20} />}
@@ -2807,10 +2850,10 @@ const App = () => {
 
                             {!isReadonly && (
                                 <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-1 md:mr-4 bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+                                    <div className="flex items-center gap-1 md:mr-4 bg-zinc-50 dark:bg-zinc-900 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800">
                                         <button
                                             onClick={() => setShowDiff(false)}
-                                            className={`p-2 md:px-3 md:py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${!showDiff ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-white'}`}
+                                            className={`p-2 md:px-3 md:py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${!showDiff ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white'}`}
                                             title="Editor View"
                                         >
                                             <Edit3 size={16} className="md:hidden" />
@@ -2818,7 +2861,7 @@ const App = () => {
                                         </button>
                                         <button
                                             onClick={() => setShowDiff(true)}
-                                            className={`p-2 md:px-3 md:py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${showDiff ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 shadow-sm' : 'text-zinc-500 hover:text-white'}`}
+                                            className={`p-2 md:px-3 md:py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${showDiff ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 shadow-sm' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white'}`}
                                             title="Version History"
                                         >
                                             <Clock size={16} className="md:hidden" />
@@ -2831,7 +2874,7 @@ const App = () => {
                                         disabled={!currentPost?.hasDraft}
                                         className={`w-10 h-10 flex items-center justify-center p-0 transition-colors rounded-lg ${!currentPost?.hasDraft
                                             ? 'text-zinc-700 cursor-not-allowed'
-                                            : 'text-zinc-500 hover:text-red-400 hover:bg-red-400/10'
+                                            : 'text-zinc-400 dark:text-zinc-500 hover:text-red-400 hover:bg-red-400/10'
                                             }`}
                                         title={currentPost?.hasDraft ? "Discard Draft" : "No Draft to Discard"}
                                     >
@@ -2886,7 +2929,7 @@ const App = () => {
                             />
                         )}
 
-                        <div className="flex-1 overflow-y-auto relative bg-zinc-950">
+                        <div className="flex-1 overflow-y-auto relative bg-white dark:bg-zinc-950">
                             {showDiff ? (
                                 // Assume HistoryView is only accessible if !isReadonly because the toggle is hidden
                                 <HistoryView
@@ -2910,24 +2953,24 @@ const App = () => {
                                             shouldShow={({ editor }) => !isReadonly && !editor.state.selection.empty && !editor.isActive('image')}
                                             tippyOptions={{ duration: 100, zIndex: 9999, maxWidth: '98vw', interactive: true }}
                                         >
-                                            <div className="bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl flex items-center p-1 gap-1 flex-wrap overflow-visible max-w-[90vw] custom-scrollbar">
+                                            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-xl flex items-center p-1 gap-1 flex-wrap overflow-visible max-w-[90vw] custom-scrollbar">
                                                 <button
                                                     onClick={() => editor.chain().focus().toggleBold().run()}
-                                                    className={`p-1.5 rounded hover:bg-zinc-800 ${editor.isActive('bold') ? 'text-yellow-400 bg-zinc-800' : 'text-zinc-300'}`}
+                                                    className={`w-[38px] h-[38px] flex items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors ${editor.isActive('bold') ? 'text-yellow-400 bg-zinc-100 dark:bg-zinc-800' : 'text-zinc-700 dark:text-zinc-300'}`}
                                                     title="Bold"
                                                 >
                                                     <Bold size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => editor.chain().focus().toggleItalic().run()}
-                                                    className={`p-1.5 rounded hover:bg-zinc-800 ${editor.isActive('italic') ? 'text-yellow-400 bg-zinc-800' : 'text-zinc-300'}`}
+                                                    className={`w-[38px] h-[38px] flex items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors ${editor.isActive('italic') ? 'text-yellow-400 bg-zinc-100 dark:bg-zinc-800' : 'text-zinc-700 dark:text-zinc-300'}`}
                                                     title="Italic"
                                                 >
                                                     <Italic size={16} />
                                                 </button>
-                                                <div className="w-px h-4 bg-zinc-800 mx-1" />
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-1" />
                                                 <FontSizeSelector editor={editor} />
-                                                <div className="w-px h-4 bg-zinc-800 mx-1" />
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-1" />
                                                 <ColorSelector
                                                     icon={Highlighter}
                                                     title="Highlight"
@@ -2946,17 +2989,17 @@ const App = () => {
                                                     presets={['#000000', '#2563eb', '#dc2626', '#16a34a', '#d97706', '#9333ea', '#71717a']}
                                                     variant="text"
                                                 />
-                                                <div className="w-px h-4 bg-zinc-800 mx-1" />
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-1" />
                                                 <button
                                                     onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                                                    className={`p-1.5 rounded hover:bg-zinc-800 ${editor.isActive('codeBlock') ? 'text-yellow-400 bg-zinc-800' : 'text-zinc-300'}`}
+                                                    className={`w-[38px] h-[38px] flex items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors ${editor.isActive('codeBlock') ? 'text-yellow-400 bg-zinc-100 dark:bg-zinc-800' : 'text-zinc-700 dark:text-zinc-300'}`}
                                                     title="Code Block"
                                                 >
                                                     <Code size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                                                    className={`p-1.5 rounded hover:bg-zinc-800 ${editor.isActive('blockquote') ? 'text-yellow-400 bg-zinc-800' : 'text-zinc-300'}`}
+                                                    className={`w-[38px] h-[38px] flex items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors ${editor.isActive('blockquote') ? 'text-yellow-400 bg-zinc-100 dark:bg-zinc-800' : 'text-zinc-700 dark:text-zinc-300'}`}
                                                     title="Quote"
                                                 >
                                                     <Quote size={16} />
@@ -2972,17 +3015,17 @@ const App = () => {
                 ) : (
                     <div className="flex-1 flex flex-col h-full">
                         {/* Empty State Header for Mobile Navigation */}
-                        <div className="h-16 border-b border-zinc-800 px-8 flex items-center bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-20">
+                        <div className="h-16 border-b border-zinc-200 dark:border-zinc-800 px-8 flex items-center bg-zinc-50 dark:bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-20">
                             <button
                                 onClick={() => setShowSidebar(!showSidebar)}
-                                className={`p-2 rounded-lg transition-colors text-zinc-500 hover:text-white hover:bg-zinc-800/50 mr-4`}
+                                className={`p-2 rounded-lg transition-colors text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white hover:bg-zinc-100 dark:bg-zinc-800/50 mr-4`}
                                 title={showSidebar ? "Collapse Sidebar" : "Expand Sidebar"}
                             >
                                 {showSidebar ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
                             </button>
-                            <h1 className="text-xl font-bold text-zinc-500"></h1>
+                            <h1 className="text-xl font-bold text-zinc-400 dark:text-zinc-500"></h1>
                         </div>
-                        <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 gap-4 p-4 text-center">
+                        <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 gap-4 p-4 text-center">
                             <FileText size={64} className="opacity-20" />
                             <p className="text-lg">Select a post to start {!isReadonly ? 'editing' : 'reading'}</p>
                         </div>
@@ -2999,7 +3042,7 @@ const App = () => {
                         onClick={() => setShowDebug(!showDebug)}
                         className={`fixed bottom-4 right-4 z-[110] w-10 h-10 flex items-center justify-center rounded-lg border transition-all duration-300 ${showDebug
                             ? 'bg-zinc-100 border-zinc-200 text-zinc-900 shadow-xl scale-110'
-                            : 'bg-zinc-900/80 backdrop-blur-md border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-700'
+                            : 'bg-zinc-50 dark:bg-zinc-900/80 backdrop-blur-md border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white hover:border-zinc-300 dark:border-zinc-700'
                             }`}
                         title="Mission Control Debugger"
                     >
@@ -3010,14 +3053,14 @@ const App = () => {
 
             {
                 showDebug && !isReadonlyEnv && (
-                    <div className="fixed bottom-16 right-4 z-[100] bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 rounded-2xl w-80 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 flex flex-col max-h-[80vh]">
+                    <div className="fixed bottom-16 right-4 z-[100] bg-white dark:bg-zinc-950/95 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-2xl w-80 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 flex flex-col max-h-[80vh]">
                         {/* Header */}
-                        <div className="px-5 py-4 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between">
+                        <div className="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Activity size={16} className="text-emerald-500" />
-                                <h3 className="text-sm font-bold text-white tracking-tight">Debug Dashboard</h3>
+                                <h3 className="text-sm font-bold text-zinc-900 dark:text-white tracking-tight">Debug Dashboard</h3>
                             </div>
-                            <span className="text-[10px] bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded font-mono">v2.4.0</span>
+                            <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 px-2 py-0.5 rounded font-mono">v2.4.0</span>
                         </div>
 
                         {/* Scrollable Content */}
@@ -3040,17 +3083,17 @@ const App = () => {
 
                             {/* Toggles */}
                             <div>
-                                <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                                     <Layout size={12} /> Interactive Controls
                                 </h4>
-                                <div className="flex items-center justify-between p-3 bg-zinc-900/50 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors group">
+                                <div className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-700 transition-colors group">
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg transition-colors ${isReadonlyUser ? 'bg-emerald-500/10 text-emerald-500' : 'bg-zinc-800 text-zinc-500'}`}>
+                                        <div className={`p-2 rounded-lg transition-colors ${isReadonlyUser ? 'bg-emerald-500/10 text-emerald-500' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500'}`}>
                                             {isReadonlyUser ? <Eye size={16} /> : <Edit3 size={16} />}
                                         </div>
                                         <div>
                                             <p className="text-xs font-bold text-zinc-200">Readonly Mode</p>
-                                            <p className="text-[10px] text-zinc-500">Hide editing tools</p>
+                                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500">Hide editing tools</p>
                                         </div>
                                     </div>
                                     <button
@@ -3071,93 +3114,93 @@ const App = () => {
 
                             {/* App State */}
                             <div>
-                                <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                                     <Cpu size={12} /> Live Engine State
                                 </h4>
                                 <div className="space-y-2 font-mono text-[11px]">
-                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-900/30 rounded-lg">
-                                        <span className="text-zinc-500">isDirty</span>
+                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg">
+                                        <span className="text-zinc-400 dark:text-zinc-500">isDirty</span>
                                         <span className={isDirty ? "text-yellow-400 font-bold" : "text-emerald-400"}>{isDirty ? "YES" : "NO"}</span>
                                     </div>
-                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-900/30 rounded-lg">
-                                        <span className="text-zinc-500">title</span>
-                                        <span className="text-zinc-300 truncate ml-4" title={title}>{title || "EMPTY"}</span>
+                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg">
+                                        <span className="text-zinc-400 dark:text-zinc-500">title</span>
+                                        <span className="text-zinc-700 dark:text-zinc-300 truncate ml-4" title={title}>{title || "EMPTY"}</span>
                                     </div>
-                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-900/30 rounded-lg">
-                                        <span className="text-zinc-500">filename</span>
-                                        <span className="text-zinc-300 truncate ml-4" title={filename}>{filename || "none"}</span>
+                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg">
+                                        <span className="text-zinc-400 dark:text-zinc-500">filename</span>
+                                        <span className="text-zinc-700 dark:text-zinc-300 truncate ml-4" title={filename}>{filename || "none"}</span>
                                     </div>
-                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-900/30 rounded-lg">
-                                        <span className="text-zinc-500">saveStatus</span>
+                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg">
+                                        <span className="text-zinc-400 dark:text-zinc-500">saveStatus</span>
                                         <span className="text-blue-400">{saveStatus || "idle"}</span>
                                     </div>
-                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-900/30 rounded-lg">
-                                        <span className="text-zinc-500">historyPtr</span>
-                                        <span className="text-zinc-300">{historyIndex} / {history.length}</span>
+                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg">
+                                        <span className="text-zinc-400 dark:text-zinc-500">historyPtr</span>
+                                        <span className="text-zinc-700 dark:text-zinc-300">{historyIndex} / {history.length}</span>
                                     </div>
-                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-900/30 rounded-lg">
-                                        <span className="text-zinc-500">tokens</span>
-                                        <span className="text-zinc-300">{editor ? editor.getText().length : 0} chars</span>
+                                    <div className="flex justify-between py-1.5 px-3 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg">
+                                        <span className="text-zinc-400 dark:text-zinc-500">tokens</span>
+                                        <span className="text-zinc-700 dark:text-zinc-300">{editor ? editor.getText().length : 0} chars</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Environment */}
                             <div>
-                                <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                                     <Database size={12} /> Configuration
                                 </h4>
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-[10px] text-zinc-500 mb-1">Site Configuration</p>
+                                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mb-1">Site Configuration</p>
                                         <div className="space-y-1">
-                                            <div className="p-2 bg-zinc-900/30 border border-zinc-800/50 rounded-lg flex flex-col gap-1">
+                                            <div className="p-2 bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800/50 rounded-lg flex flex-col gap-1">
                                                 <div className="flex justify-between items-center text-[10px]">
-                                                    <span className="text-zinc-500">Title</span>
-                                                    <span className="text-zinc-300 truncate ml-2">{import.meta.env.TITLE}</span>
+                                                    <span className="text-zinc-400 dark:text-zinc-500">Title</span>
+                                                    <span className="text-zinc-700 dark:text-zinc-300 truncate ml-2">{APP_TITLE}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center text-[10px]">
-                                                    <span className="text-zinc-500">URL</span>
-                                                    <span className="text-zinc-300 truncate ml-2">{import.meta.env.SITE_URL}</span>
+                                                    <span className="text-zinc-400 dark:text-zinc-500">URL</span>
+                                                    <span className="text-zinc-700 dark:text-zinc-300 truncate ml-2">{import.meta.env.SITE_URL}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center text-[10px]">
-                                                    <span className="text-zinc-500">Port</span>
-                                                    <span className="text-zinc-300 font-mono">{import.meta.env.SERVER_PORT}</span>
+                                                    <span className="text-zinc-400 dark:text-zinc-500">Port</span>
+                                                    <span className="text-zinc-700 dark:text-zinc-300 font-mono">{import.meta.env.SERVER_PORT}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center text-[10px]">
-                                                    <span className="text-zinc-500">Favicon</span>
-                                                    <span className="text-zinc-300 truncate ml-2">{import.meta.env.FAVICON}</span>
+                                                    <span className="text-zinc-400 dark:text-zinc-500">Favicon</span>
+                                                    <span className="text-zinc-700 dark:text-zinc-300 truncate ml-2">{import.meta.env.FAVICON}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <p className="text-[10px] text-zinc-500 mb-1">Filesystem Paths</p>
+                                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mb-1">Filesystem Paths</p>
                                         <div className="space-y-1.5 font-mono text-[9px]">
-                                            <div className="p-2 bg-zinc-900/30 border border-zinc-800/50 rounded-lg space-y-2">
+                                            <div className="p-2 bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800/50 rounded-lg space-y-2">
                                                 <div>
-                                                    <span className="text-zinc-500 block mb-0.5">Content</span>
-                                                    <span className="text-zinc-400 break-all leading-tight">{import.meta.env.CONTENT_DIR}</span>
+                                                    <span className="text-zinc-400 dark:text-zinc-500 block mb-0.5">Content</span>
+                                                    <span className="text-zinc-500 dark:text-zinc-400 break-all leading-tight">{import.meta.env.CONTENT_DIR}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-zinc-500 block mb-0.5">Static</span>
-                                                    <span className="text-zinc-400 break-all leading-tight">{import.meta.env.STATIC_DIR}</span>
+                                                    <span className="text-zinc-400 dark:text-zinc-500 block mb-0.5">Static</span>
+                                                    <span className="text-zinc-500 dark:text-zinc-400 break-all leading-tight">{import.meta.env.STATIC_DIR}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-zinc-500 block mb-0.5">Drafts</span>
-                                                    <span className="text-zinc-400 break-all leading-tight">{import.meta.env.DRAFTS_DIR}</span>
+                                                    <span className="text-zinc-400 dark:text-zinc-500 block mb-0.5">Drafts</span>
+                                                    <span className="text-zinc-500 dark:text-zinc-400 break-all leading-tight">{import.meta.env.DRAFTS_DIR}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-zinc-500 block mb-0.5">Dist</span>
-                                                    <span className="text-zinc-400 break-all leading-tight">{import.meta.env.DIST_DIR}</span>
+                                                    <span className="text-zinc-400 dark:text-zinc-500 block mb-0.5">Dist</span>
+                                                    <span className="text-zinc-500 dark:text-zinc-400 break-all leading-tight">{import.meta.env.DIST_DIR}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <p className="text-[10px] text-zinc-500 mb-1">Git Permissions</p>
+                                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mb-1">Git Permissions</p>
                                         <div className={`p-2 rounded-lg text-[10px] font-bold flex items-center gap-2 ${import.meta.env.ALLOW_PUSH === 'true' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-400'}`}>
                                             {import.meta.env.ALLOW_PUSH === 'true' ? <CheckCircle size={12} /> : <XCircle size={12} />}
                                             {import.meta.env.ALLOW_PUSH === 'true' ? 'ALLOW_PUSH: ENABLED' : 'ALLOW_PUSH: DISABLED'}
@@ -3168,7 +3211,7 @@ const App = () => {
                         </div>
 
                         {/* Footer */}
-                        <div className="p-4 border-t border-zinc-800 bg-zinc-900/30 text-center">
+                        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30 text-center">
                             <p className="text-[9px] text-zinc-600 uppercase tracking-tighter">Mission Control Debugger &copy; 2026</p>
                         </div>
                     </div>
@@ -3255,10 +3298,10 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
 
         return (
             <div className="mb-4">
-                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">{label}</div>
+                <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1.5">{label}</div>
                 <div className="flex flex-wrap gap-1.5">
                     {unchanged.map(item => (
-                        <span key={item} className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 text-xs border border-zinc-700">{item}</span>
+                        <span key={item} className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 text-xs border border-zinc-300 dark:border-zinc-700">{item}</span>
                     ))}
                     {forOriginal ? removed.map(item => (
                         <span key={item} className="px-2 py-0.5 rounded bg-red-900/20 text-red-400 text-xs border border-red-900/30 line-through decoration-red-400/50" title="Removed">
@@ -3278,10 +3321,10 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
         if (!items || items.length === 0) return null;
         return (
             <div className="mb-4">
-                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">{label}</div>
+                <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1.5">{label}</div>
                 <div className="flex flex-wrap gap-1.5">
                     {items.map(item => (
-                        <span key={item} className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 text-xs border border-zinc-700">{item}</span>
+                        <span key={item} className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs border border-zinc-300 dark:border-zinc-700">{item}</span>
                     ))}
                 </div>
             </div>
@@ -3289,15 +3332,15 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
     };
 
     return (
-        <div className="flex flex-col md:flex-row h-full bg-zinc-950">
+        <div className="flex flex-col md:flex-row h-full bg-white dark:bg-zinc-950">
             {/* History Sidebar - Styled to match main sidebar */}
-            <div className="w-full md:w-64 h-56 md:h-auto bg-zinc-950 border-b md:border-b-0 md:border-r border-zinc-800 flex flex-col flex-shrink-0">
-                <div className="h-10 md:h-16 flex items-center px-4 md:px-6 border-b border-zinc-800">
-                    <span className="font-bold text-zinc-400 text-xs uppercase tracking-wider">
+            <div className="w-full md:w-64 h-56 md:h-auto bg-white dark:bg-zinc-950 border-b md:border-b-0 md:border-r border-zinc-200 dark:border-zinc-800 flex flex-col flex-shrink-0">
+                <div className="h-10 md:h-16 flex items-center px-4 md:px-6 border-b border-zinc-200 dark:border-zinc-800">
+                    <span className="font-bold text-zinc-500 dark:text-zinc-400 text-xs uppercase tracking-wider">
                         Version History
                     </span>
                 </div>
-                <div className="flex-1 overflow-y-auto bg-zinc-900/30">
+                <div className="flex-1 overflow-y-auto bg-zinc-50 dark:bg-zinc-900/30">
                     {history.map((item, idx) => {
                         const isCurrent = idx === currentIndex;
                         const isOriginal = idx === 0;
@@ -3307,20 +3350,20 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
                                 key={idx}
                                 ref={isSelected ? activeVersionRef : null}
                                 onClick={() => setSelectedIdx(idx)}
-                                className={`w-full text-left px-4 md:px-6 py-3 md:py-4 border-b border-zinc-800/50 flex flex-col gap-1 transition-all ${isSelected
-                                    ? 'bg-zinc-900 border-l-2 border-l-emerald-500'
-                                    : 'hover:bg-zinc-900/50 border-l-2 border-l-transparent'
+                                className={`w-full text-left px-4 md:px-6 py-3 md:py-4 border-b border-zinc-200 dark:border-zinc-800/50 flex flex-col gap-1 transition-all ${isSelected
+                                    ? 'bg-zinc-50 dark:bg-zinc-900 border-l-2 border-l-emerald-500'
+                                    : 'hover:bg-zinc-50 dark:bg-zinc-900/50 border-l-2 border-l-transparent'
                                     }`}
                             >
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className={`text-sm font-bold ${isOriginal ? 'text-blue-400' : 'text-zinc-300'}`}>
+                                    <span className={`text-sm font-bold ${isOriginal ? 'text-blue-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
                                         {isOriginal ? 'Original' : `Version ${idx}`}
                                     </span>
                                     {isCurrent && (
                                         <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Active</span>
                                     )}
                                 </div>
-                                <span className="text-[10px] font-mono text-zinc-500">
+                                <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
                                     {new Date(item.timestamp).toLocaleString(undefined, {
                                         month: 'short', day: 'numeric',
                                         hour: '2-digit', minute: '2-digit'
@@ -3330,7 +3373,7 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
                         );
                     })}
                 </div>
-                <div className="p-2 md:p-4 border-t border-zinc-800 bg-zinc-900/50">
+                <div className="p-2 md:p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
                     <button
                         onClick={() => onSelect(selectedIdx)}
                         className="w-full py-2 md:py-2.5 bg-zinc-100 hover:bg-white text-black font-bold rounded-lg text-xs uppercase tracking-wide transition-colors shadow-lg flex items-center justify-center gap-2"
@@ -3343,22 +3386,22 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
 
             {/* Diff Area - Flex Col on Mobile (Split Top/Bottom), Grid on Desktop (Split Left/Right) */}
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-                <div className="p-2 min-h-12 md:min-h-16 md:p-3 bg-zinc-900/50 border-b border-zinc-800 flex justify-between items-center sticky top-0 bg-zinc-950/95 backdrop-blur z-20">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 pl-1 md:pl-2">Original (Reference)</span>
-                    <div className="flex bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 shadow-sm">
-                        <button onClick={() => setMode('visual')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${mode === 'visual' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-white'}`}>Preview</button>
-                        <button onClick={() => setMode('text')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${mode === 'text' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-white'}`}>Text</button>
-                        <button onClick={() => setMode('source')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${mode === 'source' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-white'}`}>Source</button>
+                <div className="p-2 min-h-12 md:min-h-16 md:p-3 bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center sticky top-0 bg-white dark:bg-zinc-950/95 backdrop-blur z-20">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 pl-1 md:pl-2">Original (Reference)</span>
+                    <div className="flex bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-0.5 shadow-sm">
+                        <button onClick={() => setMode('visual')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${mode === 'visual' ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white'}`}>Preview</button>
+                        <button onClick={() => setMode('text')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${mode === 'text' ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white'}`}>Text</button>
+                        <button onClick={() => setMode('source')} className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${mode === 'source' ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:text-white'}`}>Source</button>
                     </div>
                 </div>
                 <div ref={leftRef} onScroll={handleScroll('left')} className="flex-1 overflow-y-auto custom-scrollbar">
                     {/* Title Display/Diff */}
-                    <div className="px-4 md:px-8 pt-4 md:pt-6 pb-2 border-b border-zinc-800/50">
-                        <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Title</div>
+                    <div className="px-4 md:px-8 pt-4 md:pt-6 pb-2 border-b border-zinc-200 dark:border-zinc-800/50">
+                        <div className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2">Title</div>
                         {mode === 'visual' ? (
-                            <div className="text-lg md:text-xl font-bold text-zinc-400 mb-4 md:mb-6 break-words">{originalTitleProp}</div>
+                            <div className="text-lg md:text-xl font-bold text-zinc-500 dark:text-zinc-400 mb-4 md:mb-6 break-words">{originalTitleProp}</div>
                         ) : (
-                            <div className="text-lg md:text-xl font-bold text-zinc-400 font-mono mb-4 md:mb-6 break-words">
+                            <div className="text-lg md:text-xl font-bold text-zinc-500 dark:text-zinc-400 font-mono mb-4 md:mb-6 break-words">
                                 {diffTitle ? diffTitle.map((part, i) => !part.added && <span key={i} style={part.removed ? { backgroundColor: 'rgba(127,29,29,0.4)', textDecoration: 'line-through' } : {}}>{part.value}</span>) : originalTitleProp}
                             </div>
                         )}
@@ -3380,18 +3423,18 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
                         {mode === 'visual' ? (
                             <div className="prose prose-invert max-w-none prose-sm md:prose-base" dangerouslySetInnerHTML={{ __html: originalHtml }} />
                         ) : (
-                            <pre className="font-mono text-xs text-zinc-400 whitespace-pre-wrap">{diffSource && diffSource.map((part, i) => !part.added && <span key={i} style={part.removed ? { backgroundColor: 'rgba(127,29,29,0.4)', textDecoration: 'line-through' } : {}}>{part.value}</span>)}</pre>
+                            <pre className="font-mono text-xs text-zinc-500 dark:text-zinc-400 whitespace-pre-wrap">{diffSource && diffSource.map((part, i) => !part.added && <span key={i} style={part.removed ? { backgroundColor: 'rgba(127,29,29,0.4)', textDecoration: 'line-through' } : {}}>{part.value}</span>)}</pre>
                         )}
                     </div>
                 </div>
             </div>
-            <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-zinc-900/20">
-                <div className="p-2 min-h-12 md:min-h-16 md:p-3 bg-zinc-900/50 border-b border-zinc-800 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-emerald-500 sticky top-0 bg-zinc-950/95 backdrop-blur z-10">
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-zinc-50 dark:bg-zinc-900/20">
+                <div className="p-2 min-h-12 md:min-h-16 md:p-3 bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-emerald-500 sticky top-0 bg-white dark:bg-zinc-950/95 backdrop-blur z-10">
                     Selected Version ({selectedIdx})
                 </div>
                 <div ref={rightRef} onScroll={handleScroll('right')} className="flex-1 overflow-y-auto custom-scrollbar">
                     {/* Title Display/Diff */}
-                    <div className="px-4 md:px-8 pt-4 md:pt-6 pb-2 border-b border-zinc-800/50 shrink-0">
+                    <div className="px-4 md:px-8 pt-4 md:pt-6 pb-2 border-b border-zinc-200 dark:border-zinc-800/50 shrink-0">
                         <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Title</div>
                         {mode === 'visual' ? (
                             <div className="text-lg md:text-xl font-bold text-zinc-200 mb-4 md:mb-6 break-words">{selectedState.title}</div>
