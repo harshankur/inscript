@@ -5,7 +5,7 @@ Designed to be a seamless submodule for any static site generator (Hugo, Astro, 
 
 ## 🎮 Live Demo
 Try the editor in your browser without installing anything!
-[**Launch Live Demo**](https://harshankur.github.io/inscript/)
+[**Launch Live Demo**](https://harshankur.github.io/inscript/inscript_demo.html)
 
 > **Note**: The demo runs entirely in your browser using `localStorage`. No data is sent to a server.
 
