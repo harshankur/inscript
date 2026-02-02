@@ -44,6 +44,10 @@ CLIENT_PORT=5173
 # EXPERIMENTAL FEATURES
 # Allow push to remote after publishing
 ALLOW_PUSH=false
+
+# Hostnames allowed to access the Inscript client (comma-separated or 'true' to allow all). Default is empty.
+# Example: my-pc.local,192.168.1.10
+ALLOWED_HOSTS=
 `;
 
 async function setup() {

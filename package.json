@@ -38,15 +38,16 @@
   ],
   "type": "module",
   "scripts": {
-    "server": "node --watch server.js",
-    "client": "vite",
-    "setup": "node scripts/setup-inscript.js",
-    "dev": "npm run setup && concurrently \"npm run server\" \"npm run client\"",
+    "build:demo": "cross-env DEMO_MODE=true npm run setup && vite build --mode demo && mv docs/index.html docs/inscript_demo.html && mv docs/assets/landing_source.html docs/index.html",
     "build": "vite build",
+    "client": "vite --host",
+    "dev": "npm run setup && concurrently \"npm run server\" \"npm run client\"",
+    "prepare": "husky",
     "preview": "vite preview",
     "publish": "npm run setup && vite build --mode readonly && node scripts/generate-data.js && node scripts/generate-sitemap.js",
-    "build:demo": "cross-env DEMO_MODE=true npm run setup && vite build --mode demo && mv docs/index.html docs/inscript_demo.html && mv docs/assets/landing_source.html docs/index.html",
-    "prepare": "husky"
+    "server": "node --watch server.js",
+    "setup": "node scripts/setup-inscript.js",
+    "start": "npm run dev"
   },
   "dependencies": {
     "@tiptap/extension-color": "^2.27.1",

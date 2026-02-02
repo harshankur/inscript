@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
     const CLIENT_PORT = env.CLIENT_PORT || 5173;
 
     return {
-        envPrefix: ['VITE_', 'TITLE', 'SITE_URL', 'CONTENT_DIR', 'STATIC_DIR', 'FAVICON', 'DRAFTS_DIR', 'DIST_DIR', 'SERVER_PORT', 'CLIENT_PORT', 'ALLOW_PUSH'],
+        envPrefix: ['VITE_', 'TITLE', 'SITE_URL', 'CONTENT_DIR', 'STATIC_DIR', 'FAVICON', 'DRAFTS_DIR', 'DIST_DIR', 'SERVER_PORT', 'CLIENT_PORT', 'ALLOW_PUSH', 'ALLOWED_HOSTS'],
         plugins: [react()],
         server: {
             port: parseInt(CLIENT_PORT),
@@ -19,7 +19,8 @@ export default defineConfig(({ mode }) => {
                 '/images': `http://localhost:${PORT}`,
                 // Proxy image formats that might be in the static root, but EXCLUDE favicon.png (served by Vite)
                 '^/(?!favicon\\.png).*\\.(png|jpg|jpeg|gif|svg|webp|ico)$': `http://localhost:${PORT}`
-            }
+            },
+            allowedHosts: env.ALLOWED_HOSTS ? env.ALLOWED_HOSTS.split(',') : undefined
         },
         build: {
             outDir: mode === 'demo' ? 'docs' : env.DIST_DIR,
