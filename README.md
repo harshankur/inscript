@@ -139,6 +139,76 @@ To deploy this alongside your site on Netlify, add this to your **root** `netlif
   publish = "dist"
 ```
 
+## 🏗️ System Architecture
+
+### Content Lifecycle & Modes
+Inscript operates in two distinct modes depending on your workflow stage.
+
+```mermaid
+graph TD
+    subgraph "Editing Phase (Local)"
+        A[Markdown Files] --> B{Mode}
+        B -- "Dev (CMS)" --> C[Express Server]
+        C --> D[React UI - Editor]
+        D -- "Auto-Save" --> A
+    end
+    
+    subgraph "Publishing Phase (Build)"
+        B -- "npm run publish" --> E[Build Script]
+        E --> F[Static data.json]
+        E --> G[Static React UI]
+        F --> G
+        G --> H[End User]
+    end
+```
+
+### Security & Setup Flow
+Behind the scenes, the setup wizard secures your environment before the CMS even starts.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Setup as Setup Wizard
+    participant Env as .env File
+    participant Server
+    
+    User->>Setup: npm run setup
+    Setup-->>User: Prompt for Config & Credentials
+    User->>Setup: Input Data
+    Setup->>Setup: Hash Password (BCrypt)
+    Setup->>Env: Write Config & Hash
+    
+    Note over User,Server: CMS Execution
+    User->>Server: npm run dev
+    Server->>Env: Load Config
+    Server->>User: Serve Login UI
+    User->>Server: Submit Password
+    Server->>Server: Verify Hash
+    Server-->>User: Access Granted (Session)
+```
+
+### Deployment Strategy
+Inscript is designed to follow a "Submodule-first" architecture, generating a headless API for your frontend.
+
+```mermaid
+graph LR
+    subgraph "Blog Repository"
+        subgraph "Inscript (Submodule)"
+            I[CMS Engine]
+        end
+        C[Content Folder]
+        S[Static Folder]
+    end
+    
+    I -- "npm run publish" --> D[Static Dist]
+    
+    subgraph "Static Web Hosting"
+        D --- J[data.json]
+        D --- H[Minified UI]
+        D --- A[Site Assets]
+    end
+```
+
 ### Deployment Environment Variables
 When deploying to a provider like Netlify or Vercel, you must configure the following Environment Variables in their dashboard.
 

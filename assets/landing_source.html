@@ -11,6 +11,17 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default',
+                securityLevel: 'loose',
+                flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+            });
+        });
+    </script>
     <style>
         :root {
             --primary: #3b82f6;
@@ -729,7 +740,51 @@
             </div>
         </section>
 
-        <section class="container" id="configuration">
+        <section class="container" id="architecture" style="margin-top: 5rem;">
+            <div class="section-title">
+                <h2>System Architecture</h2>
+                <p>Visualizing how Inscript handles your content and security.</p>
+            </div>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem;">
+                <div class="feature-card" style="padding: 2rem;">
+                    <h3>Content Lifecycle</h3>
+                    <div class="mermaid" style="margin-top: 1.5rem;">
+                        graph TD
+                        A[Markdown Files] --> B{Mode}
+                        B -- "Dev (CMS)" --> C[Express Server]
+                        C --> D[React UI - Editor]
+                        D -- "Save" --> A
+
+                        B -- "Prod (Readonly)" --> E[Build Script]
+                        E --> F[data.json]
+                        E --> G[Static UI]
+                        F --> G
+                    </div>
+                </div>
+                <div class="feature-card" style="padding: 2rem;">
+                    <h3>Security Flow</h3>
+                    <div class="mermaid" style="margin-top: 1.5rem;">
+                        sequenceDiagram
+                        participant User
+                        participant Setup
+                        participant Env
+                        participant Server
+
+                        User->>Setup: npm run setup
+                        Setup->>Env: Write Hash
+
+                        User->>Server: Login
+                        Server->>Env: Load Hash
+                        Server->>Server: Verify
+                        Server-->>User: Grant Access
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="container" id="configuration" style="margin-top: 8rem; margin-bottom: 8rem;">
             <div class="section-title">
                 <h2>Configuration & Environment</h2>
                 <p>Customize Inscript to fit your specific workflow.</p>
