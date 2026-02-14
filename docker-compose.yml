@@ -1,0 +1,24 @@
+services:
+  inscript:
+    build:
+      context: .
+      args:
+        SERVER_PORT: ${SERVER_PORT}
+        CLIENT_PORT: ${CLIENT_PORT}
+    container_name: inscript-blog
+    # Load environment variables from .env
+    env_file: .env
+    volumes:
+      # Mount data directories based on .env paths
+      - ${CONTENT_DIR:-../content}:/app/content
+      - ${STATIC_DIR:-../static}:/app/static
+      - ${DRAFTS_DIR:-../drafts}:/app/drafts
+      - ${DIST_DIR:-../dist}:/app/dist
+      - ${FAVICON:-../favicon.png}:/app/favicon.png
+      # Mount the .env file itself for the app to read
+      - ./.env:/app/inscript/.env
+    ports:
+      # Map ports based on .env
+      - "${CLIENT_PORT:-5173}:${CLIENT_PORT:-5173}"
+      - "${SERVER_PORT:-3001}:${SERVER_PORT:-3001}"
+    restart: unless-stopped
