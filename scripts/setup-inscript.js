@@ -25,7 +25,11 @@ const question = (query, defaultValue = '') => new Promise((resolve) => {
 });
 
 const smartQuestion = async (key, query, defaultValue, existingConfig) => {
+    // Check process.env first (Docker/CI injection)
+    if (process.env[key]) return process.env[key];
+    // Then check existing .env config
     if (existingConfig[key]) return existingConfig[key];
+    // Finally fall back to interactive prompt
     return await question(query, defaultValue);
 };
 
@@ -55,23 +59,19 @@ async function setup() {
 
     // 2. Authentication Configuration
     console.log('\n--- Authentication & Security ---');
-    let authEnabled = existingConfig.AUTH_ENABLED === 'true';
-    if (existingConfig.AUTH_ENABLED === undefined) {
+    let authEnabled = (process.env.AUTH_ENABLED || existingConfig.AUTH_ENABLED) === 'true';
+    if (process.env.AUTH_ENABLED === undefined && existingConfig.AUTH_ENABLED === undefined) {
         const enableAuthString = await question(`Enable authentication? (y/n)`, 'n');
         authEnabled = enableAuthString.toLowerCase().startsWith('y');
     }
 
-    let authUsername = existingConfig.AUTH_USERNAME || 'admin';
-    let authPasswordHash = existingConfig.AUTH_PASSWORD_HASH || '';
-    let sessionSecret = existingConfig.SESSION_SECRET || '';
+    let authUsername = await smartQuestion('AUTH_USERNAME', 'Admin Username', 'admin', existingConfig);
+    let authPasswordHash = existingConfig.AUTH_PASSWORD_HASH || process.env.AUTH_PASSWORD_HASH || '';
+    let sessionSecret = await smartQuestion('SESSION_SECRET', 'Session Secret', '', existingConfig);
 
     if (authEnabled) {
-        if (!existingConfig.AUTH_USERNAME) {
-            authUsername = await question('Admin Username', 'admin');
-        }
-
         if (!authPasswordHash) {
-            const password = await question('Enter admin password');
+            const password = process.env.AUTH_PASSWORD || await question('Enter admin password (to be hashed)');
             if (password) {
                 const salt = await bcrypt.genSalt(10);
                 authPasswordHash = await bcrypt.hash(password, salt);

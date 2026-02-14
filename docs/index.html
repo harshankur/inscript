@@ -632,6 +632,17 @@
                     </ul>
                 </div>
                 <div class="feature-card">
+                    <div class="feature-icon">🐳</div>
+                    <h3>Dockerized</h3>
+                    <p>Isolated and consistent environment for every platform.</p>
+                    <ul class="feature-list">
+                        <li>Pre-configured Dockerfile & Compose</li>
+                        <li>Automated volume mapping</li>
+                        <li>Non-interactive setup via Env vars</li>
+                        <li>Lightweight Alpine-based image</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
                     <div class="feature-icon">🛠️</div>
                     <h3>Architecture</h3>
                     <p>Built for portability and performance.</p>
@@ -705,8 +716,14 @@
 
                 <div style="margin-top: 2.5rem;">
                     <h4>3. Run CMS</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Standard Run:</p>
                     <div class="code-block">
                         <pre>npm run dev</pre>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 1rem; margin-bottom: 0.5rem;">Or
+                        via Docker Compose:</p>
+                    <div class="code-block">
+                        <pre>docker-compose up --build</pre>
                     </div>
                 </div>
             </div>

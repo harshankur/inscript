@@ -80,6 +80,27 @@ The wizard will guide you through:
 > **Forgot your credentials?**
 > If you lose access, simply open your `.env` file and delete the `AUTH_USERNAME` and `AUTH_PASSWORD_HASH` lines. The next time you run `npm run dev` or `npm run setup`, you will be prompted to create new credentials.
 
+## 🐳 Docker Support
+
+You can run Inscript entirely through Docker for a consistent and isolated environment.
+
+### 1. Configure `.env`
+Ensure your `.env` file is configured with the correct paths. For Docker, it's recommended to mount your content/static dirs into the `/app` space.
+
+### 2. Run with Docker Compose
+```bash
+docker-compose up --build
+```
+
+The `docker-compose.yml` automatically:
+-   Loads environment variables from `.env`.
+-   Mounts your local content and static directories.
+-   Persists your `.env` changes back to the host.
+-   Exposes the Client and Server ports.
+
+> [!NOTE]
+> **Non-Interactive Setup**: When running via Docker, you can bypass interactive prompts by providing all required variables in your `.env` or as environment variables. The setup script will automatically pick them up.
+
 ## Usage
 
 ### Development (Writing Content)
