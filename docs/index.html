@@ -781,6 +781,24 @@
                         Server-->>User: Grant Access
                     </div>
                 </div>
+                <div class="feature-card" style="padding: 2rem;">
+                    <h3>Deployment Strategy</h3>
+                    <div class="mermaid" style="margin-top: 1.5rem;">
+                        graph LR
+                        subgraph "Local Repo"
+                        I[Inscript Engine]
+                        end
+                        C[Content]
+                        S[Static]
+
+                        I -- Build --> D[Static Dist]
+
+                        subgraph "Static Hosting"
+                        D --- J[data.json]
+                        D --- H[UI Assets]
+                        end
+                    </div>
+                </div>
             </div>
         </section>
 
