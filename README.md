@@ -76,6 +76,10 @@ The wizard will guide you through:
 -   Setting up your content and static directories.
 -   Enabling authentication and setting your secure credentials.
 
+> [!TIP]
+> **Forgot your credentials?**
+> If you lose access, simply open your `.env` file and delete the `AUTH_USERNAME` and `AUTH_PASSWORD_HASH` lines. The next time you run `npm run dev` or `npm run setup`, you will be prompted to create new credentials.
+
 ## Usage
 
 ### Development (Writing Content)

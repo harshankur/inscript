@@ -171,6 +171,7 @@ FAVICON=${existingConfig.FAVICON || 'assets/favicon_default.png'}
 
     console.log('\n✨ Inscript setup complete! Run "npm run dev" to start.');
     console.log('\n💡 Tip: You can edit the .env file directly to modify any configuration you just set.');
+    console.log('🔑 Forgot your credentials? Delete the AUTH_USERNAME and AUTH_PASSWORD_HASH lines from .env and run this setup again.');
     rl.close();
 }
 
