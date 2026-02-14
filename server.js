@@ -11,6 +11,8 @@ import path from 'path';
 import TurndownService from 'turndown';
 import { fileURLToPath } from 'url';
 import { promisify } from 'util';
+import bcrypt from 'bcryptjs';
+import session from 'express-session';
 
 const execAsync = promisify(exec);
 
@@ -31,6 +33,76 @@ const DRAFTS_DIR_REL = process.env.DRAFTS_DIR;
 const POSTS_DIR = path.resolve(__dirname, CONTENT_DIR_REL);
 const STATIC_DIR = path.resolve(__dirname, STATIC_DIR_REL);
 const DRAFTS_DIR = path.resolve(__dirname, DRAFTS_DIR_REL);
+
+// Auth Configuration
+const AUTH_ENABLED = process.env.AUTH_ENABLED === 'true';
+const AUTH_USERNAME = process.env.AUTH_USERNAME;
+const AUTH_PASSWORD_HASH = process.env.AUTH_PASSWORD_HASH;
+
+// Auth Middleware
+const authGuard = (req, res, next) => {
+    if (!AUTH_ENABLED) return next();
+    if (req.session.user) return next();
+
+    // Allow public access to auth routes and /api/me
+    if (req.path.startsWith('/api/me') || req.path === '/auth/login' || req.path === '/auth/logout') return next();
+
+    res.status(401).json({ error: 'Unauthorized' });
+};
+
+if (AUTH_ENABLED) {
+    app.use(session({
+        secret: process.env.SESSION_SECRET || 'inscript-secret',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: false, // Set to true if using HTTPS
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        }
+    }));
+}
+
+// Auth Routes
+if (AUTH_ENABLED) {
+    app.post('/auth/login', async (req, res) => {
+        const { username, password } = req.body;
+
+        if (!AUTH_USERNAME || !AUTH_PASSWORD_HASH) {
+            return res.status(500).json({ error: 'Server authentication not configured correctly' });
+        }
+
+        if (username === AUTH_USERNAME) {
+            const match = await bcrypt.compare(password, AUTH_PASSWORD_HASH);
+            if (match) {
+                req.session.user = { displayName: AUTH_USERNAME };
+                return res.json({ success: true, user: req.session.user });
+            }
+        }
+
+        res.status(401).json({ error: 'Invalid username or password' });
+    });
+
+    app.get('/api/me', (req, res) => {
+        res.json({
+            user: req.session.user || null,
+            authEnabled: true,
+            authType: 'manual'
+        });
+    });
+
+    app.get('/auth/logout', (req, res) => {
+        req.session.destroy();
+        res.json({ success: true });
+    });
+} else {
+    app.get('/api/me', (req, res) => {
+        res.json({ user: { displayName: 'Guest' }, authEnabled: false });
+    });
+}
+
+// Apply authGuard to all /api routes
+app.use('/api', authGuard);
 
 console.log('Inscript Config:');
 console.log('Posts Dir:', POSTS_DIR);
@@ -423,7 +495,7 @@ async function getFiles(dir) {
     return Array.prototype.concat(...files);
 }
 
-// List all images
+
 app.get('/api/images', async (req, res) => {
     try {
         const allFiles = await getFiles(STATIC_DIR);

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://harshankur.github.io/inscript/sitemap.xml
+Sitemap: https://blog.harshankur.com/sitemap.xml

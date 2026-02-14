@@ -67,11 +67,15 @@ import {
     Underline as UnderlineIcon,
     Undo,
     UploadCloud,
+    LogOut,
+    User,
+    ShieldCheck,
     X,
     XCircle,
     Youtube as YoutubeIcon
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
+import Login from './components/Login';
 
 const Youtube = Node.create({
     name: 'youtube',
@@ -1631,6 +1635,11 @@ const App = () => {
     const [modifiedRange, setModifiedRange] = useState({ start: null, end: null });
     const [showFilters, setShowFilters] = useState(false);
 
+    // Authentication State
+    const [user, setUser] = useState(null);
+    const [authEnabled, setAuthEnabled] = useState(false);
+    const [authLoading, setAuthLoading] = useState(true);
+
     // Use refs for comparison to avoid stale closures in Tiptap callbacks
     const originalContentRef = React.useRef({ title: '', html: '' });
     const isInitialLoadingRef = React.useRef(false);
@@ -1873,8 +1882,25 @@ const App = () => {
     }, [filename, title]);
 
     useEffect(() => {
+        checkAuth();
         fetchPosts();
     }, []);
+
+    const checkAuth = async () => {
+        if (isReadonlyEnv) {
+            setAuthLoading(false);
+            return;
+        }
+        try {
+            const res = await api.get('/api/me');
+            setUser(res.data.user);
+            setAuthEnabled(res.data.authEnabled);
+        } catch (error) {
+            console.error('Auth check failed:', error);
+        } finally {
+            setAuthLoading(false);
+        }
+    };
 
     const fetchPosts = async () => {
         try {
@@ -2102,6 +2128,24 @@ const App = () => {
         }
     }, [editor, filename, currentPost, history, historyIndex]);
 
+
+    const handleLogout = () => {
+        setModalConfig({
+            title: 'Confirm Logout',
+            message: 'Are you sure you want to log out of Inscript?',
+            type: 'warning',
+            confirmText: 'Logout',
+            onConfirm: async () => {
+                try {
+                    await api.get('/auth/logout');
+                    setUser(null);
+                    setModalConfig(null);
+                } catch (error) {
+                    console.error('Logout failed:', error);
+                }
+            }
+        });
+    };
 
     const handleDelete = async () => {
         if (!filename) return;
@@ -2412,6 +2456,20 @@ const App = () => {
         setModifiedRange({ start: null, end: null });
         setShowFilters(false);
     };
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <Activity className="animate-spin text-emerald-500 w-8 h-8" />
+                    <span className="text-zinc-500 text-sm font-medium animate-pulse">Initializing Inscript...</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (authEnabled && !user) {
+        return <Login />;
+    }
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -2708,46 +2766,75 @@ const App = () => {
 
                     {/* Pinned Introduction Post */}
                     {(introductionPost || !isReadonly) && (
-                        <div className="p-2 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30">
-                            {introductionPost ? (
-                                <button
-                                    onClick={() => loadPost(introductionPost.filename)}
-                                    className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group border-2 ${filename === introductionPost.filename
-                                        ? 'bg-zinc-100 dark:bg-zinc-800 shadow-md border-emerald-500/50' // Highlight active pinned post
-                                        : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border-emerald-500/20 hover:border-emerald-500/40' // Distinct border for pinned
-                                        }`}
-                                    title={introductionPost.title}
-                                >
-                                    <div className="text-emerald-500 mt-1 flex-shrink-0">
-                                        <Pin size={18} fill="currentColor" className="opacity-80" />
-                                    </div>
-                                    {!isReadonly && ((isDirty && filename === introductionPost.filename) || introductionPost.hasDraft) && (
-                                        <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-yellow-400 shadow-[0_0_8px_currentColor]" title="Unsaved changes" />
-                                    )}
-                                    <div className="min-w-0 flex-1">
-                                        <div className="text-sm font-bold truncate text-emerald-100">{introductionPost.title}</div>
-                                        <div className="flex items-center gap-2 mt-1.5 opacity-60">
-                                            <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-500">Introduction</span>
+                        <>
+                            <div className="p-2 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30">
+                                {introductionPost ? (
+                                    <button
+                                        onClick={() => loadPost(introductionPost.filename)}
+                                        className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group border-2 ${filename === introductionPost.filename
+                                            ? 'bg-zinc-100 dark:bg-zinc-800 shadow-md border-emerald-500/50' // Highlight active pinned post
+                                            : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border-emerald-500/20 hover:border-emerald-500/40' // Distinct border for pinned
+                                            }`}
+                                        title={introductionPost.title}
+                                    >
+                                        <div className="text-emerald-500 mt-1 flex-shrink-0">
+                                            <Pin size={18} fill="currentColor" className="opacity-80" />
                                         </div>
+                                        {!isReadonly && ((isDirty && filename === introductionPost.filename) || introductionPost.hasDraft) && (
+                                            <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-yellow-400 shadow-[0_0_8px_currentColor]" title="Unsaved changes" />
+                                        )}
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-sm font-bold truncate text-emerald-100">{introductionPost.title}</div>
+                                            <div className="flex items-center gap-2 mt-1.5 opacity-60">
+                                                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-500">Introduction</span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => handleNewPostConfirm('Introduction', { type: 'introduction' })}
+                                        className="w-full text-left p-3 rounded-lg transition-all flex items-center gap-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 group text-zinc-400 dark:text-zinc-500 hover:text-emerald-500"
+                                        title="Create Introduction Post"
+                                    >
+                                        <div className="mt-0.5 flex-shrink-0">
+                                            <Pin size={18} className="opacity-50 group-hover:opacity-100" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-sm font-medium">Create Introduction</div>
+                                            <div className="text-[10px] mt-0.5 opacity-60">Pinned Recommendation</div>
+                                        </div>
+                                        <Plus size={16} className="opacity-50 group-hover:opacity-100" />
+                                    </button>
+                                )}
+                            </div>
+                            {/* User Profile & Logout */}
+                            {authEnabled && user && (
+                                <div className="mt-auto p-4 border-t border-zinc-200 dark:border-zinc-800">
+                                    <div className="flex items-center justify-between gap-3 p-2 rounded-xl bg-zinc-100/50 dark:bg-zinc-800/50">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            {user.photos?.[0] ? (
+                                                <img src={user.photos[0].value} alt={user.displayName} className="w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-700" />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                                    <User size={16} />
+                                                </div>
+                                            )}
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-bold text-zinc-900 dark:text-white truncate">{user.displayName}</div>
+                                                <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate capitalize">{user.provider}</div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                            title="Logout"
+                                        >
+                                            <LogOut size={16} />
+                                        </button>
                                     </div>
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => handleNewPostConfirm('Introduction', { type: 'introduction' })}
-                                    className="w-full text-left p-3 rounded-lg transition-all flex items-center gap-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 group text-zinc-400 dark:text-zinc-500 hover:text-emerald-500"
-                                    title="Create Introduction Post"
-                                >
-                                    <div className="mt-0.5 flex-shrink-0">
-                                        <Pin size={18} className="opacity-50 group-hover:opacity-100" />
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <div className="text-sm font-medium">Create Introduction</div>
-                                        <div className="text-[10px] mt-0.5 opacity-60">Pinned Recommendation</div>
-                                    </div>
-                                    <Plus size={16} className="opacity-50 group-hover:opacity-100" />
-                                </button>
+                                </div>
                             )}
-                        </div>
+                        </>
                     )}
 
                     {/* Drag Handle - made larger and centered on border for better usability */}
@@ -2756,8 +2843,7 @@ const App = () => {
                         className="absolute right-0 translate-x-1/2 top-0 bottom-0 w-4 bg-transparent hover:bg-emerald-500/50 cursor-col-resize z-50 transition-colors"
                     />
                 </div>
-            )
-            }
+            )}
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden relative">

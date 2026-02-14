@@ -1,8 +1,10 @@
-
 import dotenv from 'dotenv';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import readline from 'readline';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,167 +12,170 @@ const __dirname = path.dirname(__filename);
 const INSCRIPT_ROOT = path.resolve(__dirname, '..');
 const ENV_PATH = path.join(INSCRIPT_ROOT, '.env');
 
-// Template for .env
-const ENV_TEMPLATE = `# Inscript Configuration
-# NOTE: All the directory paths are relative to inscript/ directory or absolute paths.
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 
-# Title shown in the browser tab and sidebar
-# Default: My Inscript Blog
-TITLE=
-# Used in sitemap and robots.txt
-# Default: https://example.com
-SITE_URL=
+const question = (query, defaultValue = '') => new Promise((resolve) => {
+    const prompt = defaultValue ? `${query} (${defaultValue}): ` : `${query}: `;
+    rl.question(prompt, (answer) => {
+        resolve(answer || defaultValue);
+    });
+});
 
-# MUST BE SET
-# Content directory - where markdown files are stored.
-# Default: ../content
-CONTENT_DIR=
-# Static directory - where static files like the images used in the posts are stored.
-# Default: ../static
-STATIC_DIR=
-
-# OPTIONAL
-# Favicon path - the icon shown in the browser tab and sidebar.
-FAVICON=assets/favicon_default.png
-# Drafts directory - where drafts which are autosaved or unpublished are stored.
-DRAFTS_DIR=.drafts
-# Output directory - where the generated files are stored.
-DIST_DIR=../dist
-# Port for the Inscript Server
-SERVER_PORT=3001
-# Port for the Inscript Client
-CLIENT_PORT=5173
-
-# EXPERIMENTAL FEATURES
-# Allow push to remote after publishing
-ALLOW_PUSH=false
-
-# Hostnames allowed to access the Inscript client (comma-separated or 'true' to allow all). Default is empty.
-# Example: my-pc.local,192.168.1.10
-ALLOWED_HOSTS=
-`;
+const smartQuestion = async (key, query, defaultValue, existingConfig) => {
+    if (existingConfig[key]) return existingConfig[key];
+    return await question(query, defaultValue);
+};
 
 async function setup() {
-    console.log('Setting up Inscript environment...');
+    console.log('\n🚀 Welcome to the Inscript Setup Wizard!');
+    console.log('This will help you configure your CMS environment and security.\n');
 
-    // 0. Load Environment Variables (Try .env if exists)
+    // 0. Load existing config if available
+    let existingConfig = {};
     if (await fs.pathExists(ENV_PATH)) {
-        dotenv.config({ path: ENV_PATH });
+        const content = await fs.readFile(ENV_PATH, 'utf8');
+        existingConfig = dotenv.parse(content);
+        console.log('ℹ️  Found existing .env file. Checking for missing configuration...\n');
     }
 
-    // 1. Validate Required Variables
-    // Check if we have what we need (either from .env or system/Netlify environment)
-    const requiredVars = ['TITLE', 'SITE_URL', 'CONTENT_DIR', 'STATIC_DIR'];
-    // In demo mode, we don't need these
-    const missingVars = process.env.DEMO_MODE === 'true' ? [] : requiredVars.filter(v => !process.env[v]);
+    // 1. Basic Configuration
+    console.log('--- Configuration ---');
+    const title = await smartQuestion('TITLE', 'Blog Title', 'My Inscript Blog', existingConfig);
+    const siteUrl = await smartQuestion('SITE_URL', 'Site URL', 'https://example.com', existingConfig);
+    const contentDir = await smartQuestion('CONTENT_DIR', 'Content directory (relative to inscript/)', '../content', existingConfig);
+    const staticDir = await smartQuestion('STATIC_DIR', 'Static directory (relative to inscript/)', '../static', existingConfig);
+    const draftsDir = await smartQuestion('DRAFTS_DIR', 'Drafts directory (relative to inscript/)', '.drafts', existingConfig);
+    const distDir = await smartQuestion('DIST_DIR', 'Output (Dist) directory (relative to inscript/)', '../dist', existingConfig);
+    const serverPort = await smartQuestion('SERVER_PORT', 'Server Port', '3001', existingConfig);
+    const clientPort = await smartQuestion('CLIENT_PORT', 'Client Port', '5173', existingConfig);
+    const allowedHosts = await smartQuestion('ALLOWED_HOSTS', 'Allowed Hosts (comma-separated or "true")', 'true', existingConfig);
 
-    if (missingVars.length > 0) {
-        // Variables are missing.
-        console.error('\n❌ Error: Missing required environment variables:');
-        missingVars.forEach(v => console.error(`   - ${v}`));
+    // 2. Authentication Configuration
+    console.log('\n--- Authentication & Security ---');
+    let authEnabled = existingConfig.AUTH_ENABLED === 'true';
+    if (existingConfig.AUTH_ENABLED === undefined) {
+        const enableAuthString = await question(`Enable authentication? (y/n)`, 'n');
+        authEnabled = enableAuthString.toLowerCase().startsWith('y');
+    }
 
-        // Check if we are in a CI environment
-        if (process.env.CI) {
-            console.error('\n🚫 CI Environment detected.');
-            console.error('Please add the missing variables to your CI/Deployment configuration (e.g., Netlify Environment Variables).');
-        } else {
-            // Local Development: Help the user by creating the file
-            if (!await fs.pathExists(ENV_PATH)) {
-                await fs.writeFile(ENV_PATH, ENV_TEMPLATE);
-                console.warn('\n⚠️  .env file was missing and has been created with default template.');
-                console.warn('⚠️  Please configure: ' + ENV_PATH);
-                console.warn('⚠️  Update TITLE, SITE_URL, SERVER_PORT and the required directory paths\n');
+    let authUsername = existingConfig.AUTH_USERNAME || 'admin';
+    let authPasswordHash = existingConfig.AUTH_PASSWORD_HASH || '';
+    let sessionSecret = existingConfig.SESSION_SECRET || '';
+
+    if (authEnabled) {
+        if (!existingConfig.AUTH_USERNAME) {
+            authUsername = await question('Admin Username', 'admin');
+        }
+
+        if (!authPasswordHash) {
+            const password = await question('Enter admin password');
+            if (password) {
+                const salt = await bcrypt.genSalt(10);
+                authPasswordHash = await bcrypt.hash(password, salt);
+                console.log('✅ Password hash generated.');
             } else {
-                console.error('Please update your .env file or system environment variables.\n');
+                console.error('❌ Error: Password cannot be empty for initial setup.');
+                process.exit(1);
             }
         }
-        process.exit(1);
+
+        if (!sessionSecret) {
+            sessionSecret = crypto.randomBytes(32).toString('hex');
+            console.log('✅ Secure Session Secret generated.');
+        }
     }
 
-    // Directories
-    const isDemo = process.env.DEMO_MODE === 'true';
-    const STATIC_DIR_REL = process.env.STATIC_DIR || (isDemo ? 'static' : '');
-    const STATIC_DIR = STATIC_DIR_REL ? path.resolve(INSCRIPT_ROOT, STATIC_DIR_REL) : null;
+    // 3. Save to .env
+    const envContent = `# Inscript Configuration Generated on ${new Date().toISOString()}
+
+# General
+TITLE=${title}
+SITE_URL=${siteUrl}
+
+# Directories
+CONTENT_DIR=${contentDir}
+STATIC_DIR=${staticDir}
+DRAFTS_DIR=${draftsDir}
+DIST_DIR=${distDir}
+
+# Ports & Hosts
+SERVER_PORT=${serverPort}
+CLIENT_PORT=${clientPort}
+ALLOWED_HOSTS=${allowedHosts}
+
+# Authentication
+AUTH_ENABLED=${authEnabled}
+AUTH_USERNAME=${authUsername}
+AUTH_PASSWORD_HASH=${authPasswordHash}
+SESSION_SECRET=${sessionSecret}
+
+# Experimental
+ALLOW_PUSH=${existingConfig.ALLOW_PUSH || 'false'}
+FAVICON=${existingConfig.FAVICON || 'assets/favicon_default.png'}
+`;
+
+    await fs.writeFile(ENV_PATH, envContent);
+    console.log('\n✅ .env file updated successfully.');
+
+    // 4. Asset Generation (Favicon, Robots, Manifest)
+    console.log('\n--- Post-Setup Tasks ---');
+    process.env.TITLE = title;
+    process.env.SITE_URL = siteUrl;
+    process.env.STATIC_DIR = staticDir;
+    process.env.FAVICON = existingConfig.FAVICON || 'assets/favicon_default.png';
+
     const PUBLIC_DIR = path.join(INSCRIPT_ROOT, 'public');
     const ASSETS_DIR = path.join(INSCRIPT_ROOT, 'assets');
-
-    // Ensure public directory exists
     await fs.ensureDir(PUBLIC_DIR);
 
+    // Favicon
     const defaultFavicon = path.join(ASSETS_DIR, 'favicon_default.png');
     const targetFavicon = path.join(PUBLIC_DIR, 'favicon.png');
-
-    // Logic:
-    // 1. Check if FAVICON is set and exists in STATIC_DIR.
-    // 2. If yes, copy that to public/favicon.png.
-    // 3. If no, copy favicon_default.png to public/favicon.png.
-
     let faviconCopied = false;
 
     if (process.env.FAVICON) {
-        const customFaviconPath = path.resolve(STATIC_DIR, process.env.FAVICON);
+        const customFaviconPath = path.resolve(INSCRIPT_ROOT, staticDir, process.env.FAVICON);
         if (await fs.pathExists(customFaviconPath)) {
             await fs.copy(customFaviconPath, targetFavicon);
-            console.log(`Using custom favicon from: ${customFaviconPath}`);
+            console.log(`- Using custom favicon from: ${customFaviconPath}`);
             faviconCopied = true;
-        } else {
-            console.warn(`Custom favicon configured but not found at: ${customFaviconPath}`);
         }
     }
 
-    if (!faviconCopied) {
-        if (await fs.pathExists(defaultFavicon)) {
-            await fs.copy(defaultFavicon, targetFavicon);
-            console.log('Using default Inscript favicon.');
-        } else {
-            console.error('Error: favicon_default.png not found in assets directory. Favicon setup failed.');
-        }
+    if (!faviconCopied && await fs.pathExists(defaultFavicon)) {
+        await fs.copy(defaultFavicon, targetFavicon);
+        console.log('- Using default Inscript favicon.');
     }
 
-    // 4. Generate Dynamic Assets (Manifest & Robots)
-
-    // Strict requirement: No defaults in code, must come from Env.
-
-    // Check for DEMO_MODE to skip env vars
-    if (isDemo) {
-        console.log('🎭 DEMO MODE: Using default values for Demo build.');
-    }
-
-    const config = {
-        title: isDemo ? 'Inscript Demo' : process.env.TITLE,
-        siteUrl: isDemo ? 'https://harshankur.github.io/inscript' : process.env.SITE_URL
-    };
-
-    // Process Manifest
+    // Manifest
     const manifestSrc = path.join(ASSETS_DIR, 'manifest.json');
     if (await fs.pathExists(manifestSrc)) {
         const manifest = await fs.readJson(manifestSrc);
-        if (config.title) {
-            manifest.name = config.title;
-            manifest.short_name = config.title;
-        }
+        manifest.name = title;
+        manifest.short_name = title;
         await fs.writeJson(path.join(PUBLIC_DIR, 'manifest.json'), manifest, { spaces: 4 });
-        console.log(`Generated manifest.json${config.title ? ` with title: "${config.title}"` : ''}`);
-    } else {
-        console.warn('Warning: assets/manifest.json not found.');
+        console.log('- Generated manifest.json');
     }
 
-    // Process Robots.txt
+    // Robots.txt
     const robotsSrc = path.join(ASSETS_DIR, 'robots.txt');
     if (await fs.pathExists(robotsSrc)) {
         let robots = await fs.readFile(robotsSrc, 'utf8');
-        // Replace template placeholder {{SITE_URL}}
-        if (config.siteUrl) {
-            robots = robots.replace(/{{SITE_URL}}/g, config.siteUrl);
-        }
+        robots = robots.replace(/{{SITE_URL}}/g, siteUrl);
         await fs.writeFile(path.join(PUBLIC_DIR, 'robots.txt'), robots);
-        console.log(`Generated robots.txt${config.siteUrl ? ` with Site URL: "${config.siteUrl}"` : ''}`);
-    } else {
-        console.warn('Warning: assets/robots.txt not found.');
+        console.log('- Generated robots.txt');
     }
+
+    console.log('\n✨ Inscript setup complete! Run "npm run dev" to start.');
+    console.log('\n💡 Tip: You can edit the .env file directly to modify any configuration you just set.');
+    rl.close();
 }
 
 setup().catch(err => {
-    console.error('Setup failed:', err);
+    console.error('\n❌ Setup failed:', err);
+    rl.close();
     process.exit(1);
 });

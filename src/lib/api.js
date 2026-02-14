@@ -147,8 +147,8 @@ const mockApi = {
             };
         }
 
-        if (url === '/api/youtube/search') {
-            return { data: { items: [] } }; // Mock empty search
+        if (url === '/api/me') {
+            return { data: { user: { displayName: 'Demo User' }, authEnabled: false } };
         }
 
         return { data: {} };
