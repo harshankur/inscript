@@ -84,22 +84,22 @@ The wizard will guide you through:
 
 You can run Inscript entirely through Docker for a consistent and isolated environment.
 
-### 1. Configure `.env`
-Ensure your `.env` file is configured with the correct paths. For Docker, it's recommended to mount your content/static dirs into the `/app` space.
-
-### 2. Run with Docker Compose
+### 1. Simple Start
+If you just want to see it running, simply run:
 ```bash
 docker-compose up --build
 ```
+Inscript will detect it is running in Docker and **automatically generate** a `.env` file with safe defaults (`admin`/`admin` credentials) if one is missing.
 
-The `docker-compose.yml` automatically:
--   Loads environment variables from `.env`.
--   Mounts your local content and static directories.
--   Persists your `.env` changes back to the host.
--   Exposes the Client and Server ports.
+### 2. Manual Configuration
+For full control, copy the example template first:
+```bash
+cp .env.example .env
+```
+Then edit `.env` and run `docker-compose up`.
 
-> [!NOTE]
-> **Non-Interactive Setup**: When running via Docker, you can bypass interactive prompts by providing all required variables in your `.env` or as environment variables. The setup script will automatically pick them up.
+> [!IMPORTANT]
+> **Docker Bind Mounts**: If you run `docker-compose up` without a `.env` file existing on your host machine, Docker may create a *directory* named `.env` instead of a file. If this happens, delete the directory and create an empty `.env` file before restarting.
 
 ## Usage
 
