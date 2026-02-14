@@ -136,7 +136,7 @@ FAVICON=${existingConfig.FAVICON || 'assets/favicon_default.png'}
     const targetFavicon = path.join(PUBLIC_DIR, 'favicon.png');
     let faviconCopied = false;
 
-    if (process.env.FAVICON) {
+    if (process.env.FAVICON && process.env.DEMO_MODE !== 'true') {
         const customFaviconPath = path.resolve(INSCRIPT_ROOT, staticDir, process.env.FAVICON);
         if (await fs.pathExists(customFaviconPath)) {
             await fs.copy(customFaviconPath, targetFavicon);
