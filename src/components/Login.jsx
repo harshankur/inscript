@@ -88,7 +88,12 @@ const Login = () => {
                     </button>
                 </form>
 
-                <div className="mt-6 text-center">
+                <div className="mt-6 text-center space-y-2">
+                    {import.meta.env.MODE === 'demo' && (
+                        <p className="text-xs text-blue-500 bg-blue-500/5 py-2 px-3 rounded-lg border border-blue-500/10 animate-pulse">
+                            Demo Credentials: <span className="font-mono font-bold">demo</span> / <span className="font-mono font-bold">demo</span>
+                        </p>
+                    )}
                     <p className="text-xs text-gray-400 dark:text-gray-500">
                         Production-grade security enabled.
                     </p>
