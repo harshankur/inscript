@@ -125,13 +125,16 @@ The build script `npm run setup` validates these before building.
 | `SITE_URL` | **Yes** | Public URL (used in Sitemap/Robots). | `https://example.com` |
 | `CONTENT_DIR` | **Yes** | Relative path to markdown content. | `../content` |
 | `STATIC_DIR` | **Yes** | Relative path to source images/assets. | `../static` |
+| `DRAFTS_DIR` | **Yes** | Path for drafts and version history. | `../drafts` |
 | `DIST_DIR` | No | Override build output location. | `../dist` |
+| `FAVICON` | No | Path to custom favicon in Static Dir. | `favicon-32x32.png` |
+| `SERVER_PORT` | No | Port for the backend API server. | `2221` |
+| `CLIENT_PORT` | No | Port for the frontend React app (Dev). | `2222` |
+| `ALLOWED_HOSTS` | No | Comma-separated allowed hosts for backend. | `blog.me.com` |
 | `AUTH_ENABLED` | No | Enable local password authentication. | `true` |
 | `AUTH_USERNAME` | No | Admin username for login. | `admin` |
 | `AUTH_PASSWORD_HASH` | No | BCrypt hash of your password. | `$2b$10$...` |
 | `SESSION_SECRET` | No | Secret for signing session cookies. | `(any random string)` |
-| `SERVER_PORT` | No | Port for the backend API server. | `2221` |
-| `CLIENT_PORT` | No | Port for the frontend React app (Dev). | `2222` |
 | `ALLOW_PUSH` | No | Enable Git Push from UI (Dangerous). | `false` |
 
 ### Advanced Build Configuration

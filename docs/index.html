@@ -721,12 +721,12 @@
                         <tr>
                             <td><code>TITLE</code></td>
                             <td><span class="tag">Required</span></td>
-                            <td>The display title of your CMS.</td>
+                            <td>The display title of your CMS and Blog.</td>
                         </tr>
                         <tr>
                             <td><code>SITE_URL</code></td>
                             <td><span class="tag">Required</span></td>
-                            <td>Public URL (used for Sitemap generation).</td>
+                            <td>Public URL (used for Sitemap and Robots selection).</td>
                         </tr>
                         <tr>
                             <td><code>CONTENT_DIR</code></td>
@@ -739,14 +739,59 @@
                             <td>Path to your images/assets (relative to <code>inscript/</code>).</td>
                         </tr>
                         <tr>
+                            <td><code>DRAFTS_DIR</code></td>
+                            <td><span class="tag">Required</span></td>
+                            <td>Path for storing drafts and editing history.</td>
+                        </tr>
+                        <tr>
                             <td><code>DIST_DIR</code></td>
                             <td><span class="tag tag-optional">Optional</span></td>
-                            <td>Override the build output location.</td>
+                            <td>Override the build output location (default: <code>../dist</code>).</td>
+                        </tr>
+                        <tr>
+                            <td><code>FAVICON</code></td>
+                            <td><span class="tag tag-optional">Optional</span></td>
+                            <td>Custom favicon path (relative to <code>STATIC_DIR</code>).</td>
+                        </tr>
+                        <tr>
+                            <td><code>SERVER_PORT</code></td>
+                            <td><span class="tag tag-optional">Optional</span></td>
+                            <td>Local API server port (default: <code>2221</code>).</td>
+                        </tr>
+                        <tr>
+                            <td><code>CLIENT_PORT</code></td>
+                            <td><span class="tag tag-optional">Optional</span></td>
+                            <td>React dev server port (default: <code>2222</code>).</td>
+                        </tr>
+                        <tr>
+                            <td><code>ALLOWED_HOSTS</code></td>
+                            <td><span class="tag tag-optional">Optional</span></td>
+                            <td>Allowed hosts for backend access.</td>
+                        </tr>
+                        <tr>
+                            <td><code>AUTH_ENABLED</code></td>
+                            <td><span class="tag tag-optional">Optional</span></td>
+                            <td>Enable local password protection (default: <code>true</code>).</td>
+                        </tr>
+                        <tr>
+                            <td><code>AUTH_USERNAME</code></td>
+                            <td><span class="tag tag-optional">Optional</span></td>
+                            <td>Admin username for login.</td>
+                        </tr>
+                        <tr>
+                            <td><code>AUTH_PASSWORD_HASH</code></td>
+                            <td><span class="tag tag-optional">Optional</span></td>
+                            <td>BCrypt hash of your admin password.</td>
+                        </tr>
+                        <tr>
+                            <td><code>SESSION_SECRET</code></td>
+                            <td><span class="tag tag-optional">Optional</span></td>
+                            <td>Random string for signing session cookies.</td>
                         </tr>
                         <tr>
                             <td><code>ALLOW_PUSH</code></td>
                             <td><span class="tag tag-optional">Optional</span></td>
-                            <td>Enable direct Git Push from the UI.</td>
+                            <td>Enable Git Push directly from the UI.</td>
                         </tr>
                     </tbody>
                 </table>
