@@ -417,13 +417,19 @@ app.post('/api/publish', async (req, res) => {
     try {
         console.log('🚀 Publishing static site...');
         // Execute the publish script defined in package.json
-        const { stdout, stderr } = await execAsync('npm run publish', { cwd: __dirname });
+        // Increase maxBuffer for large Vite build outputs (10MB)
+        const { stdout, stderr } = await execAsync('npm run publish', {
+            cwd: __dirname,
+            maxBuffer: 10 * 1024 * 1024
+        });
         console.log('Publish Output:', stdout);
         if (stderr) console.error('Publish Error Output:', stderr);
         res.json({ success: true, output: stdout });
     } catch (err) {
         console.error('Publish Failed:', err);
-        res.status(500).json({ error: err.message });
+        // Include stderr in the error response if available for better debugging
+        const errorMessage = err.stderr ? `${err.message}\n\nStderr: ${err.stderr}` : err.message;
+        res.status(500).json({ error: errorMessage });
     }
 });
 

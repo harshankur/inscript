@@ -7,14 +7,16 @@ services:
         CLIENT_PORT: ${CLIENT_PORT}
     container_name: inscript-blog
     volumes:
-      # Mount data directories based on .env paths
-      - ${CONTENT_DIR:-../content}:/app/content
-      - ${STATIC_DIR:-../static}:/app/static
-      - ${DRAFTS_DIR:-../drafts}:/app/drafts
-      - ${DIST_DIR:-../dist}:/app/dist
-      - ${FAVICON:-../favicon.png}:/app/favicon.png
-      # Mount the .env file itself for the app to read
-      - ./.env:/app/inscript/.env
+      # 1. Mount the Parent Blog Repository root to /app
+      # This handles code (in /app/inscript) and data (content, static, .env)
+      - ../:/app/
+
+      # 2. Preserve built node_modules (prevents host overwrite)
+      # This must come AFTER the /app mount to take precedence
+      - /app/inscript/node_modules
+      # Enable Git Support (Uncomment if you want CMS to commit/push)
+      # - ${HOME:-~}/.gitconfig:/root/.gitconfig:ro
+      # - ${HOME:-~}/.ssh:/root/.ssh:ro
     ports:
       # Map ports based on .env
       - "${CLIENT_PORT:-5173}:${CLIENT_PORT:-5173}"

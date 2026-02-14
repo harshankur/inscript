@@ -87,8 +87,23 @@ You can run Inscript entirely through Docker for a consistent and isolated envir
 ### 1. Simple Start
 If you just want to see it running, simply run:
 ```bash
-docker-compose up --build
+docker-compose up -d
 ```
+
+### 🔐 Git Support (Submodule Flow)
+When using Inscript as a submodule, you want Git commands (Commit/Push) to target your **Parent Blog Repository**, not just the engine.
+
+1. **Enable Credentials**: Edit `docker-compose.yml` and uncomment the volumes for `.gitconfig` and `.ssh`.
+2. **Mount Root**: Ensure the `- ../:/app/` volume is active (it is by default). This mounts your entire blog repo into the container.
+3. **Identity**: The container will automatically use your host's Git identity and SSH keys.
+
+#### 📁 Directory Structure inside Container
+- **`/app`**: Your Parent Blog Repository (contains `.git`). Git commands run here.
+- **`/app/inscript`**: The Inscript CMS engine. `npm run dev` runs here.
+- **`/app/content`**, **`/app/static`**: Your blog data folders.
+
+> [!IMPORTANT]
+> The Docker image is pre-configured to trust the `/app` directory (`git config safe.directory`), allowing seamless operations on the mounted blog repo even if file ownership differs between Host and Container.
 Inscript will detect it is running in Docker and **automatically generate** a `.env` file with safe defaults (`admin`/`admin` credentials) if one is missing.
 
 ### 2. Manual Configuration

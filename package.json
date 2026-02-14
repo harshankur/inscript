@@ -44,7 +44,7 @@
     "dev": "npm run setup && concurrently \"npm run server\" \"npm run client\"",
     "prepare": "husky",
     "preview": "vite preview",
-    "publish": "npm run setup && vite build --mode readonly && node scripts/generate-data.js && node scripts/generate-sitemap.js",
+    "publish": "vite build --mode readonly && node scripts/generate-data.js && node scripts/generate-sitemap.js",
     "server": "node --watch server.js",
     "setup": "node scripts/setup-inscript.js",
     "start": "npm run dev"
