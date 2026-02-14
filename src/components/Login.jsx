@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, User, Lock, AlertCircle, Loader2 } from 'lucide-react';
-import axios from 'axios';
+import api from '../lib/api';
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -14,7 +14,7 @@ const Login = () => {
         setError('');
 
         try {
-            await axios.post('/auth/login', { username, password });
+            await api.post('/auth/login', { username, password });
             window.location.reload(); // Reload to trigger App.jsx re-fetch of /api/me
         } catch (err) {
             setError(err.response?.data?.error || 'Invalid username or password');

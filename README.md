@@ -7,10 +7,18 @@ Designed to be a seamless submodule for any static site generator (Hugo, Astro, 
 Try the editor in your browser without installing anything!
 [**Launch Live Demo**](https://harshankur.github.io/inscript/inscript_demo.html)
 
+**Demo Credentials**: `demo` / `demo`
+
 > **Note**: The demo runs entirely in your browser using `localStorage`. No data is sent to a server.
 
 
 ## Features
+
+### 🛡️ Production-Grade Security
+-   **Local Auth**: Secure your CMS with a local username and password.
+-   **BCrypt Hashing**: Passwords are securely hashed using industry-standard BCrypt.
+-   **Session Management**: Secure, HTTP-only session cookies with 24-hour persistence.
+-   **Interactive Logout**: Robust logout flow with a confirmation modal to prevents accidental sign-outs.
 
 ### 📝 Rich Text Editor
 -   **Tiptap Power**: A Notion-style editor with slash commands (`/`) for quick formatting.
@@ -54,38 +62,19 @@ Run this from your project root:
 git submodule add <repository-url> inscript
 ```
 
-### 2. Install Dependencies
-Navigate to the Inscript folder and install:
+### 2. Install & Setup
+Navigate to the Inscript folder and run the interactive setup wizard:
 
 ```bash
 cd inscript
 npm install
+npm run setup
 ```
 
-### 3. Configure Environment
-Inscript automatically creates a `.env` file on first run. You can also manually create one in `inscript/.env`:
-
-```env
-# Display Name
-TITLE=My Awesome Blog
-
-# Your Public Site URL (for Sitemap/Robots)
-SITE_URL=https://myblog.com
-
-# PATHS (Relative to inscript/ directory)
-# Where your markdown files live
-CONTENT_DIR=../content
-# Where static assets (images) live
-STATIC_DIR=../static
-# Where the built Inscript app and data.json should go
-DIST_DIR=../dist
-
-# OPTIONAL
-# Port for the local Inscript server
-SERVER_PORT=3001
-# Allow pushing to remote git repo from UI (Caution)
-ALLOW_PUSH=false
-```
+The wizard will guide you through:
+-   Configuring your blog identity.
+-   Setting up your content and static directories.
+-   Enabling authentication and setting your secure credentials.
 
 ## Usage
 
@@ -93,22 +82,20 @@ ALLOW_PUSH=false
 Run Inscript locally alongside your blog generator:
 
 ```bash
-cd inscript
 npm run dev
 ```
 -   **Inscript Interface**: `http://localhost:5173`
--   **API Server**: `http://localhost:3001`
+-   **API Server**: `http://localhost:2221` (default)
 
 ### Publishing (Building for Production)
 When you deploy your site, you need to build the Inscript assets and generate the content API.
 
 ```bash
-cd inscript
 npm run publish
 ```
 
 #### What `npm run publish` does:
-1.  **Setup**: Generates `public/robots.txt` and `public/manifest.json` based on your `.env`.
+1.  **Setup**: Generates `public/robots.txt` and `public/manifest.json` based on your configuration.
 2.  **Build UI**: Builds the React app in `readonly` mode (no editing features).
 3.  **Generate Data**: Parses all markdown files and creates a `dist/data.json` for your frontend.
 4.  **Sitemap**: Generates a SEO-ready `sitemap.xml`.
@@ -139,9 +126,12 @@ The build script `npm run setup` validates these before building.
 | `CONTENT_DIR` | **Yes** | Relative path to markdown content. | `../content` |
 | `STATIC_DIR` | **Yes** | Relative path to source images/assets. | `../static` |
 | `DIST_DIR` | No | Override build output location. | `../dist` |
-| `FAVICON` | No | Path to custom favicon in Static Dir. | `assets/icon.png` |
-| `SERVER_PORT` | No | Port for the backend API server. | `3001` |
-| `CLIENT_PORT` | No | Port for the frontend React app (Dev). | `5173` |
+| `AUTH_ENABLED` | No | Enable local password authentication. | `true` |
+| `AUTH_USERNAME` | No | Admin username for login. | `admin` |
+| `AUTH_PASSWORD_HASH` | No | BCrypt hash of your password. | `$2b$10$...` |
+| `SESSION_SECRET` | No | Secret for signing session cookies. | `(any random string)` |
+| `SERVER_PORT` | No | Port for the backend API server. | `2221` |
+| `CLIENT_PORT` | No | Port for the frontend React app (Dev). | `2222` |
 | `ALLOW_PUSH` | No | Enable Git Push from UI (Dangerous). | `false` |
 
 ### Advanced Build Configuration

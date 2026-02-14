@@ -148,7 +148,16 @@ const mockApi = {
         }
 
         if (url === '/api/me') {
-            return { data: { user: { displayName: 'Demo User' }, authEnabled: false } };
+            const isLoggedIn = localStorage.getItem('inscript_demo_logged_in') === 'true';
+            if (isLoggedIn) {
+                return { data: { user: { displayName: 'Demo User' }, authEnabled: true } };
+            }
+            return { data: { user: null, authEnabled: true } };
+        }
+
+        if (url === '/auth/logout') {
+            localStorage.removeItem('inscript_demo_logged_in');
+            return { data: { success: true } };
         }
 
         return { data: {} };
@@ -156,6 +165,20 @@ const mockApi = {
 
     post: async (url, data, config) => {
         await new Promise(r => setTimeout(r, 600));
+
+        if (url === '/auth/login') {
+            const { username, password } = data;
+            if (username === 'demo' && password === 'demo') {
+                localStorage.setItem('inscript_demo_logged_in', 'true');
+                return { data: { success: true, user: { displayName: 'Demo User' } } };
+            }
+            return Promise.reject({
+                response: {
+                    status: 401,
+                    data: { error: 'Invalid username or password' }
+                }
+            });
+        }
 
         if (url === '/api/posts') {
             const { filename, frontmatter, html } = data;

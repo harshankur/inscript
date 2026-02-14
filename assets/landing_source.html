@@ -577,6 +577,8 @@
                     <a href="./inscript_demo.html" class="btn btn-primary">Launch Live Demo</a>
                     <a href="https://github.com/harshankur/inscript" class="btn btn-outline">Star on GitHub</a>
                 </div>
+                <p style="font-size: 0.85rem; margin-top: 1.5rem; opacity: 0.6;">Demo Credentials: <code>demo</code> /
+                    <code>demo</code></p>
             </div>
         </section>
 
@@ -618,6 +620,17 @@
                         <li>Persistent History Stack (Undo/Redo)</li>
                         <li>Publishing flow: Save → Publish → Push</li>
                         <li>Optional direct Git integration</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Secure by Default</h3>
+                    <p>Production-grade security for your local CMS.</p>
+                    <ul class="feature-list">
+                        <li>Local username & password auth</li>
+                        <li>Industry-standard BCrypt hashing</li>
+                        <li>Secure session management (24h)</li>
+                        <li>Logout with confirmation modal</li>
                     </ul>
                 </div>
                 <div class="feature-card">
@@ -675,16 +688,19 @@
                 </div>
 
                 <div style="margin-top: 2.5rem;">
-                    <h4>2. Install & Run</h4>
+                    <h4>2. Install & Setup</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Run the interactive
+                        wizard to configure your blog identity and security:</p>
                     <div class="code-block">
-                        <pre>cd inscript && npm install && npm run dev</pre>
+                        <pre>cd inscript && npm install && npm run setup</pre>
                     </div>
                 </div>
 
                 <div style="margin-top: 2.5rem;">
-                    <h4>3. Environment Setup</h4>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">Inscript generates a <code>.env</code> file
-                        on first run. Configure your content and static paths there.</p>
+                    <h4>3. Run CMS</h4>
+                    <div class="code-block">
+                        <pre>npm run dev</pre>
+                    </div>
                 </div>
             </div>
         </section>
