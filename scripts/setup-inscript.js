@@ -42,6 +42,12 @@ async function setup() {
     if (await fs.pathExists(ENV_PATH)) {
         const content = await fs.readFile(ENV_PATH, 'utf8');
         existingConfig = dotenv.parse(content);
+        // Unescape $$ sequences from existing config for internal use
+        for (const key in existingConfig) {
+            if (typeof existingConfig[key] === 'string') {
+                existingConfig[key] = existingConfig[key].replace(/\$\$/g, '$');
+            }
+        }
         console.log('ℹ️  Found existing .env file. Checking for missing configuration...\n');
     }
 
@@ -51,7 +57,8 @@ async function setup() {
     const siteUrl = await smartQuestion('SITE_URL', 'Site URL', 'https://example.com', existingConfig);
     const contentDir = await smartQuestion('CONTENT_DIR', 'Content directory (relative to inscript/)', '../content', existingConfig);
     const staticDir = await smartQuestion('STATIC_DIR', 'Static directory (relative to inscript/)', '../static', existingConfig);
-    const draftsDir = await smartQuestion('DRAFTS_DIR', 'Drafts directory (relative to inscript/)', '.drafts', existingConfig);
+    const faviconPath = await smartQuestion('FAVICON', 'Favicon path (relative to inscript/)', 'assets/favicon_default.png', existingConfig);
+    const draftsDir = await smartQuestion('DRAFTS_DIR', 'Drafts directory (relative to inscript/)', '../drafts', existingConfig);
     const distDir = await smartQuestion('DIST_DIR', 'Output (Dist) directory (relative to inscript/)', '../dist', existingConfig);
     const serverPort = await smartQuestion('SERVER_PORT', 'Server Port', '3001', existingConfig);
     const clientPort = await smartQuestion('CLIENT_PORT', 'Client Port', '5173', existingConfig);
@@ -64,21 +71,23 @@ async function setup() {
         const enableAuthString = await question(`Enable authentication? (y/n)`, 'n');
         authEnabled = enableAuthString.toLowerCase().startsWith('y');
     }
-
-    let authUsername = await smartQuestion('AUTH_USERNAME', 'Admin Username', 'admin', existingConfig);
-    let authPasswordHash = existingConfig.AUTH_PASSWORD_HASH || process.env.AUTH_PASSWORD_HASH || '';
-    let sessionSecret = await smartQuestion('SESSION_SECRET', 'Session Secret', '', existingConfig);
+    let authUsername = '';
+    let authPasswordHash = '';
+    let sessionSecret = '';
 
     if (authEnabled) {
-        if (!authPasswordHash) {
+        authUsername = await smartQuestion('AUTH_USERNAME', 'Admin Username', 'admin', existingConfig);
+        authPasswordHash = existingConfig.AUTH_PASSWORD_HASH || process.env.AUTH_PASSWORD_HASH || '';
+        sessionSecret = existingConfig.SESSION_SECRET || process.env.SESSION_SECRET || '';
+
+        while (!authPasswordHash) {
             const password = process.env.AUTH_PASSWORD || await question('Enter admin password (to be hashed)');
             if (password) {
                 const salt = await bcrypt.genSalt(10);
                 authPasswordHash = await bcrypt.hash(password, salt);
                 console.log('✅ Password hash generated.');
             } else {
-                console.error('❌ Error: Password cannot be empty for initial setup.');
-                process.exit(1);
+                console.warn('⚠️ Password cannot be empty if authentication is enabled, please try again.');
             }
         }
 
@@ -88,33 +97,75 @@ async function setup() {
         }
     }
 
-    // 3. Save to .env
-    const envContent = `# Inscript Configuration Generated on ${new Date().toISOString()}
+    // 3. Save to .env (Escape $ as $$ for Docker Compose compatibility)
+    const escapedHash = authPasswordHash.replace(/\$/g, '$$$$');
+    const escapedSecret = sessionSecret.replace(/\$/g, '$$$$');
 
-# General
+    const envContent = `# Inscript Configuration Generated on ${new Date().toISOString()}
+# NOTE: All the directory paths are relative to inscript/ directory or absolute paths.
+
+# --- General ---
+# Title shown in the browser tab and sidebar
+# Default: My Inscript Blog
 TITLE=${title}
+
+# Used in sitemap and robots.txt
+# Default: https://example.com
 SITE_URL=${siteUrl}
 
-# Directories
+# --- MUST BE SET ---
+# Content directory - where markdown files are stored.
+# Default: ../content
 CONTENT_DIR=${contentDir}
+
+# Static directory - where static files like the images used in the posts are stored.
+# Default: ../static
 STATIC_DIR=${staticDir}
+
+# --- OPTIONAL ---
+# Favicon path - the icon shown in the browser tab and sidebar.
+# Default: assets/favicon_default.png
+FAVICON=${faviconPath}
+
+# Drafts directory - where drafts which are autosaved or unpublished are stored.
+# Default: ../drafts
 DRAFTS_DIR=${draftsDir}
+
+# Output directory - where the generated files are stored.
+# Default: ../dist
 DIST_DIR=${distDir}
 
-# Ports & Hosts
+# Port for the Inscript Server
+# Default: 3001
 SERVER_PORT=${serverPort}
+
+# Port for the Inscript Client
+# Default: 5173
 CLIENT_PORT=${clientPort}
+
+# Hostnames allowed to access the Inscript client (comma-separated or 'true' to allow all).
+# Default: true
 ALLOWED_HOSTS=${allowedHosts}
 
-# Authentication
+# --- Authentication & Security ---
+# Enable local password authentication
+# Default: true
 AUTH_ENABLED=${authEnabled}
-AUTH_USERNAME=${authUsername}
-AUTH_PASSWORD_HASH=${authPasswordHash}
-SESSION_SECRET=${sessionSecret}
 
-# Experimental
+# Admin username for login
+# Default: admin
+AUTH_USERNAME=${authUsername}
+
+# BCrypt hash of your password
+AUTH_PASSWORD_HASH=${escapedHash}
+
+# Secret for signing session cookies
+SESSION_SECRET=${escapedSecret}
+
+# --- Experimental Features ---
+# Allow push to remote after publishing
+# Default: false
 ALLOW_PUSH=${existingConfig.ALLOW_PUSH || 'false'}
-FAVICON=${existingConfig.FAVICON || 'assets/favicon_default.png'}
 `;
 
     await fs.writeFile(ENV_PATH, envContent);
@@ -125,7 +176,7 @@ FAVICON=${existingConfig.FAVICON || 'assets/favicon_default.png'}
     process.env.TITLE = title;
     process.env.SITE_URL = siteUrl;
     process.env.STATIC_DIR = staticDir;
-    process.env.FAVICON = existingConfig.FAVICON || 'assets/favicon_default.png';
+    process.env.FAVICON = faviconPath;
 
     const PUBLIC_DIR = path.join(INSCRIPT_ROOT, 'public');
     const ASSETS_DIR = path.join(INSCRIPT_ROOT, 'assets');

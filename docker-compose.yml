@@ -6,8 +6,6 @@ services:
         SERVER_PORT: ${SERVER_PORT}
         CLIENT_PORT: ${CLIENT_PORT}
     container_name: inscript-blog
-    # Load environment variables from .env
-    env_file: .env
     volumes:
       # Mount data directories based on .env paths
       - ${CONTENT_DIR:-../content}:/app/content

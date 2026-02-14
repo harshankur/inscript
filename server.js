@@ -37,7 +37,9 @@ const DRAFTS_DIR = path.resolve(__dirname, DRAFTS_DIR_REL);
 // Auth Configuration
 const AUTH_ENABLED = process.env.AUTH_ENABLED === 'true';
 const AUTH_USERNAME = process.env.AUTH_USERNAME;
-const AUTH_PASSWORD_HASH = process.env.AUTH_PASSWORD_HASH;
+// Docker Compose may use $$ to escape $, so we unescape it for the app
+const AUTH_PASSWORD_HASH = process.env.AUTH_PASSWORD_HASH?.replace(/\$\$/g, '$');
+const SESSION_SECRET = process.env.SESSION_SECRET?.replace(/\$\$/g, '$') || 'inscript-secret';
 
 // Auth Middleware
 const authGuard = (req, res, next) => {
@@ -52,7 +54,7 @@ const authGuard = (req, res, next) => {
 
 if (AUTH_ENABLED) {
     app.use(session({
-        secret: process.env.SESSION_SECRET || 'inscript-secret',
+        secret: SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
         cookie: {
