@@ -1031,7 +1031,7 @@ const NewPostModal = ({ isOpen, onClose, onConfirm }) => {
 };
 
 const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
-    const [activeTab, setActiveTab] = useState('search'); // 'search' or 'link'
+    const [activeTab, setActiveTab] = useState('link'); // 'link' or 'search'
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const [searching, setSearching] = useState(false);
@@ -1076,7 +1076,7 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-zinc-900 dark:text-white">
-            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col h-[80vh]">
                 {/* Header */}
                 <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -1096,16 +1096,16 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
                 {/* Tabs */}
                 <div className="flex px-6 pt-2 border-b border-zinc-200 dark:border-zinc-800 gap-6">
                     <button
-                        onClick={() => setActiveTab('search')}
-                        className={`py-3 text-sm font-medium border-b-2 transition-all ${activeTab === 'search' ? 'border-emerald-500 text-emerald-500' : 'border-transparent text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-                    >
-                        Search YouTube
-                    </button>
-                    <button
                         onClick={() => setActiveTab('link')}
                         className={`py-3 text-sm font-medium border-b-2 transition-all ${activeTab === 'link' ? 'border-emerald-500 text-emerald-500' : 'border-transparent text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
                     >
                         Direct Link
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('search')}
+                        className={`py-3 text-sm font-medium border-b-2 transition-all ${activeTab === 'search' ? 'border-emerald-500 text-emerald-500' : 'border-transparent text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                    >
+                        Search YouTube (Experimental)
                     </button>
                 </div>
 
@@ -1130,6 +1130,14 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
                                     <Filter size={18} />
                                 </button>
                             </form>
+
+                            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex gap-3 items-start">
+                                <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={18} />
+                                <div>
+                                    <p className="text-xs font-bold text-amber-200 mb-1">Experimental Feature</p>
+                                    <p className="text-[10px] text-amber-200/70 leading-relaxed">External search uses public proxy instances which can be unreliable. If search fails, please use the <strong>Direct Link</strong> tab instead.</p>
+                                </div>
+                            </div>
 
                             {searching ? (
                                 <div className="grid grid-cols-2 gap-4 animate-pulse">

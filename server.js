@@ -185,20 +185,16 @@ app.get('/api/youtube/search', async (req, res) => {
     if (!q) return res.json({ items: [] });
 
     const SOURCES = [
-        { url: 'https://pipedapi.kavin.rocks', type: 'piped' },
-        { url: 'https://pipedapi-libre.kavin.rocks', type: 'piped' },
-        { url: 'https://yewtu.be', type: 'invidious' },
-        { url: 'https://inv.nadeko.net', type: 'invidious' },
+        { url: 'https://invidious.ducks.party', type: 'invidious' }, // Verified working Feb 2026
         { url: 'https://iv.ggtyler.dev', type: 'invidious' },
         { url: 'https://invidious.projectsegfau.lt', type: 'invidious' },
-        { url: 'https://iv.melmac.space', type: 'invidious' },
-        { url: 'https://invidious.lunar.icu', type: 'invidious' },
-        { url: 'https://pipedapi.leptons.xyz', type: 'piped' },
+        { url: 'https://pipedapi.tokhmi.xyz', type: 'piped' },
+        { url: 'https://pipedapi.lunar.icu', type: 'piped' },
         { url: 'https://api.piped.yt', type: 'piped' }
     ];
 
     const axiosConfig = {
-        timeout: 2500,
+        timeout: 5000,
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         }
@@ -226,7 +222,7 @@ app.get('/api/youtube/search', async (req, res) => {
                 }
             }
         } catch (err) {
-            console.warn(`YouTube Search failed for ${source.url}: ${err.message}`);
+            console.warn(`YouTube Search failed for ${source.url}: ${err.code || err.response?.status || err.message}`);
             continue;
         }
     }
