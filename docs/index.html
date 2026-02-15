@@ -529,6 +529,102 @@
         .hero .cta-group {
             animation-delay: 0.3s;
         }
+
+        .mermaid-container {
+            cursor: zoom-in;
+            transition: transform 0.2s;
+            border-radius: 8px;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+        }
+
+        .mermaid-container:hover {
+            transform: scale(1.02);
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Lightbox/Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: zoom-out;
+            padding: 2rem;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            width: 85vw;
+            height: 85vh;
+            max-width: 95%;
+            max-height: 95vh;
+            background-color: var(--bg);
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            cursor: default;
+            position: relative;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content svg {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+            -o-object-fit: contain;
+               object-fit: contain;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            z-index: 2010;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: var(--text);
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal.active .modal-content {
+            animation: zoomIn 0.3s ease-out;
+        }
     </style>
 </head>
 
@@ -763,53 +859,59 @@
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem;">
                 <div class="feature-card" style="padding: 2rem;">
                     <h3>Content Lifecycle</h3>
-                    <div class="mermaid" style="margin-top: 1.5rem;">
-                        graph TD
-                        A[Markdown Files] --> B{Mode}
-                        B -- "Dev (CMS)" --> C[Express Server]
-                        C --> D[React UI - Editor]
-                        D -- "Save" --> A
+                    <div class="mermaid-container">
+                        <div class="mermaid" id="diagram-lifecycle">
+                            graph TD
+                            A[Markdown Files] --> B{Mode}
+                            B -- "Dev (CMS)" --> C[Express Server]
+                            C --> D[React UI - Editor]
+                            D -- "Save" --> A
 
-                        B -- "Prod (Readonly)" --> E[Build Script]
-                        E --> F[data.json]
-                        E --> G[Static UI]
-                        F --> G
+                            B -- "Prod (Readonly)" --> E[Build Script]
+                            E --> F[data.json]
+                            E --> G[Static UI]
+                            F --> G
+                        </div>
                     </div>
                 </div>
                 <div class="feature-card" style="padding: 2rem;">
                     <h3>Security Flow</h3>
-                    <div class="mermaid" style="margin-top: 1.5rem;">
-                        sequenceDiagram
-                        participant User
-                        participant Setup
-                        participant Env
-                        participant Server
+                    <div class="mermaid-container">
+                        <div class="mermaid" id="diagram-security">
+                            sequenceDiagram
+                            participant User
+                            participant Setup
+                            participant Env
+                            participant Server
 
-                        User->>Setup: npm run setup
-                        Setup->>Env: Write Hash
+                            User->>Setup: npm run setup
+                            Setup->>Env: Write Hash
 
-                        User->>Server: Login
-                        Server->>Env: Load Hash
-                        Server->>Server: Verify
-                        Server-->>User: Grant Access
+                            User->>Server: Login
+                            Server->>Env: Load Hash
+                            Server->>Server: Verify
+                            Server-->>User: Grant Access
+                        </div>
                     </div>
                 </div>
                 <div class="feature-card" style="padding: 2rem;">
                     <h3>Deployment Strategy</h3>
-                    <div class="mermaid" style="margin-top: 1.5rem;">
-                        graph LR
-                        subgraph "Local Repo"
-                        I[Inscript Engine]
-                        end
-                        C[Content]
-                        S[Static]
+                    <div class="mermaid-container">
+                        <div class="mermaid" id="diagram-deployment">
+                            graph LR
+                            subgraph "Local Repo"
+                            I[Inscript Engine]
+                            end
+                            C[Content]
+                            S[Static]
 
-                        I -- Build --> D[Static Dist]
+                            I -- Build --> D[Static Dist]
 
-                        subgraph "Static Hosting"
-                        D --- J[data.json]
-                        D --- H[UI Assets]
-                        end
+                            subgraph "Static Hosting"
+                            D --- J[data.json]
+                            D --- H[UI Assets]
+                            end
+                        </div>
                     </div>
                 </div>
             </div>
@@ -967,6 +1069,11 @@
         </div>
     </footer>
 
+    <div id="diagram-modal" class="modal">
+        <span class="close-modal">&times;</span>
+        <div class="modal-content" id="modal-body"></div>
+    </div>
+
     <script>
         // Redirect ?post= query params to inscript_demo.html
         const urlParams = new URLSearchParams(window.location.search);
@@ -985,9 +1092,15 @@
             if (theme === 'dark') {
                 sunIcon.style.display = 'none';
                 moonIcon.style.display = 'block';
+                if (window.mermaid) {
+                    mermaid.initialize({ theme: 'dark' });
+                }
             } else {
                 sunIcon.style.display = 'block';
                 moonIcon.style.display = 'none';
+                if (window.mermaid) {
+                    mermaid.initialize({ theme: 'default' });
+                }
             }
         }
 
@@ -999,6 +1112,52 @@
         themeToggle.addEventListener('click', () => {
             const currentTheme = html.getAttribute('data-theme');
             setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            // Re-render mermaid diagrams on theme change if needed
+            location.reload(); // Simplest way to re-render mermaid with correct theme
+        });
+
+        // Diagram Modal Logic
+        const modal = document.getElementById('diagram-modal');
+        const modalBody = document.getElementById('modal-body');
+        const closeBtn = document.querySelector('.close-modal');
+
+        document.querySelectorAll('.mermaid-container').forEach(container => {
+            container.addEventListener('click', () => {
+                const svg = container.querySelector('svg');
+                if (svg) {
+                    const clonedSvg = svg.cloneNode(true);
+                    // Remove all hardcoded constraints from mermaid
+                    clonedSvg.removeAttribute('width');
+                    clonedSvg.removeAttribute('height');
+                    clonedSvg.style.maxWidth = 'none';
+                    clonedSvg.style.maxHeight = 'none';
+                    clonedSvg.style.width = '100%';
+                    clonedSvg.style.height = '100%';
+
+                    modalBody.innerHTML = '';
+                    modalBody.appendChild(clonedSvg);
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden'; // Prevent scroll
+                }
+            });
+        });
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            setTimeout(() => { modalBody.innerHTML = ''; }, 300);
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal || e.target === closeBtn) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
         });
 
         // Listen for system changes
