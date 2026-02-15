@@ -265,11 +265,46 @@ If you need to change **where** the site is built (e.g. if your hosting provider
 ### Self-Hosted
 Serve the contents of the `DIST_DIR` (default `../dist` relative to Inscript) using Nginx, Apache, or any static file server.
 
+## 🔐 Enabling Git Commit & Push
+
+Inscript can handle your entire version control workflow. By default, **Push** is disabled for safety.
+
+### 1. Enable Push Feature
+Open your `.env` file and set the experimental flag:
+```env
+ALLOW_PUSH=true
+```
+
+### 2. Configure Git Identity
+Ensure your host machine has Git configured:
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+### 3. Docker Configuration
+If running via Docker, you must share your host credentials by editing `docker-compose.yml`:
+
+```yaml
+volumes:
+  # Share your Git global config
+  - ${HOME:-~}/.gitconfig:/root/.gitconfig:ro
+  # Share your SSH keys for pushing to GitHub/GitLab
+  - ${HOME:-~}/.ssh:/root/.ssh:ro
+```
+
+> [!TIP]
+> **Submodule Awareness**: When Inscript is a submodule, it automatically detects the parent repository. Your commits and pushes will apply to the **Parent Blog Repository**, keeping your content and engine perfectly synced.
+
 ## Troubleshooting
 
 -   **"Missing setup script"**: Ensure you run `npm run setup` if you accidentally deleted generated files.
 -   **"Network Error"**: Make sure the backend server (port 3001) is running if you are in Dev mode.
--   **"Git Push Failed"**: Ensure you have set `ALLOW_PUSH=true` in `.env` and have SSH keys/credentials configured on your machine.
+-   **"Git Push Failed"**: 
+    1. Verify `ALLOW_PUSH=true` is set in `.env`.
+    2. If using Docker, ensure `.ssh` and `.gitconfig` volumes are correctly mounted and not commented out.
+    3. Ensure your SSH keys are added to your SSH agent on the host.
+-   **"git: not found"**: If running in Docker, you may need to rebuild your image to install Git: `docker-compose up -d --build`.
 
 ## License
 

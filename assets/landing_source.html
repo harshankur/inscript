@@ -737,6 +737,19 @@
                         <pre>docker-compose up --build</pre>
                     </div>
                 </div>
+
+                <div style="margin-top: 2.5rem;">
+                    <h4>4. Enable Git Integration</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">To commit and push
+                        directly from the UI, set this in your <code>.env</code>:</p>
+                    <div class="code-block">
+                        <pre>ALLOW_PUSH=true</pre>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem;">
+                        <strong>Docker Note:</strong> Uncomment the <code>.gitconfig</code> and <code>.ssh</code>
+                        volumes in <code>docker-compose.yml</code> to share your host credentials.
+                    </p>
+                </div>
             </div>
         </section>
 
