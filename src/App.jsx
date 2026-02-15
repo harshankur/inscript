@@ -3040,7 +3040,7 @@ const App = () => {
                                     }}
                                 />
                             ) : (
-                                <div className="max-w-6xl mx-auto px-2 py-3 md:px-8 md:py-12">
+                                <div className="max-w-6xl mx-auto px-2 py-3 md:px-8 md:py-12 flex flex-col min-h-full">
                                     {editor && (
                                         <BubbleMenu
                                             editor={editor}
@@ -3102,6 +3102,23 @@ const App = () => {
                                         </BubbleMenu>
                                     )}
                                     <EditorContent editor={editor} />
+                                    {/* Footer Banner */}
+                                    <footer className="mt-auto pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-zinc-400 dark:text-zinc-500">
+                                            <span>
+                                                &copy; {new Date().getFullYear()}{' '}
+                                                <a href="https://github.com/harshankur" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+                                                    Harsh Ankur
+                                                </a>
+                                            </span>
+                                            <span>
+                                                Powered by{' '}
+                                                <a href="https://inscript.harshankur.com" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+                                                    Inscript
+                                                </a>
+                                            </span>
+                                        </div>
+                                    </footer>
                                 </div>
                             )}
                         </div>
