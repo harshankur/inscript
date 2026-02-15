@@ -4,7 +4,7 @@
   "description": "A modern, plug-and-play CMS for markdown-based blogs. Built with React, Vite, and Express.",
   "author": "Harsh Ankur <harshankur@outlook.com>",
   "license": "MIT",
-  "homepage": "https://harshankur.github.io/inscript/",
+  "homepage": "https://inscript.harshankur.com/inscript/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/harshankur/inscript.git"
