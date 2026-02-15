@@ -111,6 +111,24 @@ console.log('Posts Dir:', POSTS_DIR);
 console.log('Static Dir:', STATIC_DIR);
 console.log('Drafts Dir:', DRAFTS_DIR);
 
+// Serve custom favicon
+app.get('/favicon.png', (req, res) => {
+    const FAVICON_FILE = process.env.FAVICON;
+    if (FAVICON_FILE && !FAVICON_FILE.includes('favicon_default.png')) {
+        const customFaviconPath = path.resolve(STATIC_DIR, FAVICON_FILE);
+        if (fs.existsSync(customFaviconPath)) {
+            return res.sendFile(customFaviconPath);
+        }
+    }
+    // Fallback to default
+    const defaultFavicon = path.join(__dirname, 'assets', 'favicon_default.png');
+    if (fs.existsSync(defaultFavicon)) {
+        res.sendFile(defaultFavicon);
+    } else {
+        res.status(404).send('Favicon not found');
+    }
+});
+
 // Serve static files from the configured static directory
 app.use(express.static(STATIC_DIR));
 

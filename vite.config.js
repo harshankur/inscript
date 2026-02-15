@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
                 '/auth': `http://localhost:${PORT}`,
                 '/images': `http://localhost:${PORT}`,
                 // Proxy image formats that might be in the static root, but EXCLUDE favicon.png (served by Vite)
-                '^/(?!favicon\\.png).*\\.(png|jpg|jpeg|gif|svg|webp|ico)$': `http://localhost:${PORT}`
+                '^/.*\\.(png|jpg|jpeg|gif|svg|webp|ico)$': `http://localhost:${PORT}`
             },
             hmr: {
                 clientPort: parseInt(CLIENT_PORT),
