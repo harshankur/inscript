@@ -11,6 +11,12 @@ export default defineConfig(({ mode }) => {
     return {
         envPrefix: ['VITE_', 'TITLE', 'SITE_URL', 'CONTENT_DIR', 'STATIC_DIR', 'FAVICON', 'DRAFTS_DIR', 'DIST_DIR', 'SERVER_PORT', 'CLIENT_PORT', 'ALLOW_PUSH', 'ALLOWED_HOSTS', 'AUTH_'],
         plugins: [react()],
+        resolve: {
+            alias: {
+                react: path.resolve(__dirname, 'node_modules/react'),
+                'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+            }
+        },
         server: {
             host: '0.0.0.0',
             port: parseInt(CLIENT_PORT),

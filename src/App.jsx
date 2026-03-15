@@ -75,6 +75,7 @@ import {
     Youtube as YoutubeIcon
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Login from './components/Login';
 
 const Youtube = Node.create({
@@ -190,6 +191,7 @@ const FontSize = Extension.create({
 
 
 const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCategories, onTagsChange, onCategoriesChange }) => {
+    const { t } = useTranslation();
     if (!isOpen) return null;
 
     const [activeTab, setActiveTab] = useState('tags'); // 'tags' | 'categories'
@@ -241,7 +243,7 @@ const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCatego
             <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
-                    <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Metadata</h2>
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{t('metadata')}</h2>
                     <button onClick={onClose} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
                         <X size={20} />
                     </button>
@@ -253,13 +255,13 @@ const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCatego
                         onClick={() => { setActiveTab('tags'); setSearch(''); }}
                         className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'tags' ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
                     >
-                        Tags ({postTags.length})
+                        {t('tags')} ({postTags.length})
                     </button>
                     <button
                         onClick={() => { setActiveTab('categories'); setSearch(''); }}
                         className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'categories' ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
                     >
-                        Categories ({postCategories.length})
+                        {t('categories')} ({postCategories.length})
                     </button>
                 </div>
 
@@ -695,6 +697,7 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
 };
 
 const SortDropdown = ({ value, onChange, options }) => {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const selectedOption = options.find(opt => opt.value === value);
 
@@ -734,6 +737,7 @@ const SortDropdown = ({ value, onChange, options }) => {
 };
 
 const MultiSelect = ({ options, selected, onChange, placeholder, label }) => {
+    const { t } = useTranslation();
     return (
         <div className="space-y-1">
             <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 ml-1">{label}</label>
@@ -763,6 +767,7 @@ const MultiSelect = ({ options, selected, onChange, placeholder, label }) => {
 };
 
 const CalendarRangePicker = ({ label, range, onChange }) => {
+    const { t, i18n } = useTranslation();
     const [viewDate, setViewDate] = useState(new Date());
     const [viewMode, setViewMode] = useState('days'); // 'days', 'months', 'years', 'decades'
 
@@ -814,7 +819,7 @@ const CalendarRangePicker = ({ label, range, onChange }) => {
 
     const renderHeader = () => {
         const year = viewDate.getFullYear();
-        if (viewMode === 'days') return viewDate.toLocaleString('default', { month: 'short', year: 'numeric' });
+        if (viewMode === 'days') return viewDate.toLocaleString(i18n.language, { month: 'short', year: 'numeric' });
         if (viewMode === 'months') return `${year}`;
         if (viewMode === 'years') {
             const startYear = Math.floor(year / 10) * 10;
@@ -949,7 +954,7 @@ const CalendarRangePicker = ({ label, range, onChange }) => {
                     onClick={handleTodayClick}
                     className="text-[9px] font-bold text-emerald-500 hover:text-emerald-400 transition-colors bg-emerald-500/5 px-1.5 py-0.5 rounded border border-emerald-500/10"
                 >
-                    Today
+                    {t('today')}
                 </button>
             </div>
             <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg p-3">
@@ -963,8 +968,8 @@ const CalendarRangePicker = ({ label, range, onChange }) => {
                 {renderGrid()}
                 {viewMode === 'days' && (range.start || range.end) && (
                     <div className="mt-3 flex items-center justify-between text-[9px] text-zinc-400 dark:text-zinc-500 border-t border-zinc-300 dark:border-zinc-700 pt-2">
-                        <span>{range.start ? new Date(range.start).toLocaleDateString() : '...'} - {range.end ? new Date(range.end).toLocaleDateString() : '...'}</span>
-                        <button onClick={() => onChange({ start: null, end: null })} className="text-red-400 hover:underline">Reset</button>
+                        <span>{range.start ? new Date(range.start).toLocaleDateString(i18n.language) : '...'} - {range.end ? new Date(range.end).toLocaleDateString(i18n.language) : '...'}</span>
+                        <button onClick={() => onChange({ start: null, end: null })} className="text-red-400 hover:underline">{t('resetFilters')}</button>
                     </div>
                 )}
             </div>
@@ -975,6 +980,7 @@ const CalendarRangePicker = ({ label, range, onChange }) => {
 };
 
 const NewPostModal = ({ isOpen, onClose, onConfirm }) => {
+    const { t } = useTranslation();
     const [name, setName] = useState('');
 
     if (!isOpen) return null;
@@ -994,9 +1000,9 @@ const NewPostModal = ({ isOpen, onClose, onConfirm }) => {
                         <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg">
                             <Plus size={20} />
                         </div>
-                        <h3 className="text-lg font-bold">Create New Post</h3>
+                        <h3 className="text-lg font-bold">{t('newPost')}</h3>
                     </div>
-                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-4">Enter a filename for your new post.</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-4">{t('newPostDescription')}</p>
                     <input
                         autoFocus
                         type="text"
@@ -1022,7 +1028,7 @@ const NewPostModal = ({ isOpen, onClose, onConfirm }) => {
                         disabled={!name.trim()}
                         className="px-6 py-2 rounded-lg text-sm font-bold text-zinc-950 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-900/20 transition-all"
                     >
-                        Create
+                        {t('create')}
                     </button>
                 </div>
             </div>
@@ -1236,6 +1242,7 @@ const YoutubeEmbedModal = ({ isOpen, onClose, onConfirm }) => {
 };
 
 const SaveSplitButton = ({ onSave, onAction, isSaving, isDirty, deployStatus }) => {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = React.useRef(null);
 
@@ -1258,11 +1265,11 @@ const SaveSplitButton = ({ onSave, onAction, isSaving, isDirty, deployStatus }) 
         options.push({ label: 'Save, Publish, Commit & Push', icon: UploadCloud, steps: ['save', 'publish', 'commit', 'push'], color: 'text-emerald-400' });
 
     const getStatusText = () => {
-        if (deployStatus === 'publishing') return 'Publishing...';
-        if (deployStatus === 'committing') return 'Committing...';
-        if (deployStatus === 'pushing') return 'Pushing...';
-        if (isSaving) return 'Saving...';
-        return 'Save';
+        if (deployStatus === 'publishing') return t('publishing');
+        if (deployStatus === 'committing') return t('committing');
+        if (deployStatus === 'pushing') return t('pushing');
+        if (isSaving) return t('saving');
+        return t('save');
     };
 
     return (
@@ -1330,6 +1337,7 @@ const SaveSplitButton = ({ onSave, onAction, isSaving, isDirty, deployStatus }) 
 };
 
 const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort, onConfirmCommit, currentTitle }) => {
+    const { t } = useTranslation();
     const [commitMsg, setCommitMsg] = useState(`Update ${currentTitle || 'blog content'}`);
     const [hoveredCancelIdx, setHoveredCancelIdx] = useState(null);
     const [isAborting, setIsAborting] = useState(false);
@@ -1545,8 +1553,9 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
 };
 
 const ConfirmationModal = ({ config, onClose }) => {
+    const { t } = useTranslation();
     if (!config) return null;
-    const { title, message, type = 'warning', confirmText = 'Confirm', onConfirm } = config;
+    const { title, message, type = 'warning', confirmText = t('confirm'), onConfirm } = config;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -1584,7 +1593,47 @@ const ConfirmationModal = ({ config, onClose }) => {
     );
 };
 
+const LanguageSelector = () => {
+    const { i18n } = useTranslation();
+    const languages = [
+        { code: 'en', label: 'English' },
+        { code: 'de', label: 'Deutsch' },
+        { code: 'fr', label: 'Français' },
+        { code: 'es', label: 'Español' },
+        { code: 'pt', label: 'Português' },
+        { code: 'it', label: 'Italiano' },
+        { code: 'ja', label: '日本語' },
+        { code: 'zh', label: '繁體中文' },
+        { code: 'zh-CN', label: '简体中文' },
+        { code: 'ko', label: '한국어' },
+        { code: 'ru', label: 'Русский' },
+        { code: 'af', label: 'Afrikaans' },
+        { code: 'ne', label: 'नेपाली' },
+        { code: 'hi', label: 'हिन्दी' },
+        { code: 'bn', label: 'বাংলা' },
+        { code: 'ta', label: 'தமிழ்' },
+        { code: 'te', label: 'తెలుగు' },
+        { code: 'ml', label: 'മലയാളം' },
+        { code: 'kn', label: 'ಕನ್ನಡ' }
+    ];
+
+    return (
+        <select
+            value={i18n.language}
+            onChange={(e) => i18n.changeLanguage(e.target.value)}
+            className="bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold py-1 px-2 rounded-lg border border-zinc-300 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all cursor-pointer appearance-none hover:bg-zinc-300 dark:hover:bg-zinc-700"
+        >
+            {languages.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                    {lang.code.toUpperCase()}
+                </option>
+            ))}
+        </select>
+    );
+};
+
 const App = () => {
+    const { t, i18n } = useTranslation();
     const [theme, setTheme] = useState(() => {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('theme') || 'dark';
@@ -2502,6 +2551,7 @@ const App = () => {
                     postCategories={postCategories}
                     onTagsChange={setPostTags}
                     onCategoriesChange={setPostCategories}
+                    t={t}
                 />
             )}
 
@@ -2582,8 +2632,9 @@ const App = () => {
                                 >
                                     {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                                 </button>
+                                <LanguageSelector />
                                 <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 px-2 py-1 rounded font-mono hidden sm:inline-block">
-                                    {posts.length} POSTS
+                                    {posts.length} {t('posts').toUpperCase()}
                                 </span>
                                 {/* Mobile Close Button */}
                                 <button
@@ -2596,7 +2647,7 @@ const App = () => {
                                     <button
                                         onClick={createNewPost}
                                         className="w-10 h-10 flex items-center justify-center p-0 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-lg transition-colors border border-emerald-500/20"
-                                        title="New Post"
+                                        title={t('newPost')}
                                     >
                                         <Plus size={20} />
                                     </button>
@@ -2609,7 +2660,7 @@ const App = () => {
                                 <div className="relative flex-1">
                                     <input
                                         type="text"
-                                        placeholder="Search posts..."
+                                        placeholder={t('searchPlaceholder')}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg py-2 pl-3 pr-10 text-sm focus:outline-none focus:border-white transition-colors"
@@ -2642,13 +2693,13 @@ const App = () => {
                             {showFilters && (
                                 <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl p-4 space-y-4 shadow-xl max-h-[60vh] overflow-y-auto custom-scrollbar">
                                     <div className="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-800">
-                                        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Advanced Filters</span>
+                                        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{t('advancedFilters')}</span>
                                         <button
                                             onClick={clearAllFilters}
                                             className="text-[10px] text-zinc-400 dark:text-zinc-500 hover:text-red-400 transition-colors uppercase font-bold tracking-wide flex items-center gap-1"
                                         >
                                             <XCircle size={10} />
-                                            Clear All
+                                            {t('clearAll')}
                                         </button>
                                     </div>
 
@@ -2660,12 +2711,12 @@ const App = () => {
                                                     <button
                                                         key={tab}
                                                         onClick={() => setActiveTab(tab)}
-                                                        className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wide rounded-md transition-all ${activeTab === tab
+                                                        className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wide rounded-md transition-all ${activeTab === tab
                                                             ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
                                                             : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                                                             }`}
                                                     >
-                                                        {tab}
+                                                        {t(tab)}
                                                     </button>
                                                 ))}
                                             </div>
@@ -2721,11 +2772,11 @@ const App = () => {
                                         value={sortBy}
                                         onChange={setSortBy}
                                         options={[
-                                            { value: 'created', label: 'Date Created' },
-                                            { value: 'modified', label: 'Date Modified' },
-                                            { value: 'title', label: 'Post Title' },
-                                            { value: 'filename', label: 'Filename' },
-                                            !isReadonly && { value: 'status', label: 'Draft Status' },
+                                            { value: 'created', label: t('dateCreated') },
+                                            { value: 'modified', label: t('dateModified') },
+                                            { value: 'title', label: t('postTitle') },
+                                            { value: 'filename', label: t('filename') },
+                                            !isReadonly && { value: 'status', label: t('draftStatus') },
                                         ].filter(Boolean)}
                                     />
                                     <button
@@ -2794,7 +2845,7 @@ const App = () => {
                                         <div className="min-w-0 flex-1">
                                             <div className="text-sm font-bold truncate text-emerald-100">{introductionPost.title}</div>
                                             <div className="flex items-center gap-2 mt-1.5 opacity-60">
-                                                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-500">Introduction</span>
+                                                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-500">{t('introduction')}</span>
                                             </div>
                                         </div>
                                     </button>
@@ -2802,14 +2853,13 @@ const App = () => {
                                     <button
                                         onClick={() => handleNewPostConfirm('Introduction', { type: 'introduction' })}
                                         className="w-full text-left p-3 rounded-lg transition-all flex items-center gap-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 group text-zinc-400 dark:text-zinc-500 hover:text-emerald-500"
-                                        title="Create Introduction Post"
+                                        title={t('createIntroduction')}
                                     >
                                         <div className="mt-0.5 flex-shrink-0">
                                             <Pin size={18} className="opacity-50 group-hover:opacity-100" />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <div className="text-sm font-medium">Create Introduction</div>
-                                            <div className="text-[10px] mt-0.5 opacity-60">Pinned Recommendation</div>
+                                            <div className="text-sm font-medium">{t('createIntroduction')}</div>
                                         </div>
                                         <Plus size={16} className="opacity-50 group-hover:opacity-100" />
                                     </button>
@@ -2951,15 +3001,15 @@ const App = () => {
                                             title="Editor View"
                                         >
                                             <Edit3 size={16} className="md:hidden" />
-                                            <span className="hidden md:inline">Editor</span>
+                                            <span className="hidden md:inline">{t('editor')}</span>
                                         </button>
                                         <button
                                             onClick={() => setShowDiff(true)}
                                             className={`p-2 md:px-3 md:py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${showDiff ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 shadow-sm' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white'}`}
-                                            title="Version History"
+                                            title={t('history')}
                                         >
                                             <Clock size={16} className="md:hidden" />
-                                            <span className="hidden md:inline">History</span>
+                                            <span className="hidden md:inline">{t('history')}</span>
                                         </button>
                                     </div>
 
@@ -3340,6 +3390,7 @@ const getTextContent = (html) => {
 
 // HistoryView moved out of App to ensure stable identity and prevent remounting/scrolling glitches
 const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, originalTags = [], originalCategories = [], current, currentIndex, onSelect }) => {
+    const { t, i18n } = useTranslation();
     const [selectedIdx, setSelectedIdx] = useState(currentIndex);
     const [mode, setMode] = useState('visual'); // 'visual' | 'source' | 'text'
 
