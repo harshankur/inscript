@@ -10,6 +10,25 @@ export default defineConfig(({ mode }) => {
 
     return {
         envPrefix: ['VITE_', 'TITLE', 'SITE_URL', 'CONTENT_DIR', 'STATIC_DIR', 'FAVICON', 'DRAFTS_DIR', 'DIST_DIR', 'SERVER_PORT', 'CLIENT_PORT', 'ALLOW_PUSH', 'ALLOWED_HOSTS', 'AUTH_'],
+        optimizeDeps: {
+            include: [
+                '@tiptap/core',
+                '@tiptap/react',
+                '@tiptap/starter-kit',
+                '@tiptap/extension-image',
+                '@tiptap/extension-underline',
+                '@tiptap/extension-text-style',
+                '@tiptap/extension-color',
+                '@tiptap/extension-highlight',
+                '@tiptap/extension-text-align',
+                '@tiptap/extension-subscript',
+                '@tiptap/extension-superscript',
+                'lucide-react',
+                'diff',
+                'react-i18next',
+                'i18next'
+            ]
+        },
         plugins: [react()],
         resolve: {
             alias: {

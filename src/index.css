@@ -8,6 +8,16 @@
   }
 }
 
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
 .ProseMirror {
   @apply outline-none min-h-[500px] p-8 text-lg leading-relaxed text-zinc-900 dark:text-zinc-100;
 }

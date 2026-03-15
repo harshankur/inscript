@@ -1618,17 +1618,22 @@ const LanguageSelector = () => {
     ];
 
     return (
-        <select
-            value={i18n.language}
-            onChange={(e) => i18n.changeLanguage(e.target.value)}
-            className="bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold py-1 px-2 rounded-lg border border-zinc-300 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all cursor-pointer appearance-none hover:bg-zinc-300 dark:hover:bg-zinc-700"
-        >
-            {languages.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                    {lang.code.toUpperCase()}
-                </option>
-            ))}
-        </select>
+        <div className="relative group/lang">
+            <select
+                value={i18n.language}
+                onChange={(e) => i18n.changeLanguage(e.target.value)}
+                className="h-9 px-3 pr-8 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-[10px] font-bold rounded-lg border border-zinc-200 dark:border-zinc-700/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all cursor-pointer appearance-none hover:bg-zinc-200 dark:hover:bg-zinc-700 min-w-[100px]"
+            >
+                {languages.map((lang) => (
+                    <option key={lang.code} value={lang.code}>
+                        {lang.label}
+                    </option>
+                ))}
+            </select>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 dark:text-zinc-500 group-hover/lang:text-zinc-900 dark:group-hover/lang:text-white transition-colors">
+                <ChevronDown size={12} />
+            </div>
+        </div>
     );
 };
 
@@ -2611,8 +2616,9 @@ const App = () => {
                     className="fixed inset-y-0 left-0 z-50 md:sticky md:top-0 md:h-screen md:relative md:z-30 bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col flex-shrink-0 group/sidebar shadow-2xl md:shadow-none"
                     style={{ width: Math.min(sidebarWidth, typeof window !== 'undefined' ? window.innerWidth - 60 : 300) }}
                 >
-                    <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
-                        <div className="flex justify-between items-center mb-6 min-h-14">
+                    <div className="border-b border-zinc-200 dark:border-zinc-800">
+                        {/* Row 1: Blog Title (h-16 to match editor) */}
+                        <div className="h-16 px-6 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
                             <button onClick={() => {
                                 setFilename(null);
                                 setCurrentPost(null);
@@ -2621,178 +2627,187 @@ const App = () => {
                                 setIsDirty(false);
                                 setSaveStatus(null);
                                 setOriginalContent({ title: '', html: '', tags: [], categories: [] });
-                            }} className="hover:opacity-80 transition-opacity text-left">
-                                <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">{APP_TITLE}</h1>
+                            }} className="hover:opacity-80 transition-opacity text-left truncate flex-1 mr-2">
+                                <h1 className="text-lg md:text-xl font-bold tracking-tight text-zinc-900 dark:text-white truncate">{APP_TITLE}</h1>
                             </button>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={toggleTheme}
-                                    className="w-10 h-10 flex items-center justify-center p-0 rounded-lg transition-colors text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                                    className="w-10 h-10 flex items-center justify-center p-0 rounded-lg transition-colors text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50 flex-shrink-0"
                                     title={'Switch to ' + (theme === 'dark' ? 'light' : 'dark') + ' mode'}
                                 >
                                     {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                                 </button>
-                                <LanguageSelector />
-                                <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 px-2 py-1 rounded font-mono hidden sm:inline-block">
-                                    {posts.length} {t('posts').toUpperCase()}
-                                </span>
                                 {/* Mobile Close Button */}
                                 <button
                                     onClick={() => setShowSidebar(false)}
-                                    className="w-10 h-10 flex items-center justify-center p-0 md:hidden text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800/50 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                                    className="w-10 h-10 flex items-center justify-center p-0 md:hidden text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800/50 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors flex-shrink-0"
                                 >
                                     <PanelLeftClose size={20} />
                                 </button>
+                            </div>
+                        </div>
+
+                        {/* Row 2: Utilities & Actions */}
+                        <div className="px-6 py-4 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+                            <div className="flex items-center gap-2">
+                                <LanguageSelector />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="h-9 px-3 flex items-center bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 text-[10px] rounded-lg font-bold tracking-wider uppercase border border-zinc-200 dark:border-zinc-700/30 whitespace-nowrap">
+                                    {posts.length} {t('posts')}
+                                </span>
                                 {!isReadonly && (
                                     <button
                                         onClick={createNewPost}
-                                        className="w-10 h-10 flex items-center justify-center p-0 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-lg transition-colors border border-emerald-500/20"
+                                        className="w-9 h-9 flex items-center justify-center p-0 bg-emerald-500 text-white rounded-lg transition-all hover:bg-emerald-400 shadow-md shadow-emerald-500/10 active:scale-95 flex-shrink-0"
                                         title={t('newPost')}
                                     >
-                                        <Plus size={20} />
+                                        <Plus size={18} />
                                     </button>
                                 )}
                             </div>
                         </div>
+                    </div>
 
-                        <div className="space-y-4">
-                            <div className="flex gap-2">
-                                <div className="relative flex-1">
-                                    <input
-                                        type="text"
-                                        placeholder={t('searchPlaceholder')}
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg py-2 pl-3 pr-10 text-sm focus:outline-none focus:border-white transition-colors"
-                                    />
-                                    {searchTerm && (
-                                        <button
-                                            onClick={() => setSearchTerm('')}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-                                        >
-                                            <X size={14} />
-                                        </button>
-                                    )}
-                                </div>
-                                <button
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className={`w-10 h-10 flex items-center justify-center p-0 rounded-lg border transition-all ${showFilters || selectedTags.length > 0 || selectedCategories.length > 0 || createdRange.start || modifiedRange.start
-                                        ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
-                                        : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-white'
-                                        }`}
-                                    title="Toggle Filters"
-                                >
-                                    <Filter size={16} />
-                                    {(selectedTags.length > 0 || selectedCategories.length > 0 || createdRange.start || modifiedRange.start) && (
-                                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                                    )}
-                                </button>
-                            </div>
-
-                            {/* Filters Panel */}
-                            {showFilters && (
-                                <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl p-4 space-y-4 shadow-xl max-h-[60vh] overflow-y-auto custom-scrollbar">
-                                    <div className="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-800">
-                                        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{t('advancedFilters')}</span>
-                                        <button
-                                            onClick={clearAllFilters}
-                                            className="text-[10px] text-zinc-400 dark:text-zinc-500 hover:text-red-400 transition-colors uppercase font-bold tracking-wide flex items-center gap-1"
-                                        >
-                                            <XCircle size={10} />
-                                            {t('clearAll')}
-                                        </button>
-                                    </div>
-
-                                    {!isReadonly && (
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 ml-1">Status</label>
-                                            <div className="flex p-1 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-300 dark:border-zinc-700">
-                                                {['all', 'drafts', 'unpublished'].map(tab => (
-                                                    <button
-                                                        key={tab}
-                                                        onClick={() => setActiveTab(tab)}
-                                                        className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wide rounded-md transition-all ${activeTab === tab
-                                                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
-                                                            : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                                                            }`}
-                                                    >
-                                                        {t(tab)}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="space-y-4">
-                                        <MultiSelect
-                                            label="Tags"
-                                            options={allTags}
-                                            selected={selectedTags}
-                                            onChange={setSelectedTags}
-                                        />
-                                        <MultiSelect
-                                            label="Categories"
-                                            options={allCategories}
-                                            selected={selectedCategories}
-                                            onChange={setSelectedCategories}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <CalendarRangePicker
-                                            label="Created Date Range"
-                                            range={createdRange}
-                                            onChange={setCreatedRange}
-                                        />
-                                        <CalendarRangePicker
-                                            label="Modified Date Range"
-                                            range={modifiedRange}
-                                            onChange={setModifiedRange}
-                                        />
-                                    </div>
-
-                                    {(selectedTags.length > 0 || selectedCategories.length > 0 || createdRange.start || modifiedRange.start || (activeTab !== 'all' && !isReadonly)) && (
-                                        <button
-                                            onClick={clearAllFilters}
-                                            className="w-full py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold uppercase tracking-wider rounded-lg transition-all"
-                                        >
-                                            Reset Filters
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="space-y-1.5 pt-2 border-t border-zinc-200 dark:border-zinc-800/50">
-                                <div className="flex justify-between items-center px-1">
-                                    <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500">Sort by</label>
-                                    <span className="text-[10px] text-zinc-600 font-mono">{sortOrder.toUpperCase()}</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    <SortDropdown
-                                        value={sortBy}
-                                        onChange={setSortBy}
-                                        options={[
-                                            { value: 'created', label: t('dateCreated') },
-                                            { value: 'modified', label: t('dateModified') },
-                                            { value: 'title', label: t('postTitle') },
-                                            { value: 'filename', label: t('filename') },
-                                            !isReadonly && { value: 'status', label: t('draftStatus') },
-                                        ].filter(Boolean)}
-                                    />
+                    <div className="p-6 space-y-4 border-b border-zinc-200 dark:border-zinc-800/50">
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <input
+                                    type="text"
+                                    placeholder={t('searchPlaceholder')}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg py-2 pl-3 pr-10 text-sm focus:outline-none focus:border-white transition-colors"
+                                />
+                                {searchTerm && (
                                     <button
-                                        onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                                        className={`w-10 flex items-center justify-center p-0 rounded-lg border transition-all ${sortOrder === 'asc' ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700' : 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
-                                            } hover:border-white`}
-                                        title={`Switch to ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+                                        onClick={() => setSearchTerm('')}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                                     >
-                                        {sortOrder === 'asc' ? <SortAsc size={14} /> : <SortDesc size={14} />}
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className={`w-10 h-10 flex items-center justify-center p-0 rounded-lg border transition-all ${showFilters || selectedTags.length > 0 || selectedCategories.length > 0 || createdRange.start || modifiedRange.start
+                                    ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
+                                    : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-white'
+                                    }`}
+                                title="Toggle Filters"
+                            >
+                                <Filter size={16} />
+                                {(selectedTags.length > 0 || selectedCategories.length > 0 || createdRange.start || modifiedRange.start) && (
+                                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Filters Panel */}
+                        {showFilters && (
+                            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl p-4 space-y-4 shadow-xl max-h-[60vh] overflow-y-auto custom-scrollbar">
+                                <div className="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                                    <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{t('advancedFilters')}</span>
+                                    <button
+                                        onClick={clearAllFilters}
+                                        className="text-[10px] text-zinc-400 dark:text-zinc-500 hover:text-red-400 transition-colors uppercase font-bold tracking-wide flex items-center gap-1"
+                                    >
+                                        <XCircle size={10} />
+                                        {t('clearAll')}
                                     </button>
                                 </div>
+
+                                {!isReadonly && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 ml-1">Status</label>
+                                        <div className="flex p-1 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-300 dark:border-zinc-700">
+                                            {['all', 'drafts', 'unpublished'].map(tab => (
+                                                <button
+                                                    key={tab}
+                                                    onClick={() => setActiveTab(tab)}
+                                                    className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wide rounded-md transition-all ${activeTab === tab
+                                                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                                                        : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                                                        }`}
+                                                >
+                                                    {t(tab)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="space-y-4">
+                                    <MultiSelect
+                                        label="Tags"
+                                        options={allTags}
+                                        selected={selectedTags}
+                                        onChange={setSelectedTags}
+                                    />
+                                    <MultiSelect
+                                        label="Categories"
+                                        options={allCategories}
+                                        selected={selectedCategories}
+                                        onChange={setSelectedCategories}
+                                    />
+                                </div>
+
+                                <div className="space-y-4">
+                                    <CalendarRangePicker
+                                        label="Created Date Range"
+                                        range={createdRange}
+                                        onChange={setCreatedRange}
+                                    />
+                                    <CalendarRangePicker
+                                        label="Modified Date Range"
+                                        range={modifiedRange}
+                                        onChange={setModifiedRange}
+                                    />
+                                </div>
+
+                                {(selectedTags.length > 0 || selectedCategories.length > 0 || createdRange.start || modifiedRange.start || (activeTab !== 'all' && !isReadonly)) && (
+                                    <button
+                                        onClick={clearAllFilters}
+                                        className="w-full py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold uppercase tracking-wider rounded-lg transition-all"
+                                    >
+                                        Reset Filters
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="space-y-1.5 pt-2 border-t border-zinc-200 dark:border-zinc-800/50">
+                            <div className="flex justify-between items-center px-1">
+                                <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500">Sort by</label>
+                                <span className="text-[10px] text-zinc-600 font-mono">{sortOrder.toUpperCase()}</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <SortDropdown
+                                    value={sortBy}
+                                    onChange={setSortBy}
+                                    options={[
+                                        { value: 'created', label: t('dateCreated') },
+                                        { value: 'modified', label: t('dateModified') },
+                                        { value: 'title', label: t('postTitle') },
+                                        { value: 'filename', label: t('filename') },
+                                        !isReadonly && { value: 'status', label: t('draftStatus') },
+                                    ].filter(Boolean)}
+                                />
+                                <button
+                                    onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                                    className={`w-10 flex items-center justify-center p-0 rounded-lg border transition-all ${sortOrder === 'asc' ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700' : 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
+                                        } hover:border-white`}
+                                    title={`Switch to ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+                                >
+                                    {sortOrder === 'asc' ? <SortAsc size={14} /> : <SortDesc size={14} />}
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                    {/* Posts List */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
                         {filteredAndSortedPosts.map(post => (
                             <button
                                 key={post.filename}
