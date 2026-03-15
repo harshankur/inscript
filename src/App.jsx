@@ -35,6 +35,8 @@ import {
     Eye,
     FileText,
     Filter,
+    Folder,
+    FolderOpen,
     GitCommit,
     Globe,
     Heading1,
@@ -1726,9 +1728,17 @@ const App = () => {
     // Sidebar Resizing Logic
     const [sidebarWidth, setSidebarWidth] = useState(() => {
         const saved = localStorage.getItem('inscript_sidebar_width');
-        return saved ? parseInt(saved, 10) : 320;
+        if (saved) return parseInt(saved, 10);
+        return Math.min(Math.max(window.innerWidth * 0.25, 280), 450);
     });
+
+    const [categorySidebarWidth, setCategorySidebarWidth] = useState(() => {
+        const saved = localStorage.getItem('inscript_category_sidebar_width');
+        return saved ? parseInt(saved, 10) : 64; // Default to 64px
+    });
+
     const isResizingRef = React.useRef(false);
+    const isResizingCategoryRef = React.useRef(false);
 
     const startResizing = React.useCallback(() => {
         isResizingRef.current = true;
@@ -1736,14 +1746,26 @@ const App = () => {
         document.body.style.userSelect = 'none';
     }, []);
 
+    const startResizingCategory = React.useCallback(() => {
+        isResizingCategoryRef.current = true;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    }, []);
+
     const stopResizing = React.useCallback(() => {
-        if (isResizingRef.current) {
+        if (isResizingRef.current || isResizingCategoryRef.current) {
+            if (isResizingRef.current) {
+                localStorage.setItem('inscript_sidebar_width', sidebarWidth);
+            }
+            if (isResizingCategoryRef.current) {
+                localStorage.setItem('inscript_category_sidebar_width', categorySidebarWidth);
+            }
             isResizingRef.current = false;
+            isResizingCategoryRef.current = false;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
-            localStorage.setItem('inscript_sidebar_width', sidebarWidth);
         }
-    }, [sidebarWidth]);
+    }, [sidebarWidth, categorySidebarWidth]);
 
     const resize = React.useCallback((e) => {
         if (isResizingRef.current) {
@@ -1751,8 +1773,12 @@ const App = () => {
             const maxWidth = Math.min(600, window.innerWidth - 50);
             const newWidth = Math.max(240, Math.min(maxWidth, e.clientX));
             setSidebarWidth(newWidth);
+        } else if (isResizingCategoryRef.current) {
+            // Categories sidebar - clamp between 50px and 200px
+            const newWidth = Math.max(50, Math.min(200, e.clientX));
+            setCategorySidebarWidth(newWidth);
         }
-    }, []);
+    }, [sidebarWidth]); // Added sidebarWidth to deps for consistency though not strictly needed for the logic itself
 
     useEffect(() => {
         window.addEventListener('mousemove', resize);
@@ -2460,10 +2486,11 @@ const App = () => {
             }
 
             // Multi-select Categories (Union: must have atleast one selected category)
+            // Category filtering - checking if post belongs to the selected category (if any)
             if (selectedCategories.length > 0) {
                 const postCats = post.categories || [];
-                const hasAllCats = selectedCategories.some(c => postCats.includes(c));
-                if (!hasAllCats) return false;
+                const hasMatch = selectedCategories.some(c => postCats.includes(c));
+                if (!hasMatch) return false;
             }
 
             const checkRange = (date, range) => {
@@ -2745,12 +2772,6 @@ const App = () => {
                                         selected={selectedTags}
                                         onChange={setSelectedTags}
                                     />
-                                    <MultiSelect
-                                        label="Categories"
-                                        options={allCategories}
-                                        selected={selectedCategories}
-                                        onChange={setSelectedCategories}
-                                    />
                                 </div>
 
                                 <div className="space-y-4">
@@ -2766,7 +2787,7 @@ const App = () => {
                                     />
                                 </div>
 
-                                {(selectedTags.length > 0 || selectedCategories.length > 0 || createdRange.start || modifiedRange.start || (activeTab !== 'all' && !isReadonly)) && (
+                                {(selectedTags.length > 0 || createdRange.start || modifiedRange.start || (activeTab !== 'all' && !isReadonly)) && (
                                     <button
                                         onClick={clearAllFilters}
                                         className="w-full py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold uppercase tracking-wider rounded-lg transition-all"
@@ -2806,36 +2827,89 @@ const App = () => {
                         </div>
                     </div>
 
-                    {/* Posts List */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-                        {filteredAndSortedPosts.map(post => (
+                    {/* Main Sidebar Content Area: Folders + Post List */}
+                    <div className="flex-1 flex overflow-hidden relative">
+                        {/* Vertical Category Folders */}
+                        <div 
+                            style={{ width: `${categorySidebarWidth}px` }}
+                            className="bg-zinc-100/50 dark:bg-zinc-800/20 border-r border-zinc-200 dark:border-zinc-800/50 flex flex-col items-center py-4 gap-4 overflow-y-auto no-scrollbar relative group/sidebar"
+                        >
                             <button
-                                key={post.filename}
-                                onClick={() => loadPost(post.filename)}
-                                className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group ${filename === post.filename ? 'bg-zinc-100 dark:bg-zinc-800 shadow-lg border border-zinc-300 dark:border-zinc-700' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border border-transparent'
-                                    }`}
-                                title={post.title}
+                                onClick={() => setSelectedCategories([])}
+                                className={`group flex flex-col items-center justify-center gap-1.5 transition-all h-16 min-h-16 relative w-full ${selectedCategories.length === 0 ? 'text-emerald-500' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
+                                title="All Posts"
                             >
-                                <FileText size={18} className="text-zinc-400 dark:text-zinc-500 mt-1 flex-shrink-0" />
-                                {/* Show yellow dot if unsaved changes in editor OR if there's a saved draft on disk */}
-                                {!isReadonly && ((isDirty && filename === post.filename) || post.hasDraft) && (
-                                    <div className={`absolute top-3 right-3 w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${post.isUnpublished ? 'bg-purple-400 text-purple-400' : 'bg-yellow-400 text-yellow-400'}`} title={post.isUnpublished ? "Unpublished Draft" : "Unsaved changes (Draft)"} />
-                                )}
-                                <div className="min-w-0 flex-1">
-                                    <div className="text-sm font-medium truncate">{post.title}</div>
-                                    <div className="flex items-center gap-3 mt-1.5 opacity-60">
-                                        <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Created: ${new Date(post.created).toLocaleString()}`}>
-                                            <Calendar size={10} />
-                                            <span>{new Date(post.created).toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Modified: ${new Date(post.modified).toLocaleString()}`}>
-                                            <Edit3 size={10} />
-                                            <span>{new Date(post.modified).toLocaleDateString()}</span>
-                                        </div>
-                                    </div>
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${selectedCategories.length === 0 ? 'bg-emerald-500/10 shadow-sm border border-emerald-500/20' : 'bg-transparent border border-transparent group-hover:bg-zinc-200/50 dark:group-hover:bg-zinc-700/50'}`}>
+                                    <FolderOpen size={18} weight={selectedCategories.length === 0 ? "fill" : "regular"} />
                                 </div>
+                                <span className="text-[10px] font-bold uppercase tracking-wider truncate w-full px-1 text-center">All</span>
+                                {selectedCategories.length === 0 && <div className="absolute right-0 top-1 bottom-1 w-1 bg-emerald-500 rounded-l-full" />}
                             </button>
-                        ))}
+
+                            {allCategories.map(cat => {
+                                const isActive = selectedCategories.includes(cat);
+                                return (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setSelectedCategories([cat])}
+                                        className={`group flex flex-col items-center justify-center gap-1.5 transition-all h-16 min-h-16 relative w-full ${isActive ? 'text-emerald-500' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
+                                        title={cat}
+                                    >
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isActive ? 'bg-emerald-500/10 shadow-sm border border-emerald-500/20' : 'bg-transparent border border-transparent group-hover:bg-zinc-200/50 dark:group-hover:bg-zinc-700/50'}`}>
+                                            <Folder size={18} weight={isActive ? "fill" : "regular"} />
+                                        </div>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider truncate w-full px-1 text-center">{cat}</span>
+                                        {isActive && <div className="absolute right-0 top-1 bottom-1 w-1 bg-emerald-500 rounded-l-full" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Category Sidebar Drag Handle */}
+                        <div
+                            onMouseDown={startResizingCategory}
+                            className="absolute left-[var(--cat-width)] z-50 w-1 hover:w-1.5 h-full cursor-col-resize hover:bg-emerald-500/50 transition-all"
+                            style={{ left: `${categorySidebarWidth - 2}px` }}
+                        />
+
+                        {/* Posts List */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+                            {filteredAndSortedPosts.length > 0 ? (
+                                filteredAndSortedPosts.map(post => (
+                                    <button
+                                        key={post.filename}
+                                        onClick={() => loadPost(post.filename)}
+                                        className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group ${filename === post.filename ? 'bg-zinc-100 dark:bg-zinc-800 shadow-lg border border-zinc-300 dark:border-zinc-700' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border border-transparent'
+                                            }`}
+                                        title={post.title}
+                                    >
+                                        <FileText size={18} className="text-zinc-400 dark:text-zinc-500 mt-1 flex-shrink-0" />
+                                        {/* Show yellow dot if unsaved changes in editor OR if there's a saved draft on disk */}
+                                        {!isReadonly && ((isDirty && filename === post.filename) || post.hasDraft) && (
+                                            <div className={`absolute top-3 right-3 w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${post.isUnpublished ? 'bg-purple-400 text-purple-400' : 'bg-yellow-400 text-yellow-400'}`} title={post.isUnpublished ? "Unpublished Draft" : "Unsaved changes (Draft)"} />
+                                        )}
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-sm font-medium truncate">{post.title}</div>
+                                            <div className="flex items-center gap-3 mt-1.5 opacity-60">
+                                                <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Created: ${new Date(post.created).toLocaleString()}`}>
+                                                    <Calendar size={10} />
+                                                    <span>{new Date(post.created).toLocaleDateString()}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Modified: ${new Date(post.modified).toLocaleString()}`}>
+                                                    <Edit3 size={10} />
+                                                    <span>{new Date(post.modified).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-10 text-zinc-400 dark:text-zinc-500">
+                                    <FolderOpen size={32} className="opacity-20 mb-2" />
+                                    <p className="text-xs font-medium italic">No posts in this category</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Pinned Introduction Post */}
