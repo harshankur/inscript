@@ -1326,7 +1326,7 @@ const SaveSplitButton = ({ onSave, onAction, isSaving, isDirty, deployStatus }) 
                                     <opt.icon size={16} />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-medium text-zinc-200">{opt.label}</span>
+                                    <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200">{opt.label}</span>
                                     <span className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter">Workflow</span>
                                 </div>
                             </button>
@@ -1452,7 +1452,7 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                                         autoFocus
                                         value={commitMsg}
                                         onChange={(e) => setCommitMsg(e.target.value)}
-                                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 text-zinc-200 text-sm outline-none focus:border-emerald-500/50 transition-colors min-h-[80px] resize-none"
+                                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 text-zinc-900 dark:text-zinc-200 text-sm outline-none focus:border-emerald-500/50 transition-colors min-h-[80px] resize-none"
                                         placeholder="What changed?"
                                     />
                                 </div>
@@ -1507,7 +1507,7 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                                 <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg flex gap-3 animate-in fade-in slide-in-from-top-1">
                                     <Info className="text-blue-500 shrink-0" size={16} />
                                     <div className="flex-1">
-                                        <div className="text-[10px] text-blue-200/70 leading-relaxed mb-2">
+                                        <div className="text-[10px] text-blue-900/70 dark:text-blue-200/70 leading-relaxed mb-2">
                                             Tip: Enable direct push by setting <code className="bg-blue-500/20 px-1 rounded">ALLOW_PUSH=true</code> in your <code className="bg-blue-500/20 px-1 rounded">.env</code> file.
                                         </div>
                                         <label className="flex items-center gap-2 cursor-pointer group">
@@ -1521,7 +1521,7 @@ const WorkflowStatusModal = ({ isOpen, onClose, workflow, onCancelStep, onAbort,
                                                 }}
                                                 className="w-3 h-3 rounded border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-blue-500"
                                             />
-                                            <span className="text-[9px] text-blue-200/40 group-hover:text-blue-200/60 transition-colors">Don't show this tip again</span>
+                                            <span className="text-[9px] text-blue-900/40 dark:text-blue-200/40 group-hover:text-blue-900/60 dark:group-hover:text-blue-200/60 transition-colors">Don't show this tip again</span>
                                         </label>
                                     </div>
                                 </div>
@@ -1842,7 +1842,7 @@ const App = () => {
         editable: !isReadonly, // Disable editing in readonly mode
         editorProps: {
             attributes: {
-                class: 'prose prose-invert prose-lg max-w-none focus:outline-none min-h-[calc(100vh-300px)]',
+                class: 'prose dark:prose-invert prose-lg max-w-none focus:outline-none min-h-[calc(100vh-300px)]',
             },
         },
         onUpdate: ({ editor }) => {
@@ -2932,7 +2932,7 @@ const App = () => {
                                             <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-yellow-400 shadow-[0_0_8px_currentColor]" title="Unsaved changes" />
                                         )}
                                         <div className="min-w-0 flex-1">
-                                            <div className="text-sm font-bold truncate text-emerald-100">{introductionPost.title}</div>
+                                            <div className="text-sm font-bold truncate text-emerald-900 dark:text-emerald-100">{introductionPost.title}</div>
                                             <div className="flex items-center gap-2 mt-1.5 opacity-60">
                                                 <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-500">{t('introduction')}</span>
                                             </div>
@@ -3297,8 +3297,8 @@ const App = () => {
                                 <div className="flex gap-3 relative z-10">
                                     <Info className="text-blue-500 shrink-0" size={18} />
                                     <div>
-                                        <p className="text-xs font-bold text-blue-200 mb-1">Visualization Tip</p>
-                                        <p className="text-[10px] text-blue-200/70 leading-relaxed">
+                                        <p className="text-xs font-bold text-blue-900 dark:text-blue-200 mb-1">Visualization Tip</p>
+                                        <p className="text-[10px] text-blue-900/70 dark:text-blue-200/70 leading-relaxed">
                                             The <code className="bg-blue-500/20 px-1 rounded text-blue-300">readonly=true</code> parameter helps you see exactly how the app looks when published.
                                         </p>
                                     </div>
@@ -3316,7 +3316,7 @@ const App = () => {
                                             {isReadonlyUser ? <Eye size={16} /> : <Edit3 size={16} />}
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold text-zinc-200">Readonly Mode</p>
+                                            <p className="text-xs font-bold text-zinc-900 dark:text-zinc-200">Readonly Mode</p>
                                             <p className="text-[10px] text-zinc-400 dark:text-zinc-500">Hide editing tools</p>
                                         </div>
                                     </div>
@@ -3665,7 +3665,7 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
                     </div>
                     <div className="p-4 md:p-8">
                         {mode === 'visual' ? (
-                            <div className="prose prose-invert max-w-none prose-sm md:prose-base" dangerouslySetInnerHTML={{ __html: originalHtml }} />
+                            <div className="prose dark:prose-invert max-w-none prose-sm md:prose-base" dangerouslySetInnerHTML={{ __html: originalHtml }} />
                         ) : (
                             <pre className="font-mono text-xs text-zinc-500 dark:text-zinc-400 whitespace-pre-wrap">{diffSource && diffSource.map((part, i) => !part.added && <span key={i} style={part.removed ? { backgroundColor: 'rgba(127,29,29,0.4)', textDecoration: 'line-through' } : {}}>{part.value}</span>)}</pre>
                         )}
@@ -3681,9 +3681,9 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
                     <div className="px-4 md:px-8 pt-4 md:pt-6 pb-2 border-b border-zinc-200 dark:border-zinc-800/50 shrink-0">
                         <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Title</div>
                         {mode === 'visual' ? (
-                            <div className="text-lg md:text-xl font-bold text-zinc-200 mb-4 md:mb-6 break-words">{selectedState.title}</div>
+                            <div className="text-lg md:text-xl font-bold text-zinc-900 dark:text-zinc-200 mb-4 md:mb-6 break-words">{selectedState.title}</div>
                         ) : (
-                            <div className="text-lg md:text-xl font-bold text-zinc-200 font-mono mb-4 md:mb-6 break-words">
+                            <div className="text-lg md:text-xl font-bold text-zinc-900 dark:text-zinc-200 font-mono mb-4 md:mb-6 break-words">
                                 {diffTitle ? diffTitle.map((part, i) => !part.removed && <span key={i} style={part.added ? { backgroundColor: 'rgba(6,78,59,0.4)' } : {}}>{part.value}</span>) : selectedState.title}
                             </div>
                         )}
@@ -3703,9 +3703,9 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
                     </div>
                     <div className="p-4 md:p-8">
                         {mode === 'visual' ? (
-                            <div className="prose prose-invert max-w-none prose-sm md:prose-base" dangerouslySetInnerHTML={{ __html: compareHtml }} />
+                            <div className="prose dark:prose-invert max-w-none prose-sm md:prose-base" dangerouslySetInnerHTML={{ __html: compareHtml }} />
                         ) : (
-                            <pre className="font-mono text-xs text-zinc-300 whitespace-pre-wrap">{diffSource && diffSource.map((part, i) => !part.removed && <span key={i} style={part.added ? { backgroundColor: 'rgba(6,78,59,0.4)' } : {}}>{part.value}</span>)}</pre>
+                            <pre className="font-mono text-xs text-zinc-800 dark:text-zinc-300 whitespace-pre-wrap">{diffSource && diffSource.map((part, i) => !part.removed && <span key={i} style={part.added ? { backgroundColor: 'rgba(6,78,59,0.4)' } : {}}>{part.value}</span>)}</pre>
                         )}
                     </div>
                 </div>
