@@ -194,10 +194,10 @@ const FontSize = Extension.create({
 
 const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCategories, onTagsChange, onCategoriesChange }) => {
     const { t } = useTranslation();
-    if (!isOpen) return null;
-
     const [activeTab, setActiveTab] = useState('tags'); // 'tags' | 'categories'
     const [search, setSearch] = useState('');
+
+    if (!isOpen) return null;
 
     const currentItems = activeTab === 'tags' ? tags : categories;
     const currentSelected = activeTab === 'tags' ? postTags : postCategories;
@@ -325,9 +325,9 @@ const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCatego
 };
 
 const ImageSelectorModal = ({ isOpen, onClose, images, onSelect, onUpload }) => {
-    if (!isOpen) return null;
-
     const [search, setSearch] = useState('');
+
+    if (!isOpen) return null;
     const filteredImages = images.filter(img => img.name.toLowerCase().includes(search.toLowerCase()));
 
     return (
@@ -2830,7 +2830,7 @@ const App = () => {
                     {/* Main Sidebar Content Area: Folders + Post List */}
                     <div className="flex-1 flex overflow-hidden relative">
                         {/* Vertical Category Folders */}
-                        <div 
+                        <div
                             style={{ width: `${categorySidebarWidth}px` }}
                             className="bg-zinc-100/50 dark:bg-zinc-800/20 border-r border-zinc-200 dark:border-zinc-800/50 flex flex-col items-center py-4 gap-4 overflow-y-auto no-scrollbar relative group/sidebar"
                         >
@@ -2955,32 +2955,6 @@ const App = () => {
                                 )}
                             </div>
                             {/* User Profile & Logout */}
-                            {authEnabled && user && (
-                                <div className="mt-auto p-4 border-t border-zinc-200 dark:border-zinc-800">
-                                    <div className="flex items-center justify-between gap-3 p-2 rounded-xl bg-zinc-100/50 dark:bg-zinc-800/50">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            {user.photos?.[0] ? (
-                                                <img src={user.photos[0].value} alt={user.displayName} className="w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-700" />
-                                            ) : (
-                                                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                                    <User size={16} />
-                                                </div>
-                                            )}
-                                            <div className="min-w-0">
-                                                <div className="text-xs font-bold text-zinc-900 dark:text-white truncate">{user.displayName}</div>
-                                                <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate capitalize">{user.provider}</div>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={handleLogout}
-                                            className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                            title="Logout"
-                                        >
-                                            <LogOut size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
                         </>
                     )}
 
@@ -3294,7 +3268,7 @@ const App = () => {
                             ? 'bg-zinc-100 border-zinc-200 text-zinc-900 shadow-xl scale-110'
                             : 'bg-zinc-50 dark:bg-zinc-900/80 backdrop-blur-md border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-zinc-700'
                             }`}
-                        title="Mission Control Debugger"
+                        title="Dashboard"
                     >
                         {showDebug ? <X size={18} /> : <Settings size={18} />}
                     </button>
@@ -3308,7 +3282,7 @@ const App = () => {
                         <div className="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Activity size={16} className="text-emerald-500" />
-                                <h3 className="text-sm font-bold text-zinc-900 dark:text-white tracking-tight">Debug Dashboard</h3>
+                                <h3 className="text-sm font-bold text-zinc-900 dark:text-white tracking-tight">Dashboard</h3>
                             </div>
                             <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 px-2 py-0.5 rounded font-mono">v2.4.0</span>
                         </div>
@@ -3395,6 +3369,25 @@ const App = () => {
                                 </div>
                             </div>
 
+                            {/* Account Section */}
+                            {authEnabled && user && (
+                                <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                                    <div className="flex items-center justify-between mb-4 px-1">
+                                        <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                            <User size={12} /> Account
+                                        </h4>
+                                        <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">{user.displayName}</span>
+                                    </div>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl border border-red-500/20 transition-all font-bold text-sm group"
+                                    >
+                                        <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
+                                        <span>{t('logout')}</span>
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Environment */}
                             <div>
                                 <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
@@ -3462,7 +3455,7 @@ const App = () => {
 
                         {/* Footer */}
                         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30 text-center">
-                            <p className="text-[9px] text-zinc-600 uppercase tracking-tighter">Mission Control Debugger &copy; 2026</p>
+                            <p className="text-[9px] text-zinc-600 uppercase tracking-tighter">Mission Control Dashboard &copy; 2026</p>
                         </div>
                     </div>
                 )
