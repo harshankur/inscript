@@ -27,12 +27,20 @@ Try the editor in your browser without installing anything!
     -   **Images**: Drag & drop upload, resize, and extensive media library integration.
     -   **YouTube**: Embed videos directly via URL or search.
     -   **Highlights**: Multi-color highlighting text.
+-   **Theme-Aware**: Content automatically adjusts for dark mode using `prose-invert`, ensuring perfect readability.
 -   **WYSIWYG**: The look and feel of the CMS is exactly the same as the published blog. It is essentially the same application, ensuring there are no surprises in the final UI.
 
 ### 🗂️ Organization & Metadata
 -   **Taxonomy**: Manage Tags and Categories with an intuitive UI.
+-   **Dynamic Sidebar Tags**: Responsive tag display that automatically adjusts to sidebar width using a greedy heuristic, with snappy `+N` overflow tooltips.
+-   **Consolidated Categories**: Streamlined taxonomy into four core buckets: **Development**, **Technology**, **Life**, and **Philosophy**.
 -   **Frontmatter**: Automatically syncs YAML frontmatter (title, date, tags, etc.).
 -   **Advanced Filtering**: Filter posts by tags, categories, draft status, and date ranges.
+
+### ✨ Visual Polish & Symmetry
+-   **Layout Symmetry**: Standardized critical UI dimensions (like the 74px height of the Introduction section and editor footer) for a professional, balanced aesthetic.
+-   **Contrast Optimization**: Enhanced legibility for secondary UI elements including Dashboard tips, History View diffs, and Readonly mode toggles.
+-   **Modern Chips**: Zinc-styled tags and chips that follow a cohesive design system.
 
 ### 💾 Robust Workflow
 -   **Draft System**:

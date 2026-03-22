@@ -2474,6 +2474,45 @@ const App = () => {
         return Array.from(tags).filter(Boolean).sort();
     }, [posts, postTags]);
 
+    // --- Dynamic Sidebar Tag Fitting ---
+    const getVisibleTags = (tags, width) => {
+        if (!tags || tags.length === 0) return { visible: [], overflow: 0 };
+        
+        // Available width for tags: SidebarWidth - padding/icon/gap overhead
+        // Very conservative offset (100px) to prevent padding overlap and edge clipping
+        const availableWidth = width - 100; 
+        let currentWidth = 0;
+        const visible = [];
+        const charWidth = 7; // text-[9px] very conservative avg char width
+        const chipOverhead = 20; // padding + border + safety margin
+        const gap = 4;
+        const overflowChipWidth = 36; // "+X" chip with generous safety
+
+        for (let i = 0; i < tags.length; i++) {
+            const tag = tags[i];
+            const estimatedWidth = (tag.length * charWidth) + chipOverhead;
+            
+            // Required width if we add this tag
+            const isLast = i === tags.length - 1;
+            const requiredWidthWithOverflow = currentWidth + estimatedWidth + (isLast ? 0 : gap + overflowChipWidth);
+            
+            if (i > 0 && requiredWidthWithOverflow > availableWidth) {
+                // Doesn't fit with overflow chip
+                break;
+            }
+            
+            if (i === 0 && (currentWidth + estimatedWidth) > availableWidth) {
+                // Even first tag doesn't fit
+                break;
+            }
+
+            visible.push(tag);
+            currentWidth += estimatedWidth + gap;
+        }
+
+        return { visible, overflow: tags.length - visible.length };
+    };
+
     const allCategories = useMemo(() => {
         const cats = new Set();
         posts.forEach(p => {
@@ -2933,6 +2972,35 @@ const App = () => {
                                                     <span>{new Date(post.modified).toLocaleDateString()}</span>
                                                 </div>
                                             </div>
+                                            {/* Tag Chips Row */}
+                                            {post.tags && post.tags.length > 0 && (() => {
+                                                const { visible, overflow } = getVisibleTags(post.tags, sidebarWidth);
+                                                return (
+                                                    <div className="flex flex-nowrap gap-1 mt-2 items-center overflow-hidden">
+                                                        {visible.map(tag => (
+                                                            <span key={tag} className="px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 text-[9px] font-medium border border-zinc-200 dark:border-zinc-700 whitespace-nowrap">
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                        {overflow > 0 && (
+                                                            <div className="relative group/tagtooltip inline-flex items-center">
+                                                                <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-medium border border-emerald-500/20 cursor-help whitespace-nowrap">
+                                                                    +{overflow}
+                                                                </span>
+                                                                <div className="absolute left-0 bottom-full mb-2 hidden group-hover/tagtooltip:block z-[60] bg-zinc-900 text-white text-[10px] p-2 rounded shadow-xl whitespace-nowrap border border-zinc-700 pointer-events-none animate-in fade-in slide-in-from-bottom-1 duration-75 blur-none">
+                                                                    <div className="flex flex-wrap gap-1 max-w-[200px]">
+                                                                        {post.tags.slice(visible.length).map(t => (
+                                                                            <span key={t} className="px-1 py-0.5 rounded bg-zinc-800 border border-zinc-600">
+                                                                                {t}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     </button>
                                 ))
