@@ -1916,7 +1916,6 @@ const App = () => {
     };
 
     // Auto-sync entire history to server
-    // Auto-sync entire history to server
     useEffect(() => {
         // Prevent saving if: no filename, syncing locked, or history is just the original (single item)
         // This ensures we don't create draft files for unedited posts.
@@ -1992,7 +1991,18 @@ const App = () => {
 
     const fetchPosts = async () => {
         try {
-            const loadedPosts = (await api.get(isReadonlyEnv ? '/data.json' : '/api/posts')).data;
+            let loadedPosts = (await api.get(isReadonlyEnv ? '/data.json' : '/api/posts')).data;
+            loadedPosts = loadedPosts.map(p => ({
+                ...p,
+                tags: (p.tags || []).map(t => typeof t === 'string' ? t.trim().toLowerCase() : t).filter(Boolean),
+                categories: (Array.isArray(p.categories) ? p.categories : (p.categories ? [p.categories] : []))
+                    .map(c => {
+                        if (typeof c !== 'string') return c;
+                        const trimmed = c.trim();
+                        return trimmed ? (trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()) : '';
+                    })
+                    .filter(Boolean)
+            }));
             setPosts(loadedPosts);
 
             // Handle Deep Linking on Initial Load
@@ -2120,8 +2130,11 @@ const App = () => {
             titleRef.current = safeTitle;
 
             // Set Tags/Categories from current history state or fallback to original (frontmatter)
-            setPostTags(currentState.tags || originalState.tags);
-            setPostCategories(currentState.categories || originalState.categories);
+            const normalizeTags = (ts) => (ts || []).map(t => typeof t === 'string' ? t.trim().toLowerCase() : t).filter(Boolean);
+            const normalizeCats = (cs) => (cs || []).map(c => typeof c === 'string' ? c.trim().charAt(0).toUpperCase() + c.trim().slice(1).toLowerCase() : c).filter(Boolean);
+
+            setPostTags(normalizeTags(currentState.tags || originalState.tags));
+            setPostCategories(normalizeCats(currentState.categories || originalState.categories));
 
             // setOriginalContent helps with diffs logic, but history is now primary
             setOriginalContent({
@@ -2451,17 +2464,37 @@ const App = () => {
 
     const allTags = useMemo(() => {
         const tags = new Set();
-        posts.forEach(p => (p.tags || []).forEach(t => tags.add(t)));
+        posts.forEach(p => (p.tags || []).forEach(t => {
+            if (typeof t === 'string') tags.add(t.trim().toLowerCase());
+        }));
         // Also include current post's tags (even if not saved yet)
-        (postTags || []).forEach(t => tags.add(t));
-        return Array.from(tags).sort();
+        (postTags || []).forEach(t => {
+            if (typeof t === 'string') tags.add(t.trim().toLowerCase());
+        });
+        return Array.from(tags).filter(Boolean).sort();
     }, [posts, postTags]);
 
     const allCategories = useMemo(() => {
         const cats = new Set();
-        posts.forEach(p => (p.categories || []).forEach(c => cats.add(c)));
-        // Also include current post's categories (even if not saved yet)
-        (postCategories || []).forEach(c => cats.add(c));
+        posts.forEach(p => {
+            const pcats = Array.isArray(p.categories) ? p.categories : (p.categories ? [p.categories] : []);
+            pcats.forEach(c => {
+                if (typeof c === 'string') {
+                    const normalized = c.trim();
+                    if (normalized) {
+                        cats.add(normalized.charAt(0).toUpperCase() + normalized.slice(1).toLowerCase());
+                    }
+                }
+            });
+        });
+        (postCategories || []).forEach(c => {
+            if (typeof c === 'string') {
+                const normalized = c.trim();
+                if (normalized) {
+                    cats.add(normalized.charAt(0).toUpperCase() + normalized.slice(1).toLowerCase());
+                }
+            }
+        });
         return Array.from(cats).sort();
     }, [posts, postCategories]);
 
@@ -2919,7 +2952,7 @@ const App = () => {
                                 {introductionPost ? (
                                     <button
                                         onClick={() => loadPost(introductionPost.filename)}
-                                        className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group border-2 ${filename === introductionPost.filename
+                                        className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group border-2 h-[74px] ${filename === introductionPost.filename
                                             ? 'bg-zinc-100 dark:bg-zinc-800 shadow-md border-emerald-500/50' // Highlight active pinned post
                                             : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border-emerald-500/20 hover:border-emerald-500/40' // Distinct border for pinned
                                             }`}
@@ -2941,7 +2974,7 @@ const App = () => {
                                 ) : (
                                     <button
                                         onClick={() => handleNewPostConfirm('Introduction', { type: 'introduction' })}
-                                        className="w-full text-left p-3 rounded-lg transition-all flex items-center gap-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 group text-zinc-400 dark:text-zinc-500 hover:text-emerald-500"
+                                        className="w-full text-left p-3 rounded-lg transition-all flex items-center gap-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 group text-zinc-400 dark:text-zinc-500 hover:text-emerald-500 h-[74px]"
                                         title={t('createIntroduction')}
                                     >
                                         <div className="mt-0.5 flex-shrink-0">
@@ -3153,7 +3186,7 @@ const App = () => {
                                     }}
                                 />
                             ) : (
-                                <div className="max-w-6xl mx-auto px-2 py-3 md:px-8 md:py-12 flex flex-col min-h-full">
+                                <div className="max-w-6xl mx-auto px-2 pt-3 pb-[57px] md:px-8 md:pt-12 md:pb-[57px] flex flex-col min-h-full">
                                     {editor && (
                                         <BubbleMenu
                                             editor={editor}
