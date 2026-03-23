@@ -6,7 +6,6 @@ import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
-import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
@@ -1831,7 +1830,6 @@ const App = () => {
             Color,
             FontSize,
             Highlight.configure({ multicolor: true }),
-            Underline,
             Subscript,
             Superscript,
             TextAlign.configure({
