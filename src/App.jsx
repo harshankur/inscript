@@ -1296,9 +1296,9 @@ const SaveSplitButton = ({ onSave, onAction, isSaving, isDirty, deployStatus }) 
                 type="button"
                 onClick={(e) => {
                     e.stopPropagation();
-                    if (!deployStatus) setIsOpen(!isOpen);
+                    if (!deployStatus && !isSaving && isDirty) setIsOpen(!isOpen);
                 }}
-                disabled={!!deployStatus}
+                disabled={!!deployStatus || isSaving || !isDirty}
                 className={`px-2 rounded-r-lg transition-all border-l border-white/10 ${isDirty
                     ? 'bg-yellow-400 text-zinc-950 hover:bg-yellow-300'
                     : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
