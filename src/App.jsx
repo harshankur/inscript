@@ -8,6 +8,8 @@ import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
+import Link from '@tiptap/extension-link';
+import Underline from '@tiptap/extension-underline';
 import StarterKit from '@tiptap/starter-kit';
 import api from './lib/api';
 import * as Diff from 'diff';
@@ -69,9 +71,10 @@ import {
     Underline as UnderlineIcon,
     Undo,
     UploadCloud,
+    Link as LinkIcon,
+    Link2Off,
     LogOut,
     User,
-    ShieldCheck,
     X,
     XCircle,
     Youtube as YoutubeIcon
@@ -274,7 +277,7 @@ const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCatego
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder={`Search or create ${activeTab}...`}
+                        placeholder={t('searchOrCreate', { item: activeTab })}
                         className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-3 text-zinc-900 dark:text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
                         autoFocus
                     />
@@ -288,12 +291,12 @@ const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCatego
                             className="w-full py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-lg hover:bg-emerald-500/20 transition-all font-bold flex items-center justify-center gap-2 mb-4"
                         >
                             <Plus size={16} />
-                            Create "{search}"
+                            {t('createItem', { item: search })}
                         </button>
                     )}
 
                     <div className="mb-2 text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">
-                        {search ? 'Matching Results' : 'Available Items'}
+                        {search ? t('matchingResults') : t('availableItems')}
                     </div>
 
                     <div className="flex flex-wrap gap-2">
@@ -310,14 +313,14 @@ const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCatego
                             </button>
                         ))}
                         {filteredItems.length === 0 && !search && (
-                            <span className="text-zinc-400 dark:text-zinc-500 text-sm italic">No items found.</span>
+                            <span className="text-zinc-400 dark:text-zinc-500 text-sm italic">{t('noItemsFound')}</span>
                         )}
                     </div>
                 </div>
 
                 {/* Footer (Selected Summary) */}
                 <div className="p-4 bg-white dark:bg-zinc-950/50 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-400 dark:text-zinc-500">
-                    Selected: {currentSelected.length > 0 ? currentSelected.join(', ') : 'None'}
+                    {t('selected')}: {currentSelected.length > 0 ? currentSelected.join(', ') : t('none')}
                 </div>
             </div>
         </div>
@@ -325,6 +328,7 @@ const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCatego
 };
 
 const ImageSelectorModal = ({ isOpen, onClose, images, onSelect, onUpload }) => {
+    const { t } = useTranslation();
     const [search, setSearch] = useState('');
 
     if (!isOpen) return null;
@@ -335,7 +339,7 @@ const ImageSelectorModal = ({ isOpen, onClose, images, onSelect, onUpload }) => 
             <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl shadow-2xl w-full max-w-4xl flex flex-col h-[80vh] animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
-                    <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Media Library</h2>
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{t('mediaLibraryTitle')}</h2>
                     <button onClick={onClose} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
                         <X size={20} />
                     </button>
@@ -348,7 +352,7 @@ const ImageSelectorModal = ({ isOpen, onClose, images, onSelect, onUpload }) => 
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search images..."
+                            placeholder={t('searchImages')}
                             className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg pl-10 pr-4 py-2 text-zinc-900 dark:text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
                             autoFocus
                         />
@@ -358,7 +362,7 @@ const ImageSelectorModal = ({ isOpen, onClose, images, onSelect, onUpload }) => 
                     </div>
                     <label className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-zinc-900 dark:text-white font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-2 shadow-lg shadow-emerald-900/20">
                         <Plus size={18} />
-                        <span>Upload New</span>
+                        <span>{t('uploadNew')}</span>
                         <input type="file" className="hidden" onChange={onUpload} accept="image/*" />
                     </label>
                 </div>
@@ -386,7 +390,7 @@ const ImageSelectorModal = ({ isOpen, onClose, images, onSelect, onUpload }) => 
                     {filteredImages.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-full text-zinc-400 dark:text-zinc-500 gap-2">
                             <ImageIcon size={48} className="opacity-20" />
-                            <p>No images found</p>
+                            <p>{t('noImagesFound')}</p>
                         </div>
                     )}
                 </div>
@@ -417,6 +421,7 @@ const ToolbarButton = ({ onClick, active, disabled, children, title, className =
 );
 
 const ColorSelector = ({ icon: Icon, title, activeColor, onChange, onRemove, presets, variant = 'text' }) => {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     return (
         <div className="relative">
@@ -436,7 +441,7 @@ const ColorSelector = ({ icon: Icon, title, activeColor, onChange, onRemove, pre
                 <>
                     <div className="fixed inset-0 z-[70]" onClick={() => setIsOpen(false)} />
                     <div className="absolute top-full right-0 md:left-1/2 md:-translate-x-1/2 mt-2 p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-xl z-[80] min-w-[200px] animate-in slide-in-from-top-2 fade-in">
-                        <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2 uppercase tracking-wider">Presets</div>
+                        <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2 uppercase tracking-wider">{t('presets')}</div>
                         <div className="grid grid-cols-5 gap-1.5 mb-3">
                             {presets.map(color => (
                                 <button
@@ -461,7 +466,7 @@ const ColorSelector = ({ icon: Icon, title, activeColor, onChange, onRemove, pre
                                         onChange={(e) => { onChange(e.target.value); }}
                                     />
                                 </div>
-                                <span>Custom Color...</span>
+                                <span>{t('customColor')}</span>
                             </label>
 
                             <button
@@ -469,7 +474,7 @@ const ColorSelector = ({ icon: Icon, title, activeColor, onChange, onRemove, pre
                                 className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 px-1 py-1 rounded hover:bg-red-400/10 transition-colors"
                             >
                                 <XCircle size={14} />
-                                <span>{variant === 'text' ? 'Reset to Default' : 'No Highlight'}</span>
+                                <span>{variant === 'text' ? t('resetToDefault') : t('noHighlight')}</span>
                             </button>
                         </div>
                     </div>
@@ -480,6 +485,7 @@ const ColorSelector = ({ icon: Icon, title, activeColor, onChange, onRemove, pre
 };
 
 const FontSizeSelector = ({ editor }) => {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const sizes = [12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72];
     const currentSize = editor?.getAttributes('textStyle')?.fontSize;
@@ -489,7 +495,7 @@ const FontSizeSelector = ({ editor }) => {
             <ToolbarButton
                 onClick={() => setIsOpen(!isOpen)}
                 active={!!currentSize}
-                title="Font Size"
+                title={t('fontSize')}
                 width={TOOLBAR_SIZES.CUSTOM}
             >
                 <div className="flex items-center justify-center gap-0.5">
@@ -516,7 +522,7 @@ const FontSizeSelector = ({ editor }) => {
                             className="px-3 py-2 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-xs text-red-400 border-t border-zinc-200 dark:border-zinc-800 mt-1 flex items-center gap-2"
                         >
                             <XCircle size={12} />
-                            Reset
+                            {t('reset')}
                         </button>
                     </div>
                 </>
@@ -525,20 +531,105 @@ const FontSizeSelector = ({ editor }) => {
     );
 };
 
+const LinkSelector = ({ editor }) => {
+    const { t } = useTranslation();
+    const [isOpen, setIsOpen] = useState(false);
+    const [url, setUrl] = useState('');
+
+    const currentUrl = editor?.getAttributes('link').href || '';
+    const isActive = editor?.isActive('link');
+
+    useEffect(() => {
+        if (isOpen) {
+            setUrl(currentUrl);
+        }
+    }, [isOpen, currentUrl]);
+
+    const handleApply = (e) => {
+        e?.preventDefault();
+        if (url) {
+            editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+        } else {
+            editor.chain().focus().extendMarkRange('link').unsetLink().run();
+        }
+        setIsOpen(false);
+    };
+
+    const handleRemove = () => {
+        editor.chain().focus().extendMarkRange('link').unsetLink().run();
+        setIsOpen(false);
+    };
+
+    return (
+        <div className="relative">
+            <ToolbarButton
+                onClick={() => setIsOpen(!isOpen)}
+                active={isActive}
+                title={t('insertLink')}
+            >
+                <LinkIcon size={16} />
+            </ToolbarButton>
+            {isOpen && (
+                <>
+                    <div className="fixed inset-0 z-[70]" onClick={() => setIsOpen(false)} />
+                    <form
+                        onSubmit={handleApply}
+                        className="absolute top-full left-0 mt-2 p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-xl z-[80] min-w-[260px] animate-in slide-in-from-top-2 fade-in flex flex-col gap-3"
+                    >
+                        <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{t('insertLink')}</div>
+                        <input
+                            type="text"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            placeholder={t('enterUrl')}
+                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-3 py-2 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                            autoFocus
+                        />
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="submit"
+                                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded transition-colors"
+                            >
+                                {t('apply')}
+                            </button>
+                            {isActive && (
+                                <button
+                                    type="button"
+                                    onClick={handleRemove}
+                                    className="p-2 text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                                    title={t('removeLink')}
+                                >
+                                    <Link2Off size={16} />
+                                </button>
+                            )}
+                        </div>
+                    </form>
+                </>
+            )}
+        </div>
+    );
+};
+
 const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canRedo, showMetadataModal, hasMetadata, showMetadataActive, onShowMediaLibrary, onAddYoutube }) => {
+    const { t } = useTranslation();
     const containerRef = React.useRef(null);
     const [visibleCount, setVisibleCount] = React.useState(100);
     const [showMore, setShowMore] = React.useState(false);
 
     // Tools Configuration
     const tools = useMemo(() => [
-        { id: 'undo', icon: Undo, action: onHistoryUndo, disabled: !canUndo, title: 'Undo' },
-        { id: 'redo', icon: Redo, action: onHistoryRedo, disabled: !canRedo, title: 'Redo' },
+        { id: 'undo', icon: Undo, action: onHistoryUndo, disabled: !canUndo, title: t('undo') },
+        { id: 'redo', icon: Redo, action: onHistoryRedo, disabled: !canRedo, title: t('redo') },
         { type: 'divider' },
         { id: 'bold', icon: Bold, action: () => editor.chain().focus().toggleBold().run(), active: editor?.isActive('bold') },
         { id: 'italic', icon: Italic, action: () => editor.chain().focus().toggleItalic().run(), active: editor?.isActive('italic') },
         { id: 'underline', icon: UnderlineIcon, action: () => editor.chain().focus().toggleUnderline().run(), active: editor?.isActive('underline') },
         { id: 'strike', icon: Strikethrough, action: () => editor.chain().focus().toggleStrike().run(), active: editor?.isActive('strike') },
+        {
+            id: 'link', type: 'custom', render: () => (
+                <LinkSelector editor={editor} />
+            )
+        },
         { type: 'divider' },
         {
             id: 'fontSize', type: 'custom', render: () => (
@@ -549,7 +640,7 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
             id: 'highlight', type: 'custom', render: () => (
                 <ColorSelector
                     icon={Highlighter}
-                    title="Highlight Color"
+                    title={t('highlightColor')}
                     activeColor={editor?.getAttributes('highlight').color}
                     onChange={(color) => editor.chain().focus().toggleHighlight({ color }).run()}
                     onRemove={() => editor.chain().focus().unsetHighlight().run()}
@@ -562,7 +653,7 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
             id: 'color', type: 'custom', render: () => (
                 <ColorSelector
                     icon={Palette}
-                    title="Text Color"
+                    title={t('textColor')}
                     activeColor={editor?.getAttributes('textStyle').color}
                     onChange={(color) => editor.chain().focus().setColor(color).run()}
                     onRemove={() => editor.chain().focus().unsetColor().run()}
@@ -588,11 +679,11 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
         { id: 'code', icon: Code, action: () => editor.chain().focus().toggleCodeBlock().run(), active: editor?.isActive('codeBlock') },
         { id: 'quote', icon: Quote, action: () => editor.chain().focus().toggleBlockquote().run(), active: editor?.isActive('blockquote') },
         { type: 'divider' },
-        { id: 'image', icon: ImageIcon, action: onShowMediaLibrary, title: 'Insert Image' },
-        { id: 'youtube', icon: YoutubeIcon, action: onAddYoutube, title: 'Embed YouTube Video' },
+        { id: 'image', icon: ImageIcon, action: onShowMediaLibrary, title: t('insertImage') },
+        { id: 'youtube', icon: YoutubeIcon, action: onAddYoutube, title: t('embedYoutube') },
         {
             id: 'tags', type: 'custom', render: () => (
-                <ToolbarButton onClick={showMetadataModal} active={showMetadataActive} title="Manage Tags & Categories" width={TOOLBAR_SIZES.CUSTOM}>
+                <ToolbarButton onClick={showMetadataModal} active={showMetadataActive} title={t('manageMetadata')} width={TOOLBAR_SIZES.CUSTOM}>
                     <div className="relative flex items-center justify-center">
                         <Tag size={18} />
                         {hasMetadata && <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full" />}
@@ -600,7 +691,7 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
                 </ToolbarButton>
             )
         },
-    ], [editor, onHistoryUndo, onHistoryRedo, canUndo, canRedo, showMetadataModal, hasMetadata, showMetadataActive, onShowMediaLibrary, onAddYoutube]);
+    ], [editor, onHistoryUndo, onHistoryRedo, canUndo, canRedo, showMetadataModal, hasMetadata, showMetadataActive, onShowMediaLibrary, onAddYoutube, t]);
 
     // Precise resize logic using source of truth widths
     useEffect(() => {
@@ -678,7 +769,7 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
                         onClick={() => setShowMore(!showMore)}
                         style={{ width: `${TOOLBAR_SIZES.BUTTON}px`, height: `${TOOLBAR_SIZES.BUTTON}px` }}
                         className={`flex items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors shrink-0 ${showMore ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' : ''}`}
-                        title="More tools"
+                        title={t('moreTools')}
                     >
                         <ChevronsRight size={18} />
                     </button>
@@ -1822,7 +1913,11 @@ const App = () => {
 
     const editor = useEditor({
         extensions: [
-            StarterKit,
+            StarterKit.configure({
+                history: false, // History is handled by the component state in some parts, or we want to be explicit
+                link: false, // Ensure no collision if some version of StarterKit includes it
+            }),
+            Underline,
             TiptapImage.configure({
                 allowBase64: true,
             }),
@@ -1836,6 +1931,14 @@ const App = () => {
                 types: ['heading', 'paragraph'],
             }),
             Youtube,
+            Link.configure({
+                openOnClick: false,
+                linkOnPaste: true,
+                autolink: true,
+                HTMLAttributes: {
+                    class: 'text-emerald-500 underline underline-offset-4 cursor-pointer hover:text-emerald-400 transition-colors',
+                },
+            }),
         ],
         content: currentPost?.html || '', // CRITICAL: Initialize with content so History starts clean
         editable: !isReadonly, // Disable editing in readonly mode
@@ -2476,10 +2579,10 @@ const App = () => {
     // --- Dynamic Sidebar Tag Fitting ---
     const getVisibleTags = (tags, width) => {
         if (!tags || tags.length === 0) return { visible: [], overflow: 0 };
-        
+
         // Available width for tags: SidebarWidth - padding/icon/gap overhead
         // Very conservative offset (100px) to prevent padding overlap and edge clipping
-        const availableWidth = width - 100; 
+        const availableWidth = width - 100;
         let currentWidth = 0;
         const visible = [];
         const charWidth = 7; // text-[9px] very conservative avg char width
@@ -2490,16 +2593,16 @@ const App = () => {
         for (let i = 0; i < tags.length; i++) {
             const tag = tags[i];
             const estimatedWidth = (tag.length * charWidth) + chipOverhead;
-            
+
             // Required width if we add this tag
             const isLast = i === tags.length - 1;
             const requiredWidthWithOverflow = currentWidth + estimatedWidth + (isLast ? 0 : gap + overflowChipWidth);
-            
+
             if (i > 0 && requiredWidthWithOverflow > availableWidth) {
                 // Doesn't fit with overflow chip
                 break;
             }
-            
+
             if (i === 0 && (currentWidth + estimatedWidth) > availableWidth) {
                 // Even first tag doesn't fit
                 break;
