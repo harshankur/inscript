@@ -6,6 +6,7 @@ services:
         SERVER_PORT: ${SERVER_PORT}
         CLIENT_PORT: ${CLIENT_PORT}
     container_name: inscript-blog
+    user: "1000:1000"
     volumes:
       # 1. Mount the Parent Blog Repository root to /app
       # This handles code (in /app/inscript) and data (content, static, .env)
@@ -15,8 +16,8 @@ services:
       # This must come AFTER the /app mount to take precedence
       - /app/inscript/node_modules
       # Enable Git Support (Uncomment if you want CMS to commit/push)
-      # - ${HOME:-~}/.gitconfig:/root/.gitconfig:ro
-      # - ${HOME:-~}/.ssh:/root/.ssh:ro
+      # - ${HOME:-~}/.gitconfig:/home/node/.gitconfig:ro
+      # - ${HOME:-~}/.ssh:/home/node/.ssh:ro
     ports:
       # Map ports based on .env
       - "${CLIENT_PORT:-5173}:${CLIENT_PORT:-5173}"
