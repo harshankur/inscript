@@ -3263,7 +3263,7 @@ const App = () => {
                                     <div className="flex items-center gap-1 md:mr-4 bg-zinc-50 dark:bg-zinc-900 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800">
                                         <button
                                             onClick={() => setShowDiff(false)}
-                                            className={`p-2 md:px-3 md:py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${!showDiff ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white'}`}
+                                            className={`p-2 md:px-3 md:py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${!showDiff ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-sm' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white'}`}
                                             title="Editor View"
                                         >
                                             <Edit3 size={16} className="md:hidden" />
@@ -3378,6 +3378,7 @@ const App = () => {
                                                 >
                                                     <Italic size={16} />
                                                 </button>
+                                                <LinkSelector editor={editor} />
                                                 <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-1" />
                                                 <FontSizeSelector editor={editor} />
                                                 <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-1" />
