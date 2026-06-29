@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "ಮೀಡಿಯಾ ಲೈಬ್ರರಿ",
   "searchImages": "ಚಿತ್ರಗಳನ್ನು ಹುಡುಕಿ...",
   "uploadNew": "ಹೊಸದನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
-  "noImagesFound": "ಯಾವುದೇ ಚಿತ್ರಗಳು ಕಂಡುಬಂದಿಲ್ಲ"
+  "noImagesFound": "ಯಾವುದೇ ಚಿತ್ರಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+  "insertTable": "ಕೋಷ್ಟಕವನ್ನು ಸೇರಿಸಿ",
+  "addColumnBefore": "ಎಡಕ್ಕೆ ಕಾಲಮ್ ಸೇರಿಸಿ",
+  "addColumnAfter": "ಬಲಕ್ಕೆ ಕಾಲಮ್ ಸೇರಿಸಿ",
+  "deleteColumn": "ಕಾಲಮ್ ಅಳಿಸಿ",
+  "addRowBefore": "ಮೇಲೆ ಸಾಲು ಸೇರಿಸಿ",
+  "addRowAfter": "ಕೆಳಗೆ ಸಾಲು ಸೇರಿಸಿ",
+  "deleteRow": "ಸಾಲನ್ನು ಅಳಿಸಿ",
+  "mergeCells": "ಕೋಶಗಳನ್ನು ವಿಲೀನ ಮಾಡಿ",
+  "splitCell": "ಕೋಶವನ್ನು ವಿಭಜಿಸಿ",
+  "toggleHeaderRow": "ಶೀರ್ಷಿಕೆ ಸಾಲನ್ನು ಟಾಗಲ್ ಮಾಡಿ",
+  "toggleHeaderColumn": "ಶೀರ್ಷಿಕೆ ಕಾಲಮ್ ಅನ್ನು ಟಾಗಲ್ ಮಾಡಿ",
+  "deleteTable": "ಕೋಷ್ಟಕವನ್ನು ಅಳಿಸಿ"
 }

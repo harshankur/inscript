@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "मीडिया लाइब्रेरी",
   "searchImages": "तस्विरहरू खोज्नुहोस्...",
   "uploadNew": "नयाँ अपलोड गर्नुहोस्",
-  "noImagesFound": "कुनै तस्विर फेला परेन"
+  "noImagesFound": "कुनै तस्विर फेला परेन",
+  "insertTable": "तालिका सम्मिलित गर्नुहोस्",
+  "addColumnBefore": "बाँयी तर्फ स्तम्भ थप्नुहोस्",
+  "addColumnAfter": "दाँयी तर्फ स्तम्भ थप्नुहोस्",
+  "deleteColumn": "स्तम्भ मेटाउनुहोस्",
+  "addRowBefore": "माथि पंक्ति थप्नुहोस्",
+  "addRowAfter": "तल पंक्ति थप्नुहोस्",
+  "deleteRow": "पंक्ति मेटाउनुहोस्",
+  "mergeCells": "कक्षहरू मर्ज गर्नुहोस्",
+  "splitCell": "कक्ष विभाजित गर्नुहोस्",
+  "toggleHeaderRow": "शीर्षक पंक्ति टगल गर्नुहोस्",
+  "toggleHeaderColumn": "शीर्षक स्तम्भ टगल गर्नुहोस्",
+  "deleteTable": "तालिका मेटाउनुहोस्"
 }

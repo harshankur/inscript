@@ -9,6 +9,7 @@ import { marked } from 'marked';
 import multer from 'multer';
 import path from 'path';
 import TurndownService from 'turndown';
+import { gfm } from 'turndown-plugin-gfm';
 import { fileURLToPath } from 'url';
 import { promisify } from 'util';
 import bcrypt from 'bcryptjs';
@@ -140,6 +141,24 @@ fs.ensureDirSync(DRAFTS_DIR);
 const turndownService = new TurndownService({
     headingStyle: 'atx',
     codeBlockStyle: 'fenced'
+});
+turndownService.use(gfm);
+
+// Tables with custom width/align can't be expressed in GFM — preserve as raw HTML
+turndownService.addRule('customLayoutTable', {
+    filter: node => {
+        if (node.nodeName !== 'TABLE') return false;
+        const w = node.getAttribute('data-width');
+        const a = node.getAttribute('data-align');
+        return (w && w !== '100%') || (a && a !== 'center');
+    },
+    replacement: (content, node) => `\n\n${node.outerHTML}\n\n`,
+});
+
+// Images with custom width/align preserve as raw HTML
+turndownService.addRule('customLayoutImage', {
+    filter: node => node.nodeName === 'IMG' && (node.hasAttribute('data-width') || node.hasAttribute('data-align')),
+    replacement: (content, node) => node.outerHTML,
 });
 
 // Helper to convert Hugo shortcodes to HTML

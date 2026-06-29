@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "メディアライブラリ",
   "searchImages": "画像を検索...",
   "uploadNew": "新規アップロード",
-  "noImagesFound": "画像が見つかりません"
+  "noImagesFound": "画像が見つかりません",
+  "insertTable": "表を挿入",
+  "addColumnBefore": "左に列を追加",
+  "addColumnAfter": "右に列を追加",
+  "deleteColumn": "列を削除",
+  "addRowBefore": "上に行を追加",
+  "addRowAfter": "下に行を追加",
+  "deleteRow": "行を削除",
+  "mergeCells": "セルを結合",
+  "splitCell": "セルを分割",
+  "toggleHeaderRow": "ヘッダー行を切り替え",
+  "toggleHeaderColumn": "ヘッダー列を切り替え",
+  "deleteTable": "表を削除"
 }

@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "Medienbibliothek",
   "searchImages": "Bilder suchen...",
   "uploadNew": "Neu hochladen",
-  "noImagesFound": "Keine Bilder gefunden"
+  "noImagesFound": "Keine Bilder gefunden",
+  "insertTable": "Tabelle einfügen",
+  "addColumnBefore": "Spalte links hinzufügen",
+  "addColumnAfter": "Spalte rechts hinzufügen",
+  "deleteColumn": "Spalte löschen",
+  "addRowBefore": "Zeile oben hinzufügen",
+  "addRowAfter": "Zeile unten hinzufügen",
+  "deleteRow": "Zeile löschen",
+  "mergeCells": "Zellen zusammenführen",
+  "splitCell": "Zelle teilen",
+  "toggleHeaderRow": "Kopfzeile umschalten",
+  "toggleHeaderColumn": "Kopfspalte umschalten",
+  "deleteTable": "Tabelle löschen"
 }

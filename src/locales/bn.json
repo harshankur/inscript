@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "মিডিয়া লাইব্রেরি",
   "searchImages": "ছবি খুঁজুন...",
   "uploadNew": "নতুন আপলোড করুন",
-  "noImagesFound": "কোন ছবি পাওয়া যায়নি"
+  "noImagesFound": "কোন ছবি পাওয়া যায়নি",
+  "insertTable": "টেবিল সন্নিবেশ করুন",
+  "addColumnBefore": "বাম দিকে কলাম যোগ করুন",
+  "addColumnAfter": "ডান দিকে কলাম যোগ করুন",
+  "deleteColumn": "কলাম মুছুন",
+  "addRowBefore": "উপরে সারি যোগ করুন",
+  "addRowAfter": "নীচে সারি যোগ করুন",
+  "deleteRow": "সারি মুছুন",
+  "mergeCells": "সেল মার্জ করুন",
+  "splitCell": "সেল বিভক্ত করুন",
+  "toggleHeaderRow": "হেডার সারি টগল করুন",
+  "toggleHeaderColumn": "হেডার কলাম টগল করুন",
+  "deleteTable": "টেবিল মুছুন"
 }

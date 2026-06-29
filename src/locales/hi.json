@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "मीडिया लाइब्रेरी",
   "searchImages": "छवियां खोजें...",
   "uploadNew": "नया अपलोड करें",
-  "noImagesFound": "कोई छवि नहीं मिली"
+  "noImagesFound": "कोई छवि नहीं मिली",
+  "insertTable": "तालिका सम्मिलित करें",
+  "addColumnBefore": "बाईं ओर कॉलम जोड़ें",
+  "addColumnAfter": "दाईं ओर कॉलम जोड़ें",
+  "deleteColumn": "कॉलम हटाएं",
+  "addRowBefore": "ऊपर पंक्ति जोड़ें",
+  "addRowAfter": "नीचे पंक्ति जोड़ें",
+  "deleteRow": "पंक्ति हटाएं",
+  "mergeCells": "सेल मर्ज करें",
+  "splitCell": "सेल विभाजित करें",
+  "toggleHeaderRow": "हेडर पंक्ति टॉगल करें",
+  "toggleHeaderColumn": "हेडर कॉलम टॉगल करें",
+  "deleteTable": "तालिका हटाएं"
 }

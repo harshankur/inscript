@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "മീഡിയ ലൈബ്രറി",
   "searchImages": "ചിത്രങ്ങൾ തിരയുക...",
   "uploadNew": "പുതിയത് അപ്‌ലോഡ് ചെയ്യുക",
-  "noImagesFound": "ചിത്രങ്ങളൊന്നും കണ്ടെത്തിയില്ല"
+  "noImagesFound": "ചിത്രങ്ങളൊന്നും കണ്ടെത്തിയില്ല",
+  "insertTable": "പട്ടിക ചേർക്കുക",
+  "addColumnBefore": "ഇടതുവശത്ത് നിര ചേർക്കുക",
+  "addColumnAfter": "വലതുവശത്ത് നിര ചേർക്കുക",
+  "deleteColumn": "നിര ഇല്ലാതാക്കുക",
+  "addRowBefore": "മുകളിൽ വരി ചേർക്കുക",
+  "addRowAfter": "താഴെ വരി ചേർക്കുക",
+  "deleteRow": "വരി ഇല്ലാതാക്കുക",
+  "mergeCells": "സെല്ലുകൾ ലയിപ്പിക്കുക",
+  "splitCell": "സെല്ല് വിഭജിക്കുക",
+  "toggleHeaderRow": "ശീർഷക വരി ടോഗിൾ ചെയ്യുക",
+  "toggleHeaderColumn": "ശീർഷക നിര ടോഗിൾ ചെയ്യുക",
+  "deleteTable": "പട്ടിക ഇല്ലാതാക്കുക"
 }

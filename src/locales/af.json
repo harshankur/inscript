@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "Media Biblioteek",
   "searchImages": "Soek beelde...",
   "uploadNew": "Laai nuwe op",
-  "noImagesFound": "Geen beelde gevind nie"
+  "noImagesFound": "Geen beelde gevind nie",
+  "insertTable": "Tabel invoeg",
+  "addColumnBefore": "Kolom links voeg",
+  "addColumnAfter": "Kolom regs voeg",
+  "deleteColumn": "Kolom verwyder",
+  "addRowBefore": "Ry bo voeg",
+  "addRowAfter": "Ry onder voeg",
+  "deleteRow": "Ry verwyder",
+  "mergeCells": "Selle saamvoeg",
+  "splitCell": "Sel verdeel",
+  "toggleHeaderRow": "Kopstofry wissel",
+  "toggleHeaderColumn": "Kopstofkolom wissel",
+  "deleteTable": "Tabel verwyder"
 }

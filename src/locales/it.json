@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "Libreria multimediale",
   "searchImages": "Cerca immagini...",
   "uploadNew": "Carica nuovo",
-  "noImagesFound": "Nessuna immagine trovata"
+  "noImagesFound": "Nessuna immagine trovata",
+  "insertTable": "Inserisci tabella",
+  "addColumnBefore": "Aggiungi colonna a sinistra",
+  "addColumnAfter": "Aggiungi colonna a destra",
+  "deleteColumn": "Elimina colonna",
+  "addRowBefore": "Aggiungi riga sopra",
+  "addRowAfter": "Aggiungi riga sotto",
+  "deleteRow": "Elimina riga",
+  "mergeCells": "Unisci celle",
+  "splitCell": "Dividi cella",
+  "toggleHeaderRow": "Attiva/disattiva riga di intestazione",
+  "toggleHeaderColumn": "Attiva/disattiva colonna di intestazione",
+  "deleteTable": "Elimina tabella"
 }

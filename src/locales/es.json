@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "Biblioteca de medios",
   "searchImages": "Buscar imágenes...",
   "uploadNew": "Subir nueva",
-  "noImagesFound": "No se encontraron imágenes"
+  "noImagesFound": "No se encontraron imágenes",
+  "insertTable": "Insertar tabla",
+  "addColumnBefore": "Agregar columna a la izquierda",
+  "addColumnAfter": "Agregar columna a la derecha",
+  "deleteColumn": "Eliminar columna",
+  "addRowBefore": "Agregar fila arriba",
+  "addRowAfter": "Agregar fila abajo",
+  "deleteRow": "Eliminar fila",
+  "mergeCells": "Combinar celdas",
+  "splitCell": "Dividir celda",
+  "toggleHeaderRow": "Alternar fila de encabezado",
+  "toggleHeaderColumn": "Alternar columna de encabezado",
+  "deleteTable": "Eliminar tabla"
 }

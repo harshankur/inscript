@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "మీడియా లైబ్రరీ",
   "searchImages": "చిత్రాల కోసం వెతకండి...",
   "uploadNew": "కొత్తది అప్‌లోడ్ చేయండి",
-  "noImagesFound": "చిత్రాలేవీ కనుగొనబడలేదు"
+  "noImagesFound": "చిత్రాలేవీ కనుగొనబడలేదు",
+  "insertTable": "టేబిల్ చేర్చండి",
+  "addColumnBefore": "ఎడమ వైపుకు కాలమ్ జోడించండి",
+  "addColumnAfter": "కుడి వైపుకు కాలమ్ జోడించండి",
+  "deleteColumn": "కాలమ్ తొలగించండి",
+  "addRowBefore": "పైన వరుస జోడించండి",
+  "addRowAfter": "క్రింద వరుస జోడించండి",
+  "deleteRow": "వరుస తొలగించండి",
+  "mergeCells": "సెల్‌లను విలీనం చేయండి",
+  "splitCell": "సెల్‌ను విభజించండి",
+  "toggleHeaderRow": "హెడర్ వరుసను టాగుల్ చేయండి",
+  "toggleHeaderColumn": "హెడర్ కాలమ్‌ను టాగుల్ చేయండి",
+  "deleteTable": "టేబిల్ తొలగించండి"
 }

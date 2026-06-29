@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "媒体库",
   "searchImages": "搜索图片...",
   "uploadNew": "上传新图片",
-  "noImagesFound": "未找到图片"
+  "noImagesFound": "未找到图片",
+  "insertTable": "插入表格",
+  "addColumnBefore": "左侧添加列",
+  "addColumnAfter": "右侧添加列",
+  "deleteColumn": "删除列",
+  "addRowBefore": "上方添加行",
+  "addRowAfter": "下方添加行",
+  "deleteRow": "删除行",
+  "mergeCells": "合并单元格",
+  "splitCell": "拆分单元格",
+  "toggleHeaderRow": "切换标题行",
+  "toggleHeaderColumn": "切换标题列",
+  "deleteTable": "删除表格"
 }

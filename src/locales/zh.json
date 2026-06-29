@@ -76,5 +76,17 @@
   "mediaLibraryTitle": "媒體庫",
   "searchImages": "搜索圖片...",
   "uploadNew": "上傳新圖片",
-  "noImagesFound": "未找到圖片"
+  "noImagesFound": "未找到圖片",
+  "insertTable": "插入表格",
+  "addColumnBefore": "左側新增欄位",
+  "addColumnAfter": "右側新增欄位",
+  "deleteColumn": "刪除欄位",
+  "addRowBefore": "上方新增列",
+  "addRowAfter": "下方新增列",
+  "deleteRow": "刪除列",
+  "mergeCells": "合併儲存格",
+  "splitCell": "分割儲存格",
+  "toggleHeaderRow": "切換標題列",
+  "toggleHeaderColumn": "切換標題欄位",
+  "deleteTable": "刪除表格"
 }

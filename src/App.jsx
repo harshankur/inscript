@@ -1,4 +1,5 @@
-import { Extension, Node } from '@tiptap/core';
+import { Extension, Node, mergeAttributes } from '@tiptap/core';
+import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Color } from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import TiptapImage from '@tiptap/extension-image';
@@ -11,6 +12,10 @@ import { BubbleMenu } from '@tiptap/react/menus';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import StarterKit from '@tiptap/starter-kit';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { TableHeader } from '@tiptap/extension-table-header';
 import api from './lib/api';
 import * as Diff from 'diff';
 import {
@@ -77,7 +82,17 @@ import {
     User,
     X,
     XCircle,
-    Youtube as YoutubeIcon
+    ExternalLink,
+    Youtube as YoutubeIcon,
+    Table as TableIcon,
+    ArrowLeftRight,
+    BetweenHorizontalStart,
+    BetweenHorizontalEnd,
+    BetweenVerticalStart,
+    BetweenVerticalEnd,
+    SplitSquareHorizontal,
+    Columns,
+    Rows,
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -92,8 +107,16 @@ const Youtube = Node.create({
 
     addAttributes() {
         return {
-            'data-youtube-video': {
-                default: null,
+            'data-youtube-video': { default: null },
+            width: {
+                default: '100%',
+                parseHTML: element => element.getAttribute('data-width') || '100%',
+                renderHTML: () => ({}),
+            },
+            align: {
+                default: 'center',
+                parseHTML: element => element.getAttribute('data-align') || 'center',
+                renderHTML: () => ({}),
             },
         };
     },
@@ -115,13 +138,20 @@ const Youtube = Node.create({
         ];
     },
 
-    renderHTML({ HTMLAttributes }) {
-        const id = HTMLAttributes['data-youtube-video'];
+    renderHTML({ node }) {
+        const id = node.attrs['data-youtube-video'];
+        const w = node.attrs.width || '100%';
+        const a = node.attrs.align || 'center';
+        const ml = a === 'left' ? '0' : 'auto';
+        const mr = a === 'right' ? '0' : 'auto';
         return [
             'div',
             {
                 'data-youtube-video': id,
-                class: 'youtube-embed relative w-full aspect-video rounded-lg overflow-hidden my-4 bg-zinc-100 dark:bg-zinc-800',
+                'data-width': w,
+                'data-align': a,
+                class: 'youtube-embed relative aspect-video rounded-lg overflow-hidden my-4 bg-zinc-100 dark:bg-zinc-800',
+                style: `width: ${w}; margin-left: ${ml}; margin-right: ${mr};`,
             },
             [
                 'iframe',
@@ -145,6 +175,45 @@ const Youtube = Node.create({
                     attrs: options,
                 });
             },
+        };
+    },
+    addNodeView() {
+        return ({ node }) => {
+            const dom = document.createElement('div');
+            const iframe = document.createElement('iframe');
+            iframe.title = 'YouTube video player';
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('allowfullscreen', 'true');
+            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+            iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
+            dom.appendChild(iframe);
+            // Transparent overlay so ProseMirror sees clicks and creates a NodeSelection.
+            // Without this, clicks go straight to the cross-origin iframe and TipTap never selects the node.
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position: absolute; inset: 0; z-index: 10;';
+            dom.appendChild(overlay);
+
+            const applyAttrs = (attrs) => {
+                const id = attrs['data-youtube-video'];
+                const w = attrs.width || '100%';
+                const a = attrs.align || 'center';
+                dom.setAttribute('data-youtube-video', id || '');
+                dom.setAttribute('data-width', w);
+                dom.setAttribute('data-align', a);
+                dom.className = 'youtube-embed relative aspect-video rounded-lg overflow-hidden my-4 bg-zinc-100 dark:bg-zinc-800';
+                dom.style.cssText = `width: ${w}; margin-left: ${a === 'left' ? '0' : 'auto'}; margin-right: ${a === 'right' ? '0' : 'auto'};`;
+                if (id) iframe.src = `https://www.youtube.com/embed/${id}`;
+            };
+            applyAttrs(node.attrs);
+
+            return {
+                dom,
+                update(newNode) {
+                    if (newNode.type.name !== 'youtube') return false;
+                    applyAttrs(newNode.attrs);
+                    return true;
+                },
+            };
         };
     },
 });
@@ -193,6 +262,127 @@ const FontSize = Extension.create({
         };
     },
 });
+
+const tableAlignKey = new PluginKey('tableAlign');
+
+const CustomTable = Table.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            align: {
+                default: 'center',
+                parseHTML: element => element.getAttribute('data-align') || 'center',
+                renderHTML: () => ({}),
+            },
+        };
+    },
+    renderHTML({ node, HTMLAttributes }) {
+        const a = node.attrs.align || 'center';
+        return this.parent?.({
+            node,
+            HTMLAttributes: mergeAttributes(HTMLAttributes, {
+                'data-align': a,
+                style: `margin-left: ${a === 'left' ? '0' : 'auto'}; margin-right: ${a === 'right' ? '0' : 'auto'};`,
+            }),
+        });
+    },
+    addProseMirrorPlugins() {
+        // When resizable:true, TipTap's Table.addNodeView() returns null and the columnResizing
+        // plugin (added here by this.parent?.()) registers its own NodeView (TableView) which
+        // creates div.tableWrapper > table. We cannot safely wrap that NodeView, so we use a
+        // plugin instead: after each doc change we walk all table nodes and set margins directly
+        // on the wrapper DOM. TableView.ignoreMutation() already ignores style changes on its
+        // own wrapper div, so this causes no re-render loop.
+        const parentPlugins = this.parent?.() || [];
+        return [
+            ...parentPlugins,
+            new Plugin({
+                key: tableAlignKey,
+                view(editorView) {
+                    const applyAll = () => {
+                        editorView.state.doc.descendants((node, pos) => {
+                            if (node.type.name !== 'table') return;
+                            const dom = editorView.nodeDOM(pos);
+                            if (!dom) return;
+                            const a = node.attrs.align || 'center';
+                            dom.style.marginLeft = a === 'left' ? '0' : 'auto';
+                            dom.style.marginRight = a === 'right' ? '0' : 'auto';
+                        });
+                    };
+                    return {
+                        update(view, prevState) {
+                            if (!prevState || !prevState.doc.eq(view.state.doc)) applyAll();
+                        },
+                    };
+                },
+            }),
+        ];
+    },
+});
+
+const CustomImage = TiptapImage.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            width: {
+                default: '100%',
+                parseHTML: element => element.getAttribute('data-width') || '100%',
+                renderHTML: attrs => ({ 'data-width': attrs.width, style: `width: ${attrs.width}` }),
+            },
+            align: {
+                default: 'center',
+                parseHTML: element => element.getAttribute('data-align') || 'center',
+                renderHTML: attrs => {
+                    const ml = attrs.align === 'left' ? '0' : 'auto';
+                    const mr = attrs.align === 'right' ? '0' : 'auto';
+                    return { 'data-align': attrs.align, style: `display: block; margin-left: ${ml}; margin-right: ${mr}` };
+                },
+            },
+        };
+    },
+});
+
+const getTableNode = (state) => {
+    if (!state) return null;
+    const { selection } = state;
+    const $pos = selection.$anchorCell || selection.$from;
+    if (!$pos) return null;
+    for (let d = $pos.depth; d > 0; d--) {
+        const node = $pos.node(d);
+        if (node.type.name === 'table') {
+            return { node, pos: $pos.before(d) };
+        }
+    }
+    return null;
+};
+
+const isHeaderRowActive = (editor) => {
+    if (!editor) return false;
+    const info = getTableNode(editor.state);
+    if (!info) return false;
+    const firstRow = info.node.firstChild;
+    return firstRow?.firstChild?.type.name === 'tableHeader';
+};
+
+const isHeaderColumnActive = (editor) => {
+    if (!editor) return false;
+    const info = getTableNode(editor.state);
+    if (!info) return false;
+    let active = info.node.childCount > 0;
+    info.node.forEach(row => { if (row.firstChild?.type.name !== 'tableHeader') active = false; });
+    return active;
+};
+
+const setTableLayout = (editor, attrs) => {
+    if (!editor) return;
+    const info = getTableNode(editor.state);
+    if (!info) return;
+    editor.chain().focus().command(({ tr }) => {
+        tr.setNodeMarkup(info.pos, undefined, { ...info.node.attrs, ...attrs });
+        return true;
+    }).run();
+};
+
 
 
 const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCategories, onTagsChange, onCategoriesChange }) => {
@@ -681,6 +871,7 @@ const ResponsiveToolbar = ({ editor, onHistoryUndo, onHistoryRedo, canUndo, canR
         { type: 'divider' },
         { id: 'image', icon: ImageIcon, action: onShowMediaLibrary, title: t('insertImage') },
         { id: 'youtube', icon: YoutubeIcon, action: onAddYoutube, title: t('embedYoutube') },
+        { id: 'table', icon: TableIcon, action: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(), title: t('insertTable') },
         {
             id: 'tags', type: 'custom', render: () => (
                 <ToolbarButton onClick={showMetadataModal} active={showMetadataActive} title={t('manageMetadata')} width={TOOLBAR_SIZES.CUSTOM}>
@@ -1918,7 +2109,7 @@ const App = () => {
                 link: false, // Ensure no collision if some version of StarterKit includes it
             }),
             Underline,
-            TiptapImage.configure({
+            CustomImage.configure({
                 allowBase64: true,
             }),
             TextStyle,
@@ -1931,6 +2122,12 @@ const App = () => {
                 types: ['heading', 'paragraph'],
             }),
             Youtube,
+            CustomTable.configure({
+                resizable: true,
+            }),
+            TableRow,
+            TableHeader,
+            TableCell,
             Link.configure({
                 openOnClick: false,
                 linkOnPaste: true,
@@ -3065,13 +3262,13 @@ const App = () => {
                                         <div className="min-w-0 flex-1">
                                             <div className="text-sm font-medium truncate">{post.title}</div>
                                             <div className="flex items-center gap-3 mt-1.5 opacity-60">
-                                                <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Created: ${new Date(post.created).toLocaleString()}`}>
+                                                <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Created: ${new Date(post.created).toLocaleString(i18n.language)}`}>
                                                     <Calendar size={10} />
-                                                    <span>{new Date(post.created).toLocaleDateString()}</span>
+                                                    <span>{new Date(post.created).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                                                 </div>
-                                                <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Modified: ${new Date(post.modified).toLocaleString()}`}>
+                                                <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Modified: ${new Date(post.modified).toLocaleString(i18n.language)}`}>
                                                     <Edit3 size={10} />
-                                                    <span>{new Date(post.modified).toLocaleDateString()}</span>
+                                                    <span>{new Date(post.modified).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                                                 </div>
                                             </div>
                                             {/* Tag Chips Row */}
@@ -3360,7 +3557,11 @@ const App = () => {
                                     {editor && (
                                         <BubbleMenu
                                             editor={editor}
-                                            shouldShow={({ editor }) => !isReadonly && !editor.state.selection.empty && !editor.isActive('image')}
+                                            shouldShow={({ editor }) => {
+                                                if (isReadonly || editor.isActive('image') || editor.isActive('youtube')) return false;
+                                                const isCellSelection = '$anchorCell' in editor.state.selection;
+                                                return !editor.state.selection.empty && !isCellSelection;
+                                            }}
                                             tippyOptions={{ duration: 100, zIndex: 9999, maxWidth: '98vw', interactive: true }}
                                         >
                                             <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-xl flex items-center p-1 gap-1 flex-wrap overflow-visible max-w-[90vw] custom-scrollbar">
@@ -3415,6 +3616,251 @@ const App = () => {
                                                 >
                                                     <Quote size={16} />
                                                 </button>
+                                            </div>
+                                        </BubbleMenu>
+                                    )}
+                                    {editor && (
+                                        <BubbleMenu
+                                            editor={editor}
+                                            pluginKey="tableBubbleMenu"
+                                            shouldShow={({ editor }) => {
+                                                if (isReadonly) return false;
+                                                return '$anchorCell' in editor.state.selection;
+                                            }}
+                                            tippyOptions={{ duration: 100, zIndex: 9999, maxWidth: '98vw', interactive: true, placement: 'bottom' }}
+                                        >
+                                            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-xl flex items-center p-1 gap-1 flex-wrap overflow-visible max-w-[90vw] custom-scrollbar">
+                                                {/* Columns Group */}
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().addColumnBefore().run()}
+                                                        disabled={!editor.can().addColumnBefore()}
+                                                        title={t('addColumnBefore', 'Add Column Left')}
+                                                    >
+                                                        <BetweenHorizontalStart size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().addColumnAfter().run()}
+                                                        disabled={!editor.can().addColumnAfter()}
+                                                        title={t('addColumnAfter', 'Add Column Right')}
+                                                    >
+                                                        <BetweenHorizontalEnd size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().deleteColumn().run()}
+                                                        disabled={!editor.can().deleteColumn()}
+                                                        title={t('deleteColumn', 'Delete Column')}
+                                                        className="hover:bg-red-500/10 hover:text-red-500"
+                                                    >
+                                                        <div className="relative flex items-center justify-center">
+                                                            <Columns size={15} className="text-zinc-400 dark:text-zinc-500" />
+                                                            <Trash2 size={10} className="absolute -bottom-0.5 -right-0.5 text-red-500" />
+                                                        </div>
+                                                    </ToolbarButton>
+                                                </div>
+
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-0.5" />
+
+                                                {/* Rows Group */}
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().addRowBefore().run()}
+                                                        disabled={!editor.can().addRowBefore()}
+                                                        title={t('addRowBefore', 'Add Row Above')}
+                                                    >
+                                                        <BetweenVerticalStart size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().addRowAfter().run()}
+                                                        disabled={!editor.can().addRowAfter()}
+                                                        title={t('addRowAfter', 'Add Row Below')}
+                                                    >
+                                                        <BetweenVerticalEnd size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().deleteRow().run()}
+                                                        disabled={!editor.can().deleteRow()}
+                                                        title={t('deleteRow', 'Delete Row')}
+                                                        className="hover:bg-red-500/10 hover:text-red-500"
+                                                    >
+                                                        <div className="relative flex items-center justify-center">
+                                                            <Rows size={15} className="text-zinc-400 dark:text-zinc-500" />
+                                                            <Trash2 size={10} className="absolute -bottom-0.5 -right-0.5 text-red-500" />
+                                                        </div>
+                                                    </ToolbarButton>
+                                                </div>
+
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-0.5" />
+
+                                                {/* Cell Actions Group */}
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().mergeCells().run()}
+                                                        disabled={!editor.can().mergeCells()}
+                                                        title={t('mergeCells', 'Merge Cells')}
+                                                    >
+                                                        <ArrowLeftRight size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().splitCell().run()}
+                                                        disabled={!editor.can().splitCell()}
+                                                        title={t('splitCell', 'Split Cell')}
+                                                    >
+                                                        <SplitSquareHorizontal size={15} />
+                                                    </ToolbarButton>
+                                                </div>
+
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-0.5" />
+
+                                                {/* Layout Group */}
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    <ToolbarButton onClick={() => setTableLayout(editor, { align: 'left' })} active={getTableNode(editor.state)?.node.attrs.align === 'left'} title="Align Left">
+                                                        <AlignLeft size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton onClick={() => setTableLayout(editor, { align: 'center' })} active={getTableNode(editor.state)?.node.attrs.align === 'center' || !getTableNode(editor.state)?.node.attrs.align} title="Align Center">
+                                                        <AlignCenter size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton onClick={() => setTableLayout(editor, { align: 'right' })} active={getTableNode(editor.state)?.node.attrs.align === 'right'} title="Align Right">
+                                                        <AlignRight size={15} />
+                                                    </ToolbarButton>
+                                                </div>
+
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-0.5" />
+
+                                                {/* Table Actions Group */}
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+                                                        disabled={!editor.can().toggleHeaderRow()}
+                                                        active={isHeaderRowActive(editor)}
+                                                        title={t('toggleHeaderRow', 'Toggle Header Row')}
+                                                    >
+                                                        <div className="flex flex-col gap-0.5 items-center justify-center w-4 h-4 border border-zinc-400 dark:border-zinc-500 rounded-sm p-0.5">
+                                                            <div className="w-full h-1 bg-zinc-400 dark:bg-zinc-500 rounded-[1px]" />
+                                                            <div className="w-full h-0.5 bg-zinc-200 dark:bg-zinc-800 rounded-[1px]" />
+                                                            <div className="w-full h-0.5 bg-zinc-200 dark:bg-zinc-800 rounded-[1px]" />
+                                                        </div>
+                                                    </ToolbarButton>
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().toggleHeaderColumn().run()}
+                                                        disabled={!editor.can().toggleHeaderColumn()}
+                                                        active={isHeaderColumnActive(editor)}
+                                                        title={t('toggleHeaderColumn', 'Toggle Header Column')}
+                                                    >
+                                                        <div className="flex gap-0.5 items-center justify-center w-4 h-4 border border-zinc-400 dark:border-zinc-500 rounded-sm p-0.5">
+                                                            <div className="w-1 h-full bg-zinc-400 dark:bg-zinc-500 rounded-[1px]" />
+                                                            <div className="w-0.5 h-full bg-zinc-200 dark:bg-zinc-800 rounded-[1px]" />
+                                                            <div className="w-0.5 h-full bg-zinc-200 dark:bg-zinc-800 rounded-[1px]" />
+                                                        </div>
+                                                    </ToolbarButton>
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().deleteTable().run()}
+                                                        disabled={!editor.can().deleteTable()}
+                                                        title={t('deleteTable', 'Delete Table')}
+                                                        className="hover:bg-red-500/10 hover:text-red-500"
+                                                    >
+                                                        <Trash2 size={15} className="text-red-500" />
+                                                    </ToolbarButton>
+                                                </div>
+                                            </div>
+                                        </BubbleMenu>
+                                    )}
+                                    {editor && (
+                                        <BubbleMenu
+                                            editor={editor}
+                                            pluginKey="imageBubbleMenu"
+                                            shouldShow={({ editor }) => !isReadonly && editor.isActive('image')}
+                                            tippyOptions={{ duration: 100, zIndex: 9999, maxWidth: '98vw', interactive: true, placement: 'top' }}
+                                        >
+                                            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-xl flex items-center p-1 gap-1 overflow-visible custom-scrollbar">
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    {['25%', '50%', '75%', '100%'].map(w => (
+                                                        <ToolbarButton
+                                                            key={w}
+                                                            onClick={() => editor.chain().focus().updateAttributes('image', { width: w }).run()}
+                                                            active={editor.getAttributes('image').width === w}
+                                                            title={`Image width ${w}`}
+                                                        >
+                                                            <span className="text-[10px] font-mono px-0.5">{w}</span>
+                                                        </ToolbarButton>
+                                                    ))}
+                                                </div>
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-0.5" />
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    <ToolbarButton onClick={() => editor.chain().focus().updateAttributes('image', { align: 'left' }).run()} active={editor.getAttributes('image').align === 'left'} title="Align Left">
+                                                        <AlignLeft size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton onClick={() => editor.chain().focus().updateAttributes('image', { align: 'center' }).run()} active={editor.getAttributes('image').align === 'center' || !editor.getAttributes('image').align} title="Align Center">
+                                                        <AlignCenter size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton onClick={() => editor.chain().focus().updateAttributes('image', { align: 'right' }).run()} active={editor.getAttributes('image').align === 'right'} title="Align Right">
+                                                        <AlignRight size={15} />
+                                                    </ToolbarButton>
+                                                </div>
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-0.5" />
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().deleteSelection().run()}
+                                                        title="Delete image"
+                                                        className="hover:bg-red-500/10 hover:text-red-500"
+                                                    >
+                                                        <Trash2 size={15} className="text-red-500" />
+                                                    </ToolbarButton>
+                                                </div>
+                                            </div>
+                                        </BubbleMenu>
+                                    )}
+                                    {editor && (
+                                        <BubbleMenu
+                                            editor={editor}
+                                            pluginKey="youtubeBubbleMenu"
+                                            shouldShow={({ editor }) => !isReadonly && editor.isActive('youtube')}
+                                            tippyOptions={{ duration: 100, zIndex: 9999, maxWidth: '98vw', interactive: true, placement: 'top' }}
+                                        >
+                                            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-xl flex items-center p-1 gap-1 overflow-visible custom-scrollbar">
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    {['25%', '50%', '75%', '100%'].map(w => (
+                                                        <ToolbarButton
+                                                            key={w}
+                                                            onClick={() => editor.chain().focus().updateAttributes('youtube', { width: w }).run()}
+                                                            active={editor.getAttributes('youtube').width === w}
+                                                            title={`Video width ${w}`}
+                                                        >
+                                                            <span className="text-[10px] font-mono px-0.5">{w}</span>
+                                                        </ToolbarButton>
+                                                    ))}
+                                                </div>
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-0.5" />
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    <ToolbarButton onClick={() => editor.chain().focus().updateAttributes('youtube', { align: 'left' }).run()} active={editor.getAttributes('youtube').align === 'left'} title="Align Left">
+                                                        <AlignLeft size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton onClick={() => editor.chain().focus().updateAttributes('youtube', { align: 'center' }).run()} active={editor.getAttributes('youtube').align === 'center' || !editor.getAttributes('youtube').align} title="Align Center">
+                                                        <AlignCenter size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton onClick={() => editor.chain().focus().updateAttributes('youtube', { align: 'right' }).run()} active={editor.getAttributes('youtube').align === 'right'} title="Align Right">
+                                                        <AlignRight size={15} />
+                                                    </ToolbarButton>
+                                                </div>
+                                                <div className="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-0.5" />
+                                                <div className="flex items-center gap-0.5 bg-zinc-100/50 dark:bg-zinc-800/30 p-0.5 rounded border border-zinc-200 dark:border-zinc-800">
+                                                    <ToolbarButton
+                                                        onClick={() => {
+                                                            const id = editor.getAttributes('youtube')['data-youtube-video'];
+                                                            if (id) window.open(`https://www.youtube.com/watch?v=${id}`, '_blank');
+                                                        }}
+                                                        title="Open in YouTube"
+                                                    >
+                                                        <ExternalLink size={15} />
+                                                    </ToolbarButton>
+                                                    <ToolbarButton
+                                                        onClick={() => editor.chain().focus().deleteSelection().run()}
+                                                        title="Delete video"
+                                                        className="hover:bg-red-500/10 hover:text-red-500"
+                                                    >
+                                                        <Trash2 size={15} className="text-red-500" />
+                                                    </ToolbarButton>
+                                                </div>
                                             </div>
                                         </BubbleMenu>
                                     )}
@@ -3812,7 +4258,7 @@ const HistoryView = ({ history, originalHtml, originalTitle: originalTitleProp, 
                                     )}
                                 </div>
                                 <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
-                                    {new Date(item.timestamp).toLocaleString(undefined, {
+                                    {new Date(item.timestamp).toLocaleString(i18n.language, {
                                         month: 'short', day: 'numeric',
                                         hour: '2-digit', minute: '2-digit'
                                     })}
