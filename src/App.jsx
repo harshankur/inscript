@@ -1,19 +1,6 @@
-import { Color } from '@tiptap/extension-color';
-import Highlight from '@tiptap/extension-highlight';
-import Subscript from '@tiptap/extension-subscript';
-import Superscript from '@tiptap/extension-superscript';
-import TextAlign from '@tiptap/extension-text-align';
-import { TextStyle } from '@tiptap/extension-text-style';
-import { EditorContent, useEditor } from '@tiptap/react';
-import Link from '@tiptap/extension-link';
-import Underline from '@tiptap/extension-underline';
-import StarterKit from '@tiptap/starter-kit';
-import { Table } from '@tiptap/extension-table';
-import { TableRow } from '@tiptap/extension-table-row';
-import { TableCell } from '@tiptap/extension-table-cell';
-import { TableHeader } from '@tiptap/extension-table-header';
+import { EditorContent } from '@tiptap/react';
 import {
-    Youtube, FontSize, CustomTable, CustomImage,
+    useInscriptEditor,
     ToolbarButton, TOOLBAR_SIZES,
     ColorSelector, FontSizeSelector, LinkSelector,
     ResponsiveToolbar, ImageSelectorModal, YoutubeEmbedModal, HistoryView,
@@ -963,14 +950,7 @@ const App = () => {
     const [showMediaLibrary, setShowMediaLibrary] = useState(false);
     const [libraryImages, setLibraryImages] = useState([]);
     const [originalContent, setOriginalContent] = useState({ title: '', html: '', tags: [], categories: [] });
-    const [isDirty, setIsDirty] = useState(false);
     const [showDiff, setShowDiff] = useState(false);
-
-    // Pointer-Based History State
-    const [history, setHistory] = useState([]);
-    const [historyIndex, setHistoryIndex] = useState(-1);
-
-    const [tick, setTick] = useState(0); // Force re-render for toolbar
 
     // New state for custom UI
     const [pendingFile, setPendingFile] = useState(null);
@@ -998,26 +978,34 @@ const App = () => {
     const [authEnabled, setAuthEnabled] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
 
-    // Use refs for comparison to avoid stale closures in Tiptap callbacks
-    const originalContentRef = React.useRef({ title: '', html: '' });
-    const isInitialLoadingRef = React.useRef(false);
-    const isSyncingRef = React.useRef(false); // New lock for the entire sync window
-    const titleRef = React.useRef(title);
+    // Editor hook — manages useEditor, history stack, isDirty, and all associated refs
+    const {
+        editor,
+        history, setHistory,
+        historyIndex, setHistoryIndex,
+        isDirty, setIsDirty,
+        canUndo, canRedo,
+        restoreVersion,
+        markSaved,
+        titleRef,
+        historyRef,
+        historyDebounceRef,
+        isSyncingRef,
+        isLoadingRef: isInitialLoadingRef,
+    } = useInscriptEditor({
+        contentKey: filename,
+        title,
+        tags: postTags,
+        categories: postCategories,
+        isReadonly,
+    });
 
-    // Refs for history to avoid stale closures in Tiptap callbacks
-    const historyRef = React.useRef([]);
-    const historyIndexRef = React.useRef(-1);
-    const historyDebounceRef = React.useRef(null);
+    // Refs that stay in App (server sync + deployment locking)
+    const originalContentRef = React.useRef({ title: '', html: '' });
     const saveDraftDebounceRef = React.useRef(null);
     const isWorkflowProcessingRef = React.useRef(false); // Locking mechanism for deployment
     // Capture initial URL params immediately to avoid useEffect race conditions clearing them
     const startupParamsRef = React.useRef(new URLSearchParams(window.location.search));
-
-    // Keep refs in sync with state
-    useEffect(() => {
-        historyRef.current = history;
-        historyIndexRef.current = historyIndex;
-    }, [history, historyIndex]);
 
     // Sidebar Resizing Logic
     const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -1092,125 +1080,9 @@ const App = () => {
         };
     }, [resize, stopResizing]);
 
-    // Keep titleRef in sync with state
-    useEffect(() => {
-        titleRef.current = title;
-    }, [title]);
-
     const isReadonlyEnv = import.meta.env.MODE === 'readonly';
     const [isReadonlyUser, setIsReadonlyUser] = useState(() => new URLSearchParams(window.location.search).get('readonly') === 'true');
     const isReadonly = isReadonlyEnv || isReadonlyUser;
-
-    // Use Refs to prevent stale closures in callbacks
-    const isReadonlyRef = React.useRef(isReadonly);
-    useEffect(() => { isReadonlyRef.current = isReadonly; }, [isReadonly]);
-
-    // Title Integrity & Healing
-    useEffect(() => {
-        if (filename && (title === null || title === undefined)) {
-            console.warn('[Inscript] Detected invalid title (null/undefined). Healing to fallback...');
-            setTitle(filename.replace('.md', '') || 'Untitled');
-        }
-    }, [title, filename]);
-
-
-    const editor = useEditor({
-        extensions: [
-            StarterKit.configure({
-                history: false, // History is handled by the component state in some parts, or we want to be explicit
-                link: false, // Ensure no collision if some version of StarterKit includes it
-            }),
-            Underline,
-            CustomImage.configure({
-                allowBase64: true,
-            }),
-            TextStyle,
-            Color,
-            FontSize,
-            Highlight.configure({ multicolor: true }),
-            Subscript,
-            Superscript,
-            TextAlign.configure({
-                types: ['heading', 'paragraph'],
-            }),
-            Youtube,
-            CustomTable.configure({
-                resizable: true,
-            }),
-            TableRow,
-            TableHeader,
-            TableCell,
-            Link.configure({
-                openOnClick: false,
-                linkOnPaste: true,
-                autolink: true,
-                HTMLAttributes: {
-                    class: 'text-emerald-500 underline underline-offset-4 cursor-pointer hover:text-emerald-400 transition-colors',
-                },
-            }),
-        ],
-        content: currentPost?.html || '', // CRITICAL: Initialize with content so History starts clean
-        editable: !isReadonly, // Disable editing in readonly mode
-        editorProps: {
-            attributes: {
-                class: 'prose dark:prose-invert prose-lg max-w-none focus:outline-none min-h-[calc(100vh-300px)]',
-            },
-        },
-        onUpdate: ({ editor }) => {
-            // Use Ref to avoid stale closure during readonly toggles
-            if (isReadonlyRef.current) return;
-
-            // Always tick for Toolbar updates
-            setTick(t => t + 1);
-
-            if (!isInitialLoadingRef.current && !isSyncingRef.current) {
-                // Debounce the history push
-                if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
-
-                historyDebounceRef.current = setTimeout(() => {
-                    const newHtml = editor.getHTML();
-                    const newTitle = titleRef.current;
-
-                    // Use Refs to get LATEST state
-                    const currentHist = historyRef.current;
-                    const currentIndex = historyIndexRef.current;
-                    const currentHistoryItem = currentHist[currentIndex];
-
-                    // Check if actually changed
-                    if (!currentHistoryItem || currentHistoryItem.html !== newHtml || currentHistoryItem.title !== newTitle || JSON.stringify(currentHistoryItem.tags) !== JSON.stringify(postTags) || JSON.stringify(currentHistoryItem.categories) !== JSON.stringify(postCategories)) {
-                        // Slice history to remove any "redo" future
-                        const newHistory = currentHist.slice(0, currentIndex + 1);
-
-                        // Push new state
-                        const newState = {
-                            html: newHtml,
-                            title: newTitle,
-                            tags: postTags,
-                            categories: postCategories,
-                            timestamp: new Date().toISOString()
-                        };
-                        newHistory.push(newState);
-
-                        // Update state
-                        setHistory(newHistory);
-                        setHistoryIndex(newHistory.length - 1);
-                        setIsDirty(true);
-                    }
-                }, 1000); // 1s debounce
-            }
-        },
-        onSelectionUpdate: ({ editor }) => {
-            // Force re-render for Toolbar state (Bold/Italic active buttons)
-            setTick(t => t + 1);
-        },
-    }, [filename]); // Re-create editor when filename changes
-
-    // Sync editor editability when isReadonly changes
-    useEffect(() => {
-        if (editor && !editor.isDestroyed) {
-            editor.setEditable(!isReadonly);
-        }
-    }, [editor, isReadonly]);
 
     const checkIfDirty = (newTitle, newHtml) => {
         // We are dirty if we have a draft history (more than 1 item, or the only item is not original)
@@ -1476,14 +1348,11 @@ const App = () => {
         // 2. Update Editor Content & UI
         const targetState = history[newIndex];
         if (targetState) {
-            isSyncingRef.current = true; // Lock onUpdate
-            editor.commands.setContent(targetState.html);
+            restoreVersion(newIndex); // sets content + isSyncingRef lock inside the hook
             const safeTitle = targetState?.title || title || 'Untitled';
             setTitle(safeTitle);
             setPostTags(targetState.tags || []);
             setPostCategories(targetState.categories || []);
-            // Unlock after short delay
-            setTimeout(() => isSyncingRef.current = false, 100);
         }
 
         // 3. Debounced Server Sync
