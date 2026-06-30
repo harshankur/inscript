@@ -1,7 +1,5 @@
 import {
     useInscriptEditor, InscriptEditor,
-    ToolbarButton, TOOLBAR_SIZES,
-    ColorSelector, FontSizeSelector, LinkSelector,
     ImageSelectorModal, YoutubeEmbedModal,
 } from 'inscript-editor';
 import api from './lib/api';
