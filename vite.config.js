@@ -31,12 +31,24 @@ export default defineConfig(({ mode }) => {
         },
         plugins: [react()],
         resolve: {
-            alias: [
-                { find: 'react', replacement: path.resolve(__dirname, 'node_modules/react') },
-                { find: 'react-dom', replacement: path.resolve(__dirname, 'node_modules/react-dom') },
-                { find: /^@tiptap\/react$/, replacement: path.resolve(__dirname, 'node_modules/@tiptap/react') },
-                { find: /^@tiptap\/core$/, replacement: path.resolve(__dirname, 'node_modules/@tiptap/core') },
-            ]
+            alias: {
+                react: path.resolve(__dirname, 'node_modules/react'),
+                'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+            },
+            // inscript-editor is linked via file: and carries its own copies of these
+            // peer deps in its devDependencies for standalone builds. Without dedupe,
+            // Vite resolves two physical copies (one per node_modules tree), bloating
+            // the bundle and risking duplicate React/TipTap instances.
+            dedupe: [
+                'react', 'react-dom',
+                '@tiptap/core', '@tiptap/pm', '@tiptap/react', '@tiptap/starter-kit',
+                '@tiptap/extension-color', '@tiptap/extension-highlight', '@tiptap/extension-image',
+                '@tiptap/extension-link', '@tiptap/extension-subscript', '@tiptap/extension-superscript',
+                '@tiptap/extension-table', '@tiptap/extension-table-cell', '@tiptap/extension-table-header',
+                '@tiptap/extension-table-row', '@tiptap/extension-text-align', '@tiptap/extension-text-style',
+                '@tiptap/extension-underline',
+                'lucide-react', 'diff', 'react-i18next', 'i18next',
+            ],
         },
         server: {
             host: '0.0.0.0',
