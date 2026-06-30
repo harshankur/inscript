@@ -1,10 +1,8 @@
-import { EditorContent } from '@tiptap/react';
 import {
-    useInscriptEditor,
+    useInscriptEditor, InscriptEditor,
     ToolbarButton, TOOLBAR_SIZES,
     ColorSelector, FontSizeSelector, LinkSelector,
-    ResponsiveToolbar, ImageSelectorModal, YoutubeEmbedModal, HistoryView,
-    TextBubbleMenu, TableBubbleMenu, ImageBubbleMenu, YoutubeBubbleMenu,
+    ImageSelectorModal, YoutubeEmbedModal,
 } from 'inscript-editor';
 import api from './lib/api';
 import {
@@ -999,6 +997,9 @@ const App = () => {
         categories: postCategories,
         isReadonly,
     });
+
+    // Imperative handle for the editor render component
+    const editorRef = React.useRef(null);
 
     // Refs that stay in App (server sync + deployment locking)
     const originalContentRef = React.useRef({ title: '', html: '' });
@@ -2389,80 +2390,37 @@ const App = () => {
                             )}
                         </div>
 
-                        {/* Responsive Toolbar */}
-                        {!isReadonly && !showDiff && (
-                            <ResponsiveToolbar
-                                editor={editor}
-                                onHistoryUndo={() => {
-                                    if (historyIndex > 0) {
-                                        if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
-                                        const newIndex = historyIndex - 1;
-                                        syncHistoryWithServer(newIndex);
-                                    }
-                                }}
-                                onHistoryRedo={() => {
-                                    if (historyIndex < history.length - 1) {
-                                        if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
-                                        const newIndex = historyIndex + 1;
-                                        syncHistoryWithServer(newIndex);
-                                    }
-                                }}
-                                canUndo={historyIndex > 0}
-                                canRedo={historyIndex < history.length - 1}
-                                onShowMetadataModal={() => setShowMetadataModal(true)}
-                                hasMetadata={postTags.length > 0 || postCategories.length > 0}
-                                showMetadataActive={showMetadataModal}
-                                onShowMediaLibrary={() => {
-                                    setShowMediaLibrary(true);
-                                    fetchLibraryImages();
-                                }}
-                                onAddYoutube={() => setShowYoutubeModal(true)}
-                            />
-                        )}
-
-                        <div className="flex-1 overflow-y-auto relative bg-white dark:bg-zinc-950">
-                            {showDiff ? (
-                                // Assume HistoryView is only accessible if !isReadonly because the toggle is hidden
-                                <HistoryView
-                                    history={history}
-                                    originalHtml={originalContent.html}
-                                    originalTitle={originalContent.title}
-                                    originalTags={originalContent.tags}
-                                    originalCategories={originalContent.categories}
-                                    current={editor.getHTML()}
-                                    currentIndex={historyIndex}
-                                    onSelect={(idx) => {
-                                        syncHistoryWithServer(idx);
-                                        setShowDiff(false);
-                                    }}
-                                />
-                            ) : (
-                                <div className="max-w-6xl mx-auto px-2 pt-3 pb-[57px] md:px-8 md:pt-12 md:pb-[57px] flex flex-col min-h-full">
-                                    <TextBubbleMenu editor={editor} isReadonly={isReadonly} />
-                                    <TableBubbleMenu editor={editor} isReadonly={isReadonly} />
-                                    <ImageBubbleMenu editor={editor} isReadonly={isReadonly} />
-                                    <YoutubeBubbleMenu editor={editor} isReadonly={isReadonly} />
-                                    <EditorContent editor={editor} />
-                                    {/* Footer Banner */}
-                                    <footer className="mt-auto pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-zinc-400 dark:text-zinc-500">
-                                            <span>
-                                                &copy; {new Date().getFullYear()}{' '}
-                                                <a href="https://github.com/harshankur" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
-                                                    Harsh Ankur
-                                                </a>
-                                            </span>
-                                            <span>
-                                                Powered by{' '}
-                                                <a href="https://inscript.harshankur.com" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
-                                                    Inscript
-                                                </a>
-                                            </span>
-                                        </div>
-                                    </footer>
-                                </div>
-                            )}
-                        </div>
+                        <InscriptEditor
+                            ref={editorRef}
+                            editor={editor}
+                            isReadonly={isReadonly}
+                            showDiff={showDiff}
+                            history={history}
+                            historyIndex={historyIndex}
+                            originalContent={originalContent}
+                            canUndo={historyIndex > 0}
+                            canRedo={historyIndex < history.length - 1}
+                            onHistoryUndo={() => {
+                                if (historyIndex > 0) {
+                                    if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
+                                    syncHistoryWithServer(historyIndex - 1);
+                                }
+                            }}
+                            onHistoryRedo={() => {
+                                if (historyIndex < history.length - 1) {
+                                    if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
+                                    syncHistoryWithServer(historyIndex + 1);
+                                }
+                            }}
+                            onShowMetadataModal={() => setShowMetadataModal(true)}
+                            hasMetadata={postTags.length > 0 || postCategories.length > 0}
+                            showMetadataActive={showMetadataModal}
+                            onShowMediaLibrary={() => { setShowMediaLibrary(true); fetchLibraryImages(); }}
+                            onAddYoutube={() => setShowYoutubeModal(true)}
+                            onHistorySelect={(idx) => { syncHistoryWithServer(idx); setShowDiff(false); }}
+                            restoreVersion={restoreVersion}
+                            markSaved={markSaved}
+                        />
                     </>
                 ) : (
                     <div className="flex-1 flex flex-col h-full">
