@@ -31,10 +31,12 @@ export default defineConfig(({ mode }) => {
         },
         plugins: [react()],
         resolve: {
-            alias: {
-                react: path.resolve(__dirname, 'node_modules/react'),
-                'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
-            }
+            alias: [
+                { find: 'react', replacement: path.resolve(__dirname, 'node_modules/react') },
+                { find: 'react-dom', replacement: path.resolve(__dirname, 'node_modules/react-dom') },
+                { find: /^@tiptap\/react$/, replacement: path.resolve(__dirname, 'node_modules/@tiptap/react') },
+                { find: /^@tiptap\/core$/, replacement: path.resolve(__dirname, 'node_modules/@tiptap/core') },
+            ]
         },
         server: {
             host: '0.0.0.0',
