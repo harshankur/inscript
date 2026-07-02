@@ -86,3 +86,8 @@ dist
 
 # Generated Files
 public/
+
+# AI settings
+*.claude
+*.gemini
+*.antigravity

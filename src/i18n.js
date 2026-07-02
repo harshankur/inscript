@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { registerInscriptEditorTranslations } from 'inscript-editor/locales';
 
 import en from './locales/en.json';
 import de from './locales/de.json';
@@ -52,5 +53,10 @@ i18n
       escapeValue: false
     }
   });
+
+// Registered explicitly (rather than relying on inscript-editor's own auto-registration)
+// so the editor's bundled strings are available in every one of the app's supported
+// languages as soon as i18n is ready, with no dependency on component mount order.
+registerInscriptEditorTranslations(i18n);
 
 export default i18n;
