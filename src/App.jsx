@@ -974,6 +974,10 @@ const App = () => {
     const [authEnabled, setAuthEnabled] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
 
+    const isReadonlyEnv = import.meta.env.MODE === 'readonly';
+    const [isReadonlyUser, setIsReadonlyUser] = useState(() => new URLSearchParams(window.location.search).get('readonly') === 'true');
+    const isReadonly = isReadonlyEnv || isReadonlyUser;
+
     // Editor hook — manages useEditor, history stack, isDirty, and all associated refs
     const {
         editor,
@@ -1093,10 +1097,6 @@ const App = () => {
             window.removeEventListener('resize', handleWindowResize);
         };
     }, [resize, stopResizing]);
-
-    const isReadonlyEnv = import.meta.env.MODE === 'readonly';
-    const [isReadonlyUser, setIsReadonlyUser] = useState(() => new URLSearchParams(window.location.search).get('readonly') === 'true');
-    const isReadonly = isReadonlyEnv || isReadonlyUser;
 
     const checkIfDirty = (newTitle, newHtml) => {
         // We are dirty if we have a draft history (more than 1 item, or the only item is not original)

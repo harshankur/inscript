@@ -1,6 +1,6 @@
 {
-    "name": "Inscript Demo",
-    "short_name": "Inscript Demo",
+    "name": "My Inscript Blog",
+    "short_name": "My Inscript Blog",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
