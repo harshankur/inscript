@@ -1005,6 +1005,21 @@ const App = () => {
     const isWorkflowProcessingRef = React.useRef(false); // Locking mechanism for deployment
     // Capture initial URL params immediately to avoid useEffect race conditions clearing them
     const startupParamsRef = React.useRef(new URLSearchParams(window.location.search));
+    // Holds a new post's initial history entry until useInscriptEditor's own
+    // contentKey-change reset has run (see handleNewPostConfirm).
+    const pendingNewPostHistoryRef = React.useRef(null);
+
+    // Apply a new post's seed history entry once the hook's contentKey-driven
+    // reset for this filename has already happened.
+    useEffect(() => {
+        const pending = pendingNewPostHistoryRef.current;
+        if (pending && pending.filename === filename) {
+            pendingNewPostHistoryRef.current = null;
+            setHistory([pending.entry]);
+            setHistoryIndex(0);
+            setIsDirty(true);
+        }
+    }, [filename]);
 
     // Sidebar Resizing Logic
     const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -1347,7 +1362,7 @@ const App = () => {
         // 2. Update Editor Content & UI
         const targetState = history[newIndex];
         if (targetState) {
-            restoreVersion(newIndex); // sets content + isSyncingRef lock inside the hook
+            restoreVersion(newIndex); // sets content without emitting onUpdate
             const safeTitle = targetState?.title || title || 'Untitled';
             setTitle(safeTitle);
             setPostTags(targetState.tags || []);
@@ -1597,6 +1612,13 @@ const App = () => {
     const handleNewPostConfirm = (name, metadata = {}) => {
         if (!name) return;
         const finalName = (name.endsWith('.md') ? name : `${name}.md`).split(' ').join('').toLowerCase();
+        // useInscriptEditor resets history to [] whenever contentKey (filename) changes,
+        // in an effect that runs after this render commits. Seeding history synchronously
+        // here would get wiped by that reset, so stash it and apply once filename catches up.
+        pendingNewPostHistoryRef.current = {
+            filename: finalName,
+            entry: { title: name, html: '', tags: [], categories: [], ...metadata, timestamp: new Date().toISOString(), isOriginal: true },
+        };
         setFilename(finalName);
         setTitle(name);
         editor.commands.setContent('');
@@ -1615,9 +1637,6 @@ const App = () => {
         };
 
         setPosts(prev => [newPost, ...prev]);
-        setHistory([{ title: name, html: '', tags: [], categories: [], ...metadata, timestamp: new Date().toISOString(), isOriginal: true }]);
-        setHistoryIndex(0);
-        setIsDirty(true);
         setShowNewPostModal(false);
     };
 
@@ -2396,8 +2415,8 @@ const App = () => {
                             history={history}
                             historyIndex={historyIndex}
                             originalContent={originalContent}
-                            canUndo={historyIndex > 0}
-                            canRedo={historyIndex < history.length - 1}
+                            canUndo={canUndo}
+                            canRedo={canRedo}
                             onHistoryUndo={() => {
                                 if (historyIndex > 0) {
                                     if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
@@ -2419,6 +2438,24 @@ const App = () => {
                             restoreVersion={restoreVersion}
                             markSaved={markSaved}
                         />
+                        {!showDiff && (
+                            <footer className="shrink-0 px-4 py-3 md:px-8 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+                                <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-zinc-400 dark:text-zinc-500">
+                                    <span>
+                                        &copy; {new Date().getFullYear()}{' '}
+                                        <a href="https://github.com/harshankur" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+                                            Harsh Ankur
+                                        </a>
+                                    </span>
+                                    <span>
+                                        Powered by{' '}
+                                        <a href="https://inscript.harshankur.com" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+                                            Inscript
+                                        </a>
+                                    </span>
+                                </div>
+                            </footer>
+                        )}
                     </>
                 ) : (
                     <div className="flex-1 flex flex-col h-full">
