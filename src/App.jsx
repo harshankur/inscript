@@ -2287,7 +2287,6 @@ const App = () => {
                                         <h1 className="text-lg md:text-xl font-bold w-full truncate mb-0 flex justify-between items-center">{title}</h1>
                                     ) : (
                                         <input
-                                            ref={titleRef}
                                             type="text"
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
