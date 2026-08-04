@@ -1,5 +1,8 @@
 @import "tailwindcss";
 @import "inscript-editor/styles";
+/* inscript-editor no longer bundles KaTeX styles (katex is an optional peer);
+   import them here so math nodes render styled. */
+@import "katex/dist/katex.min.css";
 @variant dark (&:where(.dark, .dark *));
 
 @layer base {
