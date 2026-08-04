@@ -9,6 +9,7 @@ import { marked } from 'marked';
 import multer from 'multer';
 import path from 'path';
 import TurndownService from 'turndown';
+import { applyInscriptEditorTurndownRules } from 'inscript-editor';
 import { gfm } from 'turndown-plugin-gfm';
 import { fileURLToPath } from 'url';
 import { promisify } from 'util';
@@ -143,6 +144,9 @@ const turndownService = new TurndownService({
     codeBlockStyle: 'fenced'
 });
 turndownService.use(gfm);
+
+// Apply custom inscript-editor nodes preservation rules
+applyInscriptEditorTurndownRules(turndownService);
 
 // Tables with custom width/align can't be expressed in GFM — preserve as raw HTML
 turndownService.addRule('customLayoutTable', {

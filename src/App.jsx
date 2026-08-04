@@ -1,6 +1,7 @@
 import {
     useInscriptEditor, InscriptEditor,
     ImageSelectorModal, YoutubeEmbedModal,
+    TOOLBAR_PRESETS, BUBBLE_PRESETS,
 } from 'inscript-editor';
 import api from './lib/api';
 import {
@@ -977,6 +978,22 @@ const App = () => {
     const isReadonlyEnv = import.meta.env.MODE === 'readonly';
     const [isReadonlyUser, setIsReadonlyUser] = useState(() => new URLSearchParams(window.location.search).get('readonly') === 'true');
     const isReadonly = isReadonlyEnv || isReadonlyUser;
+    const [toolbarConfig, setToolbarConfig] = useState(() => {
+        try {
+            const saved = localStorage.getItem('inscript:toolbar-config');
+            return saved ? JSON.parse(saved) : TOOLBAR_PRESETS.full;
+        } catch (e) {
+            return TOOLBAR_PRESETS.full;
+        }
+    });
+    const [bubbleMenuConfig, setBubbleMenuConfig] = useState(() => {
+        try {
+            const saved = localStorage.getItem('inscript:bubble-menu-config');
+            return saved ? JSON.parse(saved) : BUBBLE_PRESETS.full;
+        } catch (e) {
+            return BUBBLE_PRESETS.full;
+        }
+    });
 
     // Editor hook — manages useEditor, history stack, isDirty, and all associated refs
     const {
@@ -998,6 +1015,7 @@ const App = () => {
         tags: postTags,
         categories: postCategories,
         isReadonly,
+        wikilink: { enabled: true },
     });
 
     // Imperative handle for the editor render component
@@ -2436,6 +2454,16 @@ const App = () => {
                             onHistorySelect={(idx) => { syncHistoryWithServer(idx); setShowDiff(false); }}
                             restoreVersion={restoreVersion}
                             markSaved={markSaved}
+                            toolbarConfig={toolbarConfig}
+                            onToolbarConfigChange={(newConfig) => {
+                                setToolbarConfig(newConfig);
+                                localStorage.setItem('inscript:toolbar-config', JSON.stringify(newConfig));
+                            }}
+                            bubbleMenuConfig={bubbleMenuConfig}
+                            onBubbleMenuConfigChange={(newConfig) => {
+                                setBubbleMenuConfig(newConfig);
+                                localStorage.setItem('inscript:bubble-menu-config', JSON.stringify(newConfig));
+                            }}
                         />
                         {!showDiff && (
                             <footer className="shrink-0 px-4 py-3 md:px-8 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
@@ -2481,7 +2509,7 @@ const App = () => {
 
             {/* Debug Overlay Panel */}
             {
-                !isReadonlyEnv && (
+                !isReadonlyEnv && new URLSearchParams(window.location.search).get('dev') === 'true' && (
                     <button
                         onClick={() => setShowDebug(!showDebug)}
                         className={`fixed bottom-4 right-4 z-[110] w-10 h-10 flex items-center justify-center rounded-lg border transition-all duration-300 ${showDebug
@@ -2496,7 +2524,7 @@ const App = () => {
             }
 
             {
-                showDebug && !isReadonlyEnv && (
+                showDebug && !isReadonlyEnv && new URLSearchParams(window.location.search).get('dev') === 'true' && (
                     <div className="fixed bottom-16 right-4 z-[100] bg-white dark:bg-zinc-950/95 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-2xl w-80 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 flex flex-col max-h-[80vh]">
                         {/* Header */}
                         <div className="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between">
