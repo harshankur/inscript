@@ -2172,7 +2172,7 @@ const App = () => {
                                         onClick={() => loadPost(post.filename)}
                                         className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group ${filename === post.filename ? 'bg-zinc-100 dark:bg-zinc-800 shadow-lg border border-zinc-300 dark:border-zinc-700' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border border-transparent'
                                             }`}
-                                        title={post.title}
+                                        title={filename === post.filename ? (title || post.title) : post.title}
                                     >
                                         <FileText size={18} className="text-zinc-400 dark:text-zinc-500 mt-1 flex-shrink-0" />
                                         {/* Show yellow dot if unsaved changes in editor OR if there's a saved draft on disk */}
@@ -2180,7 +2180,8 @@ const App = () => {
                                             <div className={`absolute top-3 right-3 w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${post.isUnpublished ? 'bg-purple-400 text-purple-400' : 'bg-yellow-400 text-yellow-400'}`} title={post.isUnpublished ? "Unpublished Draft" : "Unsaved changes (Draft)"} />
                                         )}
                                         <div className="min-w-0 flex-1">
-                                            <div className="text-sm font-medium truncate">{post.title}</div>
+                                            {/* Live title for the post currently being edited, so a rename shows immediately. */}
+                                            <div className="text-sm font-medium truncate">{filename === post.filename ? (title || post.title) : post.title}</div>
                                             <div className="flex items-center gap-3 mt-1.5 opacity-60">
                                                 <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Created: ${new Date(post.created).toLocaleString(i18n.language)}`}>
                                                     <Calendar size={10} />
@@ -2243,7 +2244,7 @@ const App = () => {
                                             ? 'bg-zinc-100 dark:bg-zinc-800 shadow-md border-emerald-500/50' // Highlight active pinned post
                                             : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border-emerald-500/20 hover:border-emerald-500/40' // Distinct border for pinned
                                             }`}
-                                        title={introductionPost.title}
+                                        title={filename === introductionPost.filename ? (title || introductionPost.title) : introductionPost.title}
                                     >
                                         <div className="text-emerald-500 mt-1 flex-shrink-0">
                                             <Pin size={18} fill="currentColor" className="opacity-80" />
@@ -2252,7 +2253,8 @@ const App = () => {
                                             <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-yellow-400 shadow-[0_0_8px_currentColor]" title="Unsaved changes" />
                                         )}
                                         <div className="min-w-0 flex-1">
-                                            <div className="text-sm font-bold truncate text-emerald-900 dark:text-emerald-100">{introductionPost.title}</div>
+                                            {/* Live title for the post currently being edited, so a rename shows immediately. */}
+                                            <div className="text-sm font-bold truncate text-emerald-900 dark:text-emerald-100">{filename === introductionPost.filename ? (title || introductionPost.title) : introductionPost.title}</div>
                                             <div className="flex items-center gap-2 mt-1.5 opacity-60">
                                                 <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-500">{t('introduction')}</span>
                                             </div>
