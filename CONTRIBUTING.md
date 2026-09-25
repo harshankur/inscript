@@ -32,7 +32,10 @@ Inscript is a React + Vite app with a lightweight Express backend for file opera
     This concurrently starts the Express server (port 3001) and the Client (port 5173).
 
 2.  **Pre-commit Hooks**:
-    We use `husky` to ensure quality. Commits will automatically trigger a build of the demo documentation to keep it in sync.
+    We use `husky` to ensure quality. Commits first run `npm run check:locales`, then automatically trigger a build of the demo documentation to keep it in sync.
+
+3.  **Translations**:
+    inscript-editor ships its strings in English only, so Inscript keeps them for every other language in `src/locales/editor/<lang>.json` (the app's own strings are in `src/locales/<lang>.json`). `npm run check:locales` fails when a language is missing a string, has broken `{{placeholders}}`, or when an inscript-editor upgrade rewords a string that was already translated. Add or update the translations it lists, then run `npm run check:locales -- --accept` to record the editor's English they now match (`src/locales/editor/_english-reference.json`).
 
 ## Project Structure
 

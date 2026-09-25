@@ -47,7 +47,8 @@
     "publish": "vite build --mode readonly && node scripts/generate-data.js && node scripts/generate-sitemap.js",
     "server": "node --watch server.js",
     "setup": "node scripts/setup-inscript.js",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "check:locales": "node scripts/check-locales.js"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.6",
