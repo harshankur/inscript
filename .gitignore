@@ -91,3 +91,8 @@ public/
 *.claude
 *.gemini
 *.antigravity
+
+# Local notes: .ignore folders anywhere, and any file or folder with ".ignore" in its
+# name (xyz.ignore.md, notes.ignore, a .ignore file)
+.ignore/
+*.ignore*
