@@ -54,5 +54,7 @@
   "availableItems": "利用可能なアイテム",
   "noItemsFound": "アイテムが見つかりません。",
   "selected": "選択済み",
-  "none": "なし"
+  "none": "なし",
+  "focusMode": "集中モード",
+  "editorPanels": "エディターパネル"
 }

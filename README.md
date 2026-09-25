@@ -21,14 +21,20 @@ Try the editor in your browser without installing anything!
 -   **Interactive Logout**: Robust logout flow with a confirmation modal to prevents accidental sign-outs.
 
 ### 📝 Rich Text Editor
--   **Tiptap Power**: A Notion-style editor with slash commands (`/`) for quick formatting.
+-   **Tiptap Power**: A Notion-style editor ([inscript-editor](https://www.npmjs.com/package/inscript-editor)) with slash commands (`/`) for quick formatting and inserting images, videos, tables, diagrams and more.
 -   **Formatting**: Bold, Italic, Underline, Strike, Sub/Superscript, Alignment, and Code Blocks.
 -   **Visuals**:
     -   **Images**: Drag & drop upload, resize, and extensive media library integration.
-    -   **YouTube**: Embed videos directly via URL or search.
+    -   **YouTube**: Embed videos directly via URL or search, with an optional caption.
+    -   **Embeds**: Other embedded content (maps, players) shows a click-to-load placeholder, so nothing third-party loads until you ask.
     -   **Highlights**: Vibrant multi-color highlighting text and theme-harmonized Editor/History active tab highlights.
     -   **Floating Selection Bubble Menu**: A context-aware popover menu on text selection equipped with standard formatters and a dedicated **Link Selector Tool** to instantly manage links.
--   **Theme-Aware**: Content automatically adjusts for dark mode using `prose-invert`, ensuring perfect readability.
+-   **Writing Tools**: Checklists, tables, citations, footnotes, math, Mermaid diagrams, and wikilinks that link one post to another by its title.
+-   **Hidden Comments**: `<!-- notes -->` in a post show as a chip while you edit and never appear to readers.
+-   **Outline & Minimap**: A side rail with a clickable outline of the post's headings, or a minimap of the whole post.
+-   **Focus Mode**: Hides everything but the text you're writing.
+-   **Customizable Toolbar**: Choose which tools appear in the toolbar and the selection menu.
+-   **Theme-Aware**: Content automatically adjusts for dark mode, ensuring perfect readability.
 -   **WYSIWYG**: The look and feel of the CMS is exactly the same as the published blog. It is essentially the same application, ensuring there are no surprises in the final UI.
 
 ### 🗂️ Organization & Metadata
@@ -36,7 +42,7 @@ Try the editor in your browser without installing anything!
 -   **Dynamic Sidebar Tags**: Responsive tag display that automatically adjusts to sidebar width using a greedy heuristic, with snappy `+N` overflow tooltips.
 -   **Resizable Category Sidebar**: Interactive drag-to-resize category folder pane to customize your sidebar layout.
 -   **Consolidated Categories**: Streamlined taxonomy into four core buckets: **Development**, **Technology**, **Life**, and **Philosophy**.
--   **Global Internationalization (i18n)**: Native multi-language localization (including English and French) with an elegant custom dropdown language selector integrated directly into the workspace.
+-   **Global Internationalization (i18n)**: Native localization in 19 languages, editor included, with an elegant custom dropdown language selector integrated directly into the workspace.
 -   **Frontmatter**: Automatically syncs YAML frontmatter (title, date, tags, etc.).
 -   **Advanced Filtering**: Filter posts by tags, categories, draft status, and date ranges.
 
@@ -47,9 +53,10 @@ Try the editor in your browser without installing anything!
 
 ### 💾 Robust Workflow
 -   **Draft System**:
-    -   **Auto-Save**: Never lose work with continuous local saving.
-    -   **History Stack**: Detailed undo/redo history that persists across sessions.
-    -   **Conflict Resolution**: Detects if a file was modified externally.
+    -   **Auto-Save**: Unsaved work is kept as a draft on the server, saved as you type and again the moment you switch posts or leave the tab.
+    -   **Version History**: Every change is a version you can undo, redo, compare and restore, and versions persist across sessions. Restoring an old version adds it as a new one, so nothing is ever lost.
+    -   **Conflict Resolution**: If a post's file changes outside Inscript (a `git pull`, another editor) while it has a draft, the file's new content opens as a "Changed outside the app" version, with your draft's versions still there to restore.
+-   **Faithful Markdown**: Posts are saved as clean Markdown: checklists as `- [x]` task items, tables as GFM tables, and anything Markdown can't express (embeds, citations, resized images) as HTML, so a post reads back exactly as you left it.
 -   **Publishing Flow**:
     -   **Save**: Updates the markdown file locally.
     -   **Publish**: Generates a static API (`data.json`) for your frontend.

@@ -54,5 +54,7 @@
   "availableItems": "उपलब्ध आइटम",
   "noItemsFound": "कोई आइटम नहीं मिला।",
   "selected": "चयनित",
-  "none": "कोई नहीं"
+  "none": "कोई नहीं",
+  "focusMode": "फ़ोकस मोड",
+  "editorPanels": "संपादक पैनल"
 }

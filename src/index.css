@@ -1,9 +1,22 @@
 @import "tailwindcss";
-@import "inscript-editor/styles";
+/* Inscript runs its own Tailwind build, so it imports only inscript-editor's content
+   rules and generates the editor's utility classes itself (the @source below). The full
+   `inscript-editor/styles` bundle carries a second, separately ordered `utilities` layer:
+   its plain `.fixed`/`.hidden`/`.flex` rules land after this app's `md:`/`dark:` variants
+   and override them (the post sidebar became `position: fixed` on desktop and covered the
+   editor). */
+@import "inscript-editor/styles/content";
 /* inscript-editor no longer bundles KaTeX styles (katex is an optional peer);
    import them here so math nodes render styled. */
 @import "katex/dist/katex.min.css";
+@source "../node_modules/inscript-editor/dist";
 @variant dark (&:where(.dark, .dark *));
+
+/* Source comments are the author's hidden notes: shown as a chip while editing, never to
+   someone reading the post. */
+.ProseMirror[contenteditable="false"] .html-comment {
+  display: none;
+}
 
 @layer base {
   body {

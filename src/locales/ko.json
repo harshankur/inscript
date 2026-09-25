@@ -54,5 +54,7 @@
   "availableItems": "사용 가능한 항목",
   "noItemsFound": "항목을 찾을 수 없습니다.",
   "selected": "선택됨",
-  "none": "없음"
+  "none": "없음",
+  "focusMode": "집중 모드",
+  "editorPanels": "편집기 패널"
 }

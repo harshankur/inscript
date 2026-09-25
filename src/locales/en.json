@@ -54,5 +54,7 @@
   "availableItems": "Available Items",
   "noItemsFound": "No items found.",
   "selected": "Selected",
-  "none": "None"
+  "none": "None",
+  "focusMode": "Focus mode",
+  "editorPanels": "Editor panels"
 }

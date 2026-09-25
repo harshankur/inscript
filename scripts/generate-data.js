@@ -2,8 +2,8 @@ import 'dotenv/config';
 import fs from 'fs-extra';
 import path from 'path';
 import matter from 'gray-matter';
-import { marked } from 'marked';
 import { fileURLToPath } from 'url';
+import { markdownToHtml } from './markdown.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,18 +18,6 @@ const DIST_DIR_REL = process.env.DIST_DIR;
 const POSTS_DIR = path.resolve(INSCRIPT_ROOT, CONTENT_DIR_REL);
 const STATIC_DIR = path.resolve(INSCRIPT_ROOT, STATIC_DIR_REL);
 const OUTPUT_DIR = path.resolve(INSCRIPT_ROOT, DIST_DIR_REL);
-
-// Configure Marked
-marked.setOptions({
-    gfm: true,
-    breaks: true,
-});
-
-const processShortcodes = (markdown) => {
-    return markdown.replace(/{{<\s*youtube\s+([a-zA-Z0-9_-]+)\s*>}}/g, (match, id) => {
-        return `<div data-youtube-video="${id}" class="youtube-embed relative w-full aspect-video rounded-lg overflow-hidden my-4"><iframe src="https://www.youtube.com/embed/${id}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen class="absolute top-0 left-0 w-full h-full"></iframe></div>`;
-    });
-};
 
 async function main() {
     console.log(`Building static data to ${OUTPUT_DIR}...`);
@@ -69,9 +57,8 @@ async function main() {
             const stats = await fs.stat(filePath);
             const { data, content: markdown } = matter(content);
 
-            // Convert Markdown to HTML
-            const processedMarkdown = processShortcodes(markdown);
-            const html = marked.parse(processedMarkdown);
+            // Convert Markdown to HTML (source comments stay hidden on the published site)
+            const html = markdownToHtml(markdown);
 
             // Use frontmatter created/modified or fallback to file stats
             const created = data.created

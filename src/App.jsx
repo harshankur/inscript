@@ -1,7 +1,8 @@
 import {
     useInscriptEditor, InscriptEditor,
     ImageSelectorModal, YoutubeEmbedModal,
-    TOOLBAR_PRESETS, BUBBLE_PRESETS,
+    DocumentOutline, MiniMap,
+    sanitizeToolConfig,
 } from 'inscript-editor';
 import api from './lib/api';
 import {
@@ -20,6 +21,7 @@ import {
     Eye,
     FileText,
     Filter,
+    Focus,
     Folder,
     FolderOpen,
     GitCommit,
@@ -27,6 +29,8 @@ import {
     Info,
     Layout,
     List,
+    ListTree,
+    Map as MapIcon,
     Monitor,
     PanelLeftClose,
     PanelLeftOpen,
@@ -917,6 +921,81 @@ const LanguageSelector = () => {
     );
 };
 
+// A saved toolbar/bubble-menu layout, cleaned against the current tool registry. `null`
+// (nothing saved, or unreadable) means the editor's default layout, which follows tools
+// added in later inscript-editor releases.
+const loadToolConfig = (storageKey, surface) => {
+    try {
+        const saved = JSON.parse(localStorage.getItem(storageKey));
+        return Array.isArray(saved) ? sanitizeToolConfig(saved, surface) : null;
+    } catch (e) {
+        return null;
+    }
+};
+
+// Right-hand editor tools: a narrow rail of icon buttons with at most one panel open
+// beside it. Labels come from inscript-editor's own (translated) strings.
+const EDITOR_PANELS = {
+    outline: { icon: ListTree, label: 'documentOutline', close: 'collapseOutline' },
+    minimap: { icon: MapIcon, label: 'minimap', close: 'collapseMinimap' },
+};
+const EDITOR_PANEL_KEY = 'inscript:editor-panel';
+
+const EditorRail = ({ editor, panel, onPanelChange }) => {
+    const { t } = useTranslation();
+    const { t: tEditor } = useTranslation('inscript-editor');
+    const active = panel ? EDITOR_PANELS[panel] : null;
+
+    return (
+        <>
+            {active && (
+                <aside className="hidden md:flex w-72 shrink-0 flex-col min-h-0 border-l border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+                    <header className="h-10 shrink-0 flex items-center gap-2 px-3 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400">
+                        <active.icon size={14} className="shrink-0" />
+                        <h2 className="flex-1 min-w-0 truncate text-[11px] font-bold uppercase tracking-wider">{tEditor(active.label)}</h2>
+                        <button
+                            onClick={() => onPanelChange(null)}
+                            className="w-6 h-6 flex items-center justify-center rounded-md transition-colors hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                            title={tEditor(active.close)}
+                            aria-label={tEditor(active.close)}
+                        >
+                            <X size={15} />
+                        </button>
+                    </header>
+                    {/* chrome={false}: the panel supplies the header, border and width. */}
+                    <div className="flex-1 min-h-0 flex flex-col">
+                        {panel === 'outline'
+                            ? <DocumentOutline editor={editor} chrome={false} />
+                            : <MiniMap editor={editor} chrome={false} />}
+                    </div>
+                </aside>
+            )}
+            <div
+                role="toolbar"
+                aria-orientation="vertical"
+                aria-label={t('editorPanels')}
+                className="hidden md:flex w-11 shrink-0 flex-col items-center gap-1 py-2 border-l border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900"
+            >
+                {Object.entries(EDITOR_PANELS).map(([id, p]) => (
+                    <button
+                        key={id}
+                        onClick={() => onPanelChange(panel === id ? null : id)}
+                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${panel === id
+                            ? 'bg-emerald-500/10 text-emerald-500'
+                            : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50'
+                            }`}
+                        title={tEditor(p.label)}
+                        aria-label={tEditor(p.label)}
+                        aria-pressed={panel === id}
+                    >
+                        <p.icon size={16} />
+                    </button>
+                ))}
+            </div>
+        </>
+    );
+};
+
 const App = () => {
     const { t, i18n } = useTranslation();
     const [theme, setTheme] = useState(() => {
@@ -946,7 +1025,10 @@ const App = () => {
     const [loading, setLoading] = useState(false);
     const [showMediaLibrary, setShowMediaLibrary] = useState(false);
     const [libraryImages, setLibraryImages] = useState([]);
-    const [originalContent, setOriginalContent] = useState({ title: '', html: '', tags: [], categories: [] });
+    // What the history view compares versions against: the post as last saved, when this
+    // session saved it or its draft kept that. Null means the version the post was opened
+    // with. It is editor HTML (the view diffs the markup), never the server's Markdown render.
+    const [savedReference, setSavedReference] = useState(null);
     const [showDiff, setShowDiff] = useState(false);
 
     // New state for custom UI
@@ -978,70 +1060,142 @@ const App = () => {
     const isReadonlyEnv = import.meta.env.MODE === 'readonly';
     const [isReadonlyUser, setIsReadonlyUser] = useState(() => new URLSearchParams(window.location.search).get('readonly') === 'true');
     const isReadonly = isReadonlyEnv || isReadonlyUser;
-    const [toolbarConfig, setToolbarConfig] = useState(() => {
-        try {
-            const saved = localStorage.getItem('inscript:toolbar-config');
-            return saved ? JSON.parse(saved) : TOOLBAR_PRESETS.full;
-        } catch (e) {
-            return TOOLBAR_PRESETS.full;
-        }
-    });
-    const [bubbleMenuConfig, setBubbleMenuConfig] = useState(() => {
-        try {
-            const saved = localStorage.getItem('inscript:bubble-menu-config');
-            return saved ? JSON.parse(saved) : BUBBLE_PRESETS.full;
-        } catch (e) {
-            return BUBBLE_PRESETS.full;
-        }
-    });
+    const [toolbarConfig, setToolbarConfig] = useState(() => loadToolConfig('inscript:toolbar-config', 'toolbar'));
+    const [bubbleMenuConfig, setBubbleMenuConfig] = useState(() => loadToolConfig('inscript:bubble-menu-config', 'bubble'));
 
-    // Editor hook — manages useEditor, history stack, isDirty, and all associated refs
+    // Right rail panel ('outline' | 'minimap' | null), remembered per browser.
+    const [editorPanel, setEditorPanel] = useState(() => {
+        try {
+            const saved = localStorage.getItem(EDITOR_PANEL_KEY);
+            return EDITOR_PANELS[saved] ? saved : null;
+        } catch (e) {
+            return null;
+        }
+    });
+    const changeEditorPanel = React.useCallback((panel) => {
+        setEditorPanel(panel);
+        try {
+            if (panel) localStorage.setItem(EDITOR_PANEL_KEY, panel);
+            else localStorage.removeItem(EDITOR_PANEL_KEY);
+        } catch (e) { /* storage unavailable */ }
+    }, []);
+
+    // Focus mode hides the toolbar, both sidebars and the rail, and narrows the column.
+    // It applies only while a post is open for editing, so it can't strand the empty state.
+    const [focusMode, setFocusMode] = useState(false);
+    const inFocus = focusMode && !!filename && !isReadonly && !showDiff;
+    // The editor column: the toolbar customizer opens inside it instead of over the page.
+    const [editorPaneEl, setEditorPaneEl] = useState(null);
+
+    // The editor's host handlers are wired in once, when the editor is created, so they
+    // keep one identity and read live values (posts, loaders) through these refs.
+    const postsRef = React.useRef(posts);
+    postsRef.current = posts;
+    const loadPostRef = React.useRef(null);
+    const fetchLibraryImagesRef = React.useRef(null);
+
+    const openMediaLibrary = React.useCallback(() => {
+        setShowMediaLibrary(true);
+        fetchLibraryImagesRef.current?.();
+    }, []);
+    const openYoutubeModal = React.useCallback(() => setShowYoutubeModal(true), []);
+
+    // A wikilink's target resolves to a post by title or by filename (what `?post=`
+    // carries) and opens it in place; the href keeps it a working link on the published site.
+    const resolveWikilink = React.useCallback((target) => {
+        const wanted = String(target || '').trim().toLowerCase();
+        const post = postsRef.current.find(p => {
+            const slug = p.filename.replace(/\.md$/, '').toLowerCase();
+            return (p.title || '').trim().toLowerCase() === wanted
+                || slug === wanted
+                || slug === wanted.split(' ').join('');
+        });
+        if (!post) return { exists: false, href: '#', onNavigate: null };
+        return {
+            exists: true,
+            href: `?post=${encodeURIComponent(post.filename.replace(/\.md$/, ''))}`,
+            onNavigate: () => loadPostRef.current?.(post.filename),
+        };
+    }, []);
+
+    // Passed once here, the insert handlers drive the toolbar, the bubble menu and the
+    // "/" menu alike (whose Image and YouTube entries only appear when they are set).
+    const editorOptions = useMemo(() => ({
+        wikilink: { enabled: true, resolver: resolveWikilink },
+        onShowMediaLibrary: openMediaLibrary,
+        onAddYoutube: openYoutubeModal,
+    }), [resolveWikilink, openMediaLibrary, openYoutubeModal]);
+
+    // Undo, redo and restores put another version in the editor, and its title, tags and
+    // categories come back with it. An edit leaves them as they are.
+    const handleContentChange = (entry, { reason } = {}) => {
+        if (reason === 'edit') return;
+        setTitle(entry.title);
+        setPostTags(entry.tags || []);
+        setPostCategories(entry.categories || []);
+    };
+
+    // Editor hook: the editor, the post's version history and the dirty flag. One editor serves
+    // every post; each is loaded into it (loadContent) and its history belongs to the post.
     const {
         editor,
-        history, setHistory,
-        historyIndex, setHistoryIndex,
+        history,
+        historyIndex,
         isDirty, setIsDirty,
         canUndo, canRedo,
+        loadContent,
+        flush,
+        undo,
+        redo,
         restoreVersion,
         markSaved,
-        titleRef,
-        historyRef,
-        historyDebounceRef,
-        isSyncingRef,
         isLoadingRef: isInitialLoadingRef,
     } = useInscriptEditor({
-        contentKey: filename,
+        documentKey: filename,
         title,
         tags: postTags,
         categories: postCategories,
         isReadonly,
-        wikilink: { enabled: true },
+        editorOptions,
+        onContentChange: handleContentChange,
     });
 
     // Imperative handle for the editor render component
     const editorRef = React.useRef(null);
 
     // Refs that stay in App (server sync + deployment locking)
-    const originalContentRef = React.useRef({ title: '', html: '' });
-    const saveDraftDebounceRef = React.useRef(null);
     const isWorkflowProcessingRef = React.useRef(false); // Locking mechanism for deployment
     // Capture initial URL params immediately to avoid useEffect race conditions clearing them
     const startupParamsRef = React.useRef(new URLSearchParams(window.location.search));
-    // Holds a new post's initial history entry until useInscriptEditor's own
-    // contentKey-change reset has run (see handleNewPostConfirm).
-    const pendingNewPostHistoryRef = React.useRef(null);
+    // The post most recently asked for; a slower response for an earlier one is dropped.
+    const requestedPostRef = React.useRef(null);
+    // The version of the post's file the open post (and so its draft) is based on (server.js).
+    const sourceHashRef = React.useRef(null);
+    const savedReferenceRef = React.useRef(savedReference);
+    savedReferenceRef.current = savedReference;
 
-    // Apply a new post's seed history entry once the hook's contentKey-driven
-    // reset for this filename has already happened.
+    // A post ready to go into the editor: `{ filename, html, dirty, ...loadContent options }`.
+    // Switching `filename` resets the history when that render commits, so the load waits for
+    // it here rather than running where the post was fetched.
+    const [pendingLoad, setPendingLoad] = useState(null);
+    const appliedLoadRef = React.useRef(null);
     useEffect(() => {
-        const pending = pendingNewPostHistoryRef.current;
-        if (pending && pending.filename === filename) {
-            pendingNewPostHistoryRef.current = null;
-            setHistory([pending.entry]);
-            setHistoryIndex(0);
-            setIsDirty(true);
-        }
-    }, [filename]);
+        if (!pendingLoad || pendingLoad.filename !== filename) return;
+        // Deferred past React's commit: nodes the editor renders with React (embeds, wikilinks,
+        // source comments) mount through flushSync, which React refuses during a commit.
+        queueMicrotask(() => {
+            const { filename: loadFor, html, dirty, ...options } = pendingLoad;
+            // Already applied, or another post was asked for in the meantime.
+            if (appliedLoadRef.current === pendingLoad || requestedPostRef.current !== loadFor) return;
+            // No live editor yet: this effect runs again when it arrives (loadContent changes).
+            if (!loadContent(html, options)) return;
+            appliedLoadRef.current = pendingLoad;
+            isInitialLoadingRef.current = false;
+            // A draft (or a new post) is work not yet saved to the post's file.
+            if (dirty) setIsDirty(true);
+            setPendingLoad(null);
+        });
+    }, [pendingLoad, filename, loadContent]);
 
     // Sidebar Resizing Logic
     const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -1116,52 +1270,94 @@ const App = () => {
         };
     }, [resize, stopResizing]);
 
-    const checkIfDirty = (newTitle, newHtml) => {
-        // We are dirty if we have a draft history (more than 1 item, or the only item is not original)
-        // OR if the current title/content differs from the original baseline.
-        const hasHistory = history.length > 1 || (history.length > 0 && !history[0].isOriginal);
+    // A title edit shows as unsaved at once; its version is recorded a second later.
+    useEffect(() => {
+        if (!filename || isInitialLoadingRef.current) return;
+        const reference = savedReference ?? history[0];
+        if (reference && title !== reference.title) setIsDirty(true);
+    }, [title]);
 
-        // We also check title/content explicitly because changing title doesn't immediately push to history
-        // in our current implementation (it debounces), but we want immediate UI feedback.
-        const titleChanged = originalContent && newTitle !== originalContent.title;
-
-        if (hasHistory || titleChanged) {
-            setIsDirty(true);
+    // The post's version history is its draft on the server, saved 2s after it settles.
+    // `pendingDraftRef` holds the save waiting to run: leaving the post or the tab sends it at
+    // once, and saving, discarding or deleting the post cancels it. `sentDraftRef` is the last
+    // one sent, so the same stack isn't sent twice.
+    const pendingDraftRef = React.useRef(null);
+    const sentDraftRef = React.useRef(null);
+    const draftFor = (draftFile, stack, index) => ({
+        filename: draftFile,
+        body: {
+            history: stack,
+            currentIndex: index,
+            sourceHash: sourceHashRef.current,
+            reference: savedReferenceRef.current,
+        },
+    });
+    const saveDraft = async (draft) => {
+        sentDraftRef.current = draft;
+        const { filename: draftFile, body } = draft;
+        try {
+            await api.post(`/api/drafts/${draftFile}`, body);
+            console.log(`[DraftSync] Saved history (len: ${body.history.length}, ptr: ${body.currentIndex})`);
+            setPosts(prev => prev.map(p => p.filename === draftFile ? { ...p, hasDraft: true } : p));
+            if (requestedPostRef.current !== draftFile) return;
+            setCurrentPost(prev => prev ? { ...prev, hasDraft: true } : prev);
+            setSaveStatus('success');
+            setTimeout(() => setSaveStatus(null), 2000);
+        } catch (err) {
+            console.error('[DraftSync] Failed:', err);
+            if (sentDraftRef.current === draft) sentDraftRef.current = null;
+            if (requestedPostRef.current === draftFile) setSaveStatus('error');
         }
     };
+    const flushDraft = () => {
+        const draft = pendingDraftRef.current;
+        pendingDraftRef.current = null;
+        if (draft) saveDraft(draft);
+    };
+    const cancelDraft = () => { pendingDraftRef.current = null; };
 
-    // Auto-sync entire history to server
+    // Save the open post's draft now, including its last keystrokes (still waiting on the
+    // editor's 1s edit debounce): before switching posts, and when the tab is hidden.
+    const saveDraftNow = () => {
+        const { history: stack, historyIndex: index } = flush();
+        // flush() returns the stack synchronously. `history` is still this render's, so a
+        // different stack holds typing it just committed, which the effect below hasn't seen.
+        if (stack !== history && filename && !isReadonly && !isInitialLoadingRef.current && stack.length > 1) {
+            pendingDraftRef.current = draftFor(filename, stack, index);
+        }
+        flushDraft();
+    };
+
     useEffect(() => {
-        // Prevent saving if: no filename, syncing locked, or history is just the original (single item)
-        // This ensures we don't create draft files for unedited posts.
-        if (!filename || isSyncingRef.current || history.length <= 1) return;
+        // Only a post's own history: while a post loads, `history` is still the previous post's
+        // (the switch resets it a render later). A post that was only opened (its single
+        // "Opened" version) gets no draft file, and a read-only viewer writes none.
+        if (!filename || isReadonly || isInitialLoadingRef.current || history.length <= 1) return;
+        const sent = sentDraftRef.current;
+        if (sent && sent.filename === filename && sent.body.history === history && sent.body.currentIndex === historyIndex) return;
 
-        const timeout = setTimeout(async () => {
-            try {
-                // Ensure we are saving the CURRENT state of history
-                await api.post(`/api/drafts/${filename}`, {
-                    history: history,
-                    currentIndex: historyIndex
-                });
-                console.log(`[DraftSync] Saved history (len: ${history.length}, ptr: ${historyIndex})`);
-                setCurrentPost(prev => prev ? { ...prev, hasDraft: true } : prev);
-                setPosts(prev => prev.map(p => p.filename === filename ? { ...p, hasDraft: true } : p));
-                setSaveStatus('success');
-                setTimeout(() => setSaveStatus(null), 2000);
-            } catch (err) {
-                console.error('[DraftSync] Failed:', err);
-                setSaveStatus('error');
-            }
+        const draft = draftFor(filename, history, historyIndex);
+        pendingDraftRef.current = draft;
+        const timeout = setTimeout(() => {
+            if (pendingDraftRef.current !== draft) return; // sent early, cancelled or superseded
+            pendingDraftRef.current = null;
+            saveDraft(draft);
         }, 2000); // Slower autosave frequency (2s)
 
-        return () => clearTimeout(timeout);
+        return () => {
+            clearTimeout(timeout);
+            // A draft is only good for the render it was built in; the next run rebuilds it.
+            if (pendingDraftRef.current === draft) pendingDraftRef.current = null;
+        };
     }, [history, historyIndex, title, filename, postTags, postCategories]);
 
+    const saveDraftNowRef = React.useRef(saveDraftNow);
+    saveDraftNowRef.current = saveDraftNow;
     useEffect(() => {
-        if (editor && !isInitialLoadingRef.current && !isSyncingRef.current) {
-            checkIfDirty(title, editor.getHTML(), "useEffect[title]");
-        }
-    }, [title, editor]); // Added editor to dependencies for safety
+        const onHide = () => { if (document.visibilityState === 'hidden') saveDraftNowRef.current(); };
+        document.addEventListener('visibilitychange', onHide);
+        return () => document.removeEventListener('visibilitychange', onHide);
+    }, []);
 
     // Routing: Sync URL with filename
     useEffect(() => {
@@ -1252,6 +1448,7 @@ const App = () => {
     const loadPost = async (file, loadedPosts = null) => {
         if (window.innerWidth < 768) setShowSidebar(false);
         if (file === filename) return;
+        saveDraftNow();
 
         // No more discard modal on switch - we sync drafts!
         // Hard reset UI states immediately to prevent flickering/stale indicators
@@ -1259,15 +1456,16 @@ const App = () => {
         setSaveStatus(null);
         performLoadPost(file, loadedPosts);
     };
+    fetchLibraryImagesRef.current = fetchLibraryImages;
+    loadPostRef.current = loadPost;
 
     const performLoadPost = async (file, loadedPosts = null) => {
+        requestedPostRef.current = file;
         setLoading(true);
+        // Holds off version recording until the post is in the editor.
         isInitialLoadingRef.current = true;
+        setPendingLoad(null);
         setFilename(file);
-
-        // Clear any pending debounced actions
-        if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
-        if (saveDraftDebounceRef.current) clearTimeout(saveDraftDebounceRef.current);
 
         try {
             let res = { data: null };
@@ -1298,148 +1496,74 @@ const App = () => {
                 res = await api.get(`/api/posts/${file}?t=${Date.now()}`); // Cache bust
             }
 
-            const postTitle = res.data.title || res.data.frontmatter.title || file;
+            // Another post was asked for while this one loaded.
+            if (requestedPostRef.current !== file) return;
+            const data = res.data;
 
-            setShowDiff(false);
-            setFilename(file);
-            setCurrentPost(res.data);
-
-            // New History Hydration
-            const originalState = {
-                title: postTitle,
-                html: res.data.savedHtml !== undefined ? res.data.savedHtml : res.data.html, // Use savedHtml (raw file) if available, else html
-                tags: res.data.frontmatter?.tags || res.data.tags || [],
-                categories: res.data.frontmatter?.categories || res.data.categories || [],
-                timestamp: res.data.created || new Date().toISOString(),
-                isOriginal: true
-            };
-
-            let hist = Array.isArray(res.data.history) && res.data.history.length > 0
-                ? res.data.history
-                : [];
-
-            // Enforce Original as First Item
-            const firstIsOriginal = hist.length > 0 && (hist[0].html === originalState.html);
-
-            if (!firstIsOriginal) {
-                hist = [originalState, ...hist];
-            }
-
-            if (hist.length === 0) hist = [originalState];
-
-            const idxFromRes = typeof res.data.currentIndex === 'number' ? res.data.currentIndex : hist.length - 1;
-            const finalIndex = (!firstIsOriginal && res.data.hasDraft) ? idxFromRes + 1 : idxFromRes;
-            const safeIndex = Math.max(0, Math.min(finalIndex, hist.length - 1));
-
-            setHistory(hist);
-            setHistoryIndex(safeIndex);
-
-            if (hist.length > 1 || (hist.length > 0 && !hist[0].isOriginal)) {
-                setIsDirty(true);
-            }
-
-            // Set content from pointer
-            const currentState = hist[safeIndex];
-            const safeTitle = currentState?.title || postTitle || filename?.replace('.md', '') || 'Untitled';
-            setTitle(safeTitle);
-            titleRef.current = safeTitle;
-
-            // Set Tags/Categories from current history state or fallback to original (frontmatter)
             const normalizeTags = (ts) => (ts || []).map(t => typeof t === 'string' ? t.trim().toLowerCase() : t).filter(Boolean);
             const normalizeCats = (cs) => (cs || []).map(c => typeof c === 'string' ? c.trim().charAt(0).toUpperCase() + c.trim().slice(1).toLowerCase() : c).filter(Boolean);
 
-            setPostTags(normalizeTags(currentState.tags || originalState.tags));
-            setPostCategories(normalizeCats(currentState.categories || originalState.categories));
+            // The post as its file has it (an unpublished post: as its draft has it).
+            const fileMeta = {
+                title: data.frontmatter?.title || data.savedTitle || file.replace(/\.md$/, ''),
+                tags: normalizeTags(data.frontmatter?.tags || data.tags),
+                categories: normalizeCats(data.frontmatter?.categories || data.categories),
+            };
 
-            // setOriginalContent helps with diffs logic, but history is now primary
-            setOriginalContent({
-                title: originalState.title,
-                html: originalState.html,
-                tags: originalState.tags || [],
-                categories: originalState.categories || []
-            });
+            // The draft is the post's saved version history. Drafts written before
+            // inscript-editor 0.4 mark their first entry `isOriginal` and carry no `kind`.
+            const draftStack = data.hasDraft && Array.isArray(data.history)
+                ? data.history.filter(entry => entry && typeof entry === 'object').map(({ isOriginal, ...entry }) => ({
+                    ...entry,
+                    kind: entry.kind || (isOriginal ? 'opened' : 'edited'),
+                    tags: normalizeTags(entry.tags),
+                    categories: normalizeCats(entry.categories),
+                }))
+                : [];
 
+            let draftIndex = data.currentIndex;
+            const legacyDraft = draftStack.length > 0 && !data.history.some(entry => entry?.kind);
+            if (legacyDraft && !data.history[0]?.isOriginal && data.savedHtml) {
+                // A pre-0.4 draft that starts without the post's own version (the demo's samples):
+                // the post as saved becomes the baseline, as the old loader did.
+                draftStack.unshift({ kind: 'opened', html: data.savedHtml, ...fileMeta, timestamp: data.frontmatter?.created });
+                if (Number.isInteger(draftIndex)) draftIndex += 1;
+            }
+
+            let load;
+            if (draftStack.length > 0) {
+                const lastIndex = draftStack.length - 1;
+                const index = Number.isInteger(draftIndex) ? Math.max(0, Math.min(draftIndex, lastIndex)) : lastIndex;
+                if (data.draftBaseChanged) {
+                    // The post's file changed outside Inscript after the draft was based on it.
+                    // The file as it is now becomes the newest version ("Changed outside the
+                    // app"), so saving can't silently undo that change; the draft's versions
+                    // stay in the history, ready to restore.
+                    load = { html: data.savedHtml, ...fileMeta, kind: 'external', history: draftStack, historyIndex: index };
+                } else {
+                    const active = draftStack[index];
+                    load = { html: active.html, title: active.title ?? '', tags: active.tags, categories: active.categories, history: draftStack, historyIndex: index };
+                }
+            } else {
+                load = { html: data.savedHtml ?? data.html ?? '', ...fileMeta };
+            }
+
+            setShowDiff(false);
+            setCurrentPost(data);
+            setTitle(load.title);
+            setPostTags(load.tags);
+            setPostCategories(load.categories);
+            sourceHashRef.current = data.sourceHash ?? null;
+            setSavedReference(data.draftBaseChanged ? null : (data.reference ?? null));
+            setPendingLoad({ filename: file, dirty: !!data.hasDraft, ...load });
             setLoading(false);
         } catch (err) {
+            if (requestedPostRef.current !== file) return;
             console.error('[LoadPost] Failed:', err);
             setLoading(false);
             isInitialLoadingRef.current = false;
-            isSyncingRef.current = false;
         }
     };
-
-    // Helper to sync history pointer changes to server (Debounced)
-    const syncHistoryWithServer = (newIndex) => {
-        if (!filename) return;
-
-        // 1. Update Local State (Optimistic)
-        // We do this via the caller usually, but let's centralize if possible.
-        // Actually, the caller calculates the new index.
-        setHistoryIndex(newIndex);
-
-        // 2. Update Editor Content & UI
-        const targetState = history[newIndex];
-        if (targetState) {
-            restoreVersion(newIndex); // sets content without emitting onUpdate
-            const safeTitle = targetState?.title || title || 'Untitled';
-            setTitle(safeTitle);
-            setPostTags(targetState.tags || []);
-            setPostCategories(targetState.categories || []);
-        }
-
-        // 3. Debounced Server Sync
-        if (saveDraftDebounceRef.current) clearTimeout(saveDraftDebounceRef.current);
-
-        saveDraftDebounceRef.current = setTimeout(async () => {
-            try {
-                console.log(`[HistorySync] Syncing pointer to ${newIndex}`);
-                setSaveStatus('saving');
-                // Use Refs to ensure we send the latest history array if it changed recently
-                await api.post(`/api/drafts/${filename}`, {
-                    history: historyRef.current,
-                    currentIndex: newIndex
-                });
-                setSaveStatus('success');
-                setTimeout(() => setSaveStatus(null), 2000);
-            } catch (err) {
-                console.error('[HistorySync] Failed:', err);
-                setSaveStatus('error');
-            }
-        }, 500); // 500ms debounce for pointer movements
-    };
-
-    // Initialize Editor Content from History
-    useEffect(() => {
-        if (editor && currentPost && filename && currentPost.filename === filename && historyIndex >= 0 && history.length > historyIndex) {
-
-            // Wait for editor to be ready/mounted
-            if (!editor.isDestroyed) {
-                const currentState = history[historyIndex];
-                const currentHtml = currentState?.html || '';
-
-                // Only update if editor is empty or we are forcing initial load
-                // We depend on isInitialLoadingRef to force the first setContent
-                if (isInitialLoadingRef.current) {
-                    console.log(`[Editor] Initializing content from history[${historyIndex}]`);
-
-                    // Guard: If history item is magically empty but we have a title, something is wrong.
-                    // But an empty post is valid. 
-                    // The user reported "html property is empty". 
-                    // Let's ensure we don't sync this empty state back immediately if it's an error.
-
-                    editor.commands.setContent(currentHtml);
-
-                    // Set baseline for diffs
-                    setOriginalContent({ title: history[0].title, html: history[0].html, tags: history[0].tags, categories: history[0].categories });
-                    isInitialLoadingRef.current = false;
-                    // Small delay to allow editor to settle before enabling sync listeners
-                    setTimeout(() => {
-                        isSyncingRef.current = false;
-                    }, 100);
-                }
-            }
-        }
-    }, [editor, filename, currentPost, history, historyIndex]);
 
 
     const handleLogout = () => {
@@ -1470,6 +1594,7 @@ const App = () => {
             confirmText: 'Delete',
             onConfirm: async () => {
                 try {
+                    cancelDraft();
                     await api.delete(`/api/posts/${filename}`);
                     setFilename(null);
                     setCurrentPost(null);
@@ -1494,6 +1619,7 @@ const App = () => {
             confirmText: 'Discard Changes',
             onConfirm: async () => {
                 try {
+                    cancelDraft();
                     await api.delete(`/api/drafts/${filename}`);
                     await performLoadPost(filename);
                     fetchPosts();
@@ -1504,6 +1630,16 @@ const App = () => {
                 }
             }
         });
+    };
+
+    // The post's file now holds this version: the history view compares against it, and a
+    // draft started from here is based on the new file.
+    const rememberSaved = (res, html) => {
+        // The save removed the draft; a draft save still waiting would bring it back.
+        cancelDraft();
+        if (res.data?.sourceHash) sourceHashRef.current = res.data.sourceHash;
+        setSavedReference({ title, html, tags: postTags, categories: postCategories });
+        markSaved();
     };
 
     const savePost = async () => {
@@ -1527,10 +1663,7 @@ const App = () => {
                 setCurrentPost(prev => ({ ...prev, frontmatter: res.data.frontmatter }));
             }
 
-            const normalized = editor.getHTML();
-            originalContentRef.current = { title, html: normalized };
-            setOriginalContent({ title, html: normalized, tags: postTags, categories: postCategories });
-            setIsDirty(false);
+            rememberSaved(res, html);
             setLoading(false);
             setSaveStatus('success');
             setTimeout(() => setSaveStatus('saved'), 3000);
@@ -1558,13 +1691,13 @@ const App = () => {
                 if (currentStep === 'save') {
                     setSaveStatus('saving');
                     const html = editor.getHTML();
-                    await api.post('/api/posts', {
+                    const res = await api.post('/api/posts', {
                         filename,
                         frontmatter: { ...currentPost?.frontmatter, title, tags: postTags, categories: postCategories },
                         html
                     });
                     setSaveStatus('success');
-                    setIsDirty(false);
+                    rememberSaved(res, html);
                     setTimeout(() => setSaveStatus('saved'), 2000);
                 } else if (currentStep === 'publish') {
                     setDeployStatus('publishing');
@@ -1630,17 +1763,19 @@ const App = () => {
     const handleNewPostConfirm = (name, metadata = {}) => {
         if (!name) return;
         const finalName = (name.endsWith('.md') ? name : `${name}.md`).split(' ').join('').toLowerCase();
-        // useInscriptEditor resets history to [] whenever contentKey (filename) changes,
-        // in an effect that runs after this render commits. Seeding history synchronously
-        // here would get wiped by that reset, so stash it and apply once filename catches up.
-        pendingNewPostHistoryRef.current = {
-            filename: finalName,
-            entry: { title: name, html: '', tags: [], categories: [], ...metadata, timestamp: new Date().toISOString(), isOriginal: true },
-        };
+        // A new post opens empty, as unsaved work, through the same load as any post.
+        saveDraftNow();
+        requestedPostRef.current = finalName;
+        isInitialLoadingRef.current = true;
+        setShowDiff(false);
         setFilename(finalName);
         setTitle(name);
-        editor.commands.setContent('');
+        setPostTags([]);
+        setPostCategories([]);
         setCurrentPost({ frontmatter: { title: name, ...metadata }, hasDraft: false });
+        sourceHashRef.current = null;
+        setSavedReference(null);
+        setPendingLoad({ filename: finalName, html: '', title: name, tags: [], categories: [], dirty: true });
 
         const newPost = {
             filename: finalName,
@@ -1921,7 +2056,7 @@ const App = () => {
             )}
 
             {/* Mobile Sidebar Overlay */}
-            {showSidebar && (
+            {showSidebar && !inFocus && (
                 <div
                     className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
                     onClick={() => setShowSidebar(false)}
@@ -1929,7 +2064,7 @@ const App = () => {
             )}
 
             {/* Sidebar */}
-            {showSidebar && (
+            {showSidebar && !inFocus && (
                 <div
                     className="fixed inset-y-0 left-0 z-50 md:sticky md:top-0 md:h-screen md:relative md:z-30 bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col flex-shrink-0 group/sidebar shadow-2xl md:shadow-none"
                     style={{ width: Math.min(sidebarWidth, typeof window !== 'undefined' ? window.innerWidth - 60 : 300) }}
@@ -1938,13 +2073,15 @@ const App = () => {
                         {/* Row 1: Blog Title (h-16 to match editor) */}
                         <div className="h-16 px-6 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
                             <button onClick={() => {
+                                // Clearing the post also clears its history (documentKey).
+                                saveDraftNow();
+                                requestedPostRef.current = null;
+                                setPendingLoad(null);
                                 setFilename(null);
                                 setCurrentPost(null);
-                                setHistory([]);
-                                setHistoryIndex(-1);
                                 setIsDirty(false);
                                 setSaveStatus(null);
-                                setOriginalContent({ title: '', html: '', tags: [], categories: [] });
+                                setSavedReference(null);
                             }} className="hover:opacity-80 transition-opacity text-left truncate flex-1 mr-2">
                                 <h1 className="text-lg md:text-xl font-bold tracking-tight text-zinc-900 dark:text-white truncate">{APP_TITLE}</h1>
                             </button>
@@ -2295,14 +2432,18 @@ const App = () => {
                         <div className="h-16 border-b border-zinc-200 dark:border-zinc-800 px-4 md:px-8 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-20">
                             <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 mr-2 md:mr-4">
                                 <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-                                    <button
-                                        onClick={() => setShowSidebar(!showSidebar)}
-                                        className={`w-10 h-10 flex items-center justify-center p-0 rounded-lg transition-colors text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50`}
-                                        title={showSidebar ? "Collapse Sidebar" : "Expand Sidebar"}
-                                    >
-                                        {showSidebar ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
-                                    </button>
-                                    <div className={`h-6 w-px bg-zinc-100 dark:bg-zinc-800 ${!showSidebar && 'hidden'}`} />
+                                    {!inFocus && (
+                                        <>
+                                            <button
+                                                onClick={() => setShowSidebar(!showSidebar)}
+                                                className={`w-10 h-10 flex items-center justify-center p-0 rounded-lg transition-colors text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50`}
+                                                title={showSidebar ? "Collapse Sidebar" : "Expand Sidebar"}
+                                            >
+                                                {showSidebar ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+                                            </button>
+                                            <div className={`h-6 w-px bg-zinc-100 dark:bg-zinc-800 ${!showSidebar && 'hidden'}`} />
+                                        </>
+                                    )}
                                     {isReadonly ? (
                                         <h1 className="text-lg md:text-xl font-bold w-full truncate mb-0 flex justify-between items-center">{title}</h1>
                                     ) : (
@@ -2378,6 +2519,19 @@ const App = () => {
 
                             {!isReadonly && (
                                 <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => {
+                                            const next = !inFocus;
+                                            setFocusMode(next);
+                                            if (next) setShowDiff(false);
+                                        }}
+                                        className={`w-10 h-10 flex items-center justify-center p-0 rounded-lg transition-colors ${inFocus ? 'text-emerald-500 bg-emerald-500/10' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50'}`}
+                                        title={t('focusMode')}
+                                        aria-label={t('focusMode')}
+                                        aria-pressed={inFocus}
+                                    >
+                                        <Focus size={20} />
+                                    </button>
                                     <div className="flex items-center gap-1 md:mr-4 bg-zinc-50 dark:bg-zinc-900 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800">
                                         <button
                                             onClick={() => setShowDiff(false)}
@@ -2426,48 +2580,47 @@ const App = () => {
                             )}
                         </div>
 
-                        <InscriptEditor
-                            ref={editorRef}
-                            editor={editor}
-                            isReadonly={isReadonly}
-                            showDiff={showDiff}
-                            history={history}
-                            historyIndex={historyIndex}
-                            originalContent={originalContent}
-                            canUndo={canUndo}
-                            canRedo={canRedo}
-                            onHistoryUndo={() => {
-                                if (historyIndex > 0) {
-                                    if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
-                                    syncHistoryWithServer(historyIndex - 1);
-                                }
-                            }}
-                            onHistoryRedo={() => {
-                                if (historyIndex < history.length - 1) {
-                                    if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
-                                    syncHistoryWithServer(historyIndex + 1);
-                                }
-                            }}
-                            onShowMetadataModal={() => setShowMetadataModal(true)}
-                            hasMetadata={postTags.length > 0 || postCategories.length > 0}
-                            showMetadataActive={showMetadataModal}
-                            onShowMediaLibrary={() => { setShowMediaLibrary(true); fetchLibraryImages(); }}
-                            onAddYoutube={() => setShowYoutubeModal(true)}
-                            onHistorySelect={(idx) => { syncHistoryWithServer(idx); setShowDiff(false); }}
-                            restoreVersion={restoreVersion}
-                            markSaved={markSaved}
-                            toolbarConfig={toolbarConfig}
-                            onToolbarConfigChange={(newConfig) => {
-                                setToolbarConfig(newConfig);
-                                localStorage.setItem('inscript:toolbar-config', JSON.stringify(newConfig));
-                            }}
-                            bubbleMenuConfig={bubbleMenuConfig}
-                            onBubbleMenuConfigChange={(newConfig) => {
-                                setBubbleMenuConfig(newConfig);
-                                localStorage.setItem('inscript:bubble-menu-config', JSON.stringify(newConfig));
-                            }}
-                        />
-                        {!showDiff && (
+                        <div className="flex-1 min-h-0 flex">
+                            <div ref={setEditorPaneEl} className="flex-1 min-w-0 flex flex-col relative overflow-hidden">
+                                <InscriptEditor
+                                    ref={editorRef}
+                                    editor={editor}
+                                    isReadonly={isReadonly}
+                                    showDiff={showDiff}
+                                    focusMode={inFocus}
+                                    customizerContainer={editorPaneEl}
+                                    history={history}
+                                    historyIndex={historyIndex}
+                                    originalContent={savedReference ?? undefined}
+                                    canUndo={canUndo}
+                                    canRedo={canRedo}
+                                    undo={undo}
+                                    redo={redo}
+                                    onShowMetadataModal={() => setShowMetadataModal(true)}
+                                    hasMetadata={postTags.length > 0 || postCategories.length > 0}
+                                    showMetadataActive={showMetadataModal}
+                                    onHistorySelect={(index) => { restoreVersion(index, { reason: 'restore' }); setShowDiff(false); }}
+                                    restoreVersion={restoreVersion}
+                                    loadContent={loadContent}
+                                    flush={flush}
+                                    markSaved={markSaved}
+                                    toolbarConfig={toolbarConfig ?? undefined}
+                                    onToolbarConfigChange={(newConfig) => {
+                                        setToolbarConfig(newConfig);
+                                        localStorage.setItem('inscript:toolbar-config', JSON.stringify(newConfig));
+                                    }}
+                                    bubbleMenuConfig={bubbleMenuConfig ?? undefined}
+                                    onBubbleMenuConfigChange={(newConfig) => {
+                                        setBubbleMenuConfig(newConfig);
+                                        localStorage.setItem('inscript:bubble-menu-config', JSON.stringify(newConfig));
+                                    }}
+                                />
+                            </div>
+                            {!showDiff && !inFocus && (
+                                <EditorRail editor={editor} panel={editorPanel} onPanelChange={changeEditorPanel} />
+                            )}
+                        </div>
+                        {!showDiff && !inFocus && (
                             <footer className="shrink-0 px-4 py-3 md:px-8 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
                                 <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-zinc-400 dark:text-zinc-500">
                                     <span>
@@ -2614,7 +2767,7 @@ const App = () => {
                                     </div>
                                     <div className="flex justify-between py-1.5 px-3 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg">
                                         <span className="text-zinc-400 dark:text-zinc-500">tokens</span>
-                                        <span className="text-zinc-700 dark:text-zinc-300">{editor ? editor.getText().length : 0} chars</span>
+                                        <span className="text-zinc-700 dark:text-zinc-300">{editor && !editor.isDestroyed ? editor.getText().length : 0} chars</span>
                                     </div>
                                 </div>
                             </div>

@@ -54,5 +54,7 @@
   "availableItems": "Beskikbare items",
   "noItemsFound": "Geen items gevind nie.",
   "selected": "Geselekteer",
-  "none": "Geen"
+  "none": "Geen",
+  "focusMode": "Fokusmodus",
+  "editorPanels": "Redigeerderpanele"
 }

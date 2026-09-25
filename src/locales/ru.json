@@ -54,5 +54,7 @@
   "availableItems": "Доступные элементы",
   "noItemsFound": "Элементы не найдены.",
   "selected": "Выбрано",
-  "none": "Нет"
+  "none": "Нет",
+  "focusMode": "Режим фокусировки",
+  "editorPanels": "Панели редактора"
 }

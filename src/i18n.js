@@ -23,6 +23,27 @@ import te from './locales/te.json';
 import ml from './locales/ml.json';
 import kn from './locales/kn.json';
 
+// inscript-editor ships English only (since 0.3.0); the app supplies the editor's
+// strings for every other language it supports.
+import editorDe from './locales/editor/de.json';
+import editorFr from './locales/editor/fr.json';
+import editorEs from './locales/editor/es.json';
+import editorPt from './locales/editor/pt.json';
+import editorIt from './locales/editor/it.json';
+import editorJa from './locales/editor/ja.json';
+import editorZh from './locales/editor/zh.json';
+import editorZhCN from './locales/editor/zh-CN.json';
+import editorKo from './locales/editor/ko.json';
+import editorRu from './locales/editor/ru.json';
+import editorAf from './locales/editor/af.json';
+import editorNe from './locales/editor/ne.json';
+import editorHi from './locales/editor/hi.json';
+import editorBn from './locales/editor/bn.json';
+import editorTa from './locales/editor/ta.json';
+import editorTe from './locales/editor/te.json';
+import editorMl from './locales/editor/ml.json';
+import editorKn from './locales/editor/kn.json';
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -55,8 +76,29 @@ i18n
   });
 
 // Registered explicitly (rather than relying on inscript-editor's own auto-registration)
-// so the editor's bundled strings are available in every one of the app's supported
-// languages as soon as i18n is ready, with no dependency on component mount order.
-registerInscriptEditorTranslations(i18n);
+// so the editor's strings are available in every one of the app's supported languages
+// as soon as i18n is ready, with no dependency on component mount order.
+registerInscriptEditorTranslations(i18n, {
+  overrides: {
+    de: editorDe,
+    fr: editorFr,
+    es: editorEs,
+    pt: editorPt,
+    it: editorIt,
+    ja: editorJa,
+    zh: editorZh,
+    'zh-CN': editorZhCN,
+    ko: editorKo,
+    ru: editorRu,
+    af: editorAf,
+    ne: editorNe,
+    hi: editorHi,
+    bn: editorBn,
+    ta: editorTa,
+    te: editorTe,
+    ml: editorMl,
+    kn: editorKn
+  }
+});
 
 export default i18n;

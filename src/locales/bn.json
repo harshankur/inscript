@@ -54,5 +54,7 @@
   "availableItems": "উপলব্ধ আইটেম",
   "noItemsFound": "কোন আইটেম পাওয়া যায়নি।",
   "selected": "নির্বাচিত",
-  "none": "কিছুই না"
+  "none": "কিছুই না",
+  "focusMode": "ফোকাস মোড",
+  "editorPanels": "সম্পাদক প্যানেল"
 }

@@ -5,16 +5,14 @@ import 'dotenv/config';
 import express from 'express';
 import fs from 'fs-extra';
 import matter from 'gray-matter';
-import { marked } from 'marked';
 import multer from 'multer';
 import path from 'path';
-import TurndownService from 'turndown';
-import { applyInscriptEditorTurndownRules } from 'inscript-editor';
-import { gfm } from 'turndown-plugin-gfm';
 import { fileURLToPath } from 'url';
+import { createHash } from 'crypto';
 import { promisify } from 'util';
 import bcrypt from 'bcryptjs';
 import session from 'express-session';
+import { createTurndownService, markdownToHtml } from './scripts/markdown.js';
 
 const execAsync = promisify(exec);
 
@@ -138,57 +136,12 @@ app.use(express.static(STATIC_DIR));
 fs.ensureDirSync(POSTS_DIR);
 fs.ensureDirSync(DRAFTS_DIR);
 
-// Configure Turndown
-const turndownService = new TurndownService({
-    headingStyle: 'atx',
-    codeBlockStyle: 'fenced'
-});
-turndownService.use(gfm);
+// Markdown <-> editor HTML (see scripts/markdown.js)
+const turndownService = createTurndownService();
 
-// Apply custom inscript-editor nodes preservation rules
-applyInscriptEditorTurndownRules(turndownService);
-
-// Tables with custom width/align can't be expressed in GFM — preserve as raw HTML
-turndownService.addRule('customLayoutTable', {
-    filter: node => {
-        if (node.nodeName !== 'TABLE') return false;
-        const w = node.getAttribute('data-width');
-        const a = node.getAttribute('data-align');
-        return (w && w !== '100%') || (a && a !== 'center');
-    },
-    replacement: (content, node) => `\n\n${node.outerHTML}\n\n`,
-});
-
-// Images with custom width/align preserve as raw HTML
-turndownService.addRule('customLayoutImage', {
-    filter: node => node.nodeName === 'IMG' && (node.hasAttribute('data-width') || node.hasAttribute('data-align')),
-    replacement: (content, node) => node.outerHTML,
-});
-
-// Helper to convert Hugo shortcodes to HTML
-const processShortcodes = (markdown) => {
-    // Youtube: {{< youtube ID >}}
-    return markdown.replace(/{{<\s*youtube\s+([a-zA-Z0-9_-]+)\s*>}}/g, (match, id) => {
-        return `<div data-youtube-video="${id}" class="youtube-embed relative w-full aspect-video rounded-lg overflow-hidden my-4"><iframe src="https://www.youtube.com/embed/${id}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen class="absolute top-0 left-0 w-full h-full"></iframe></div>`;
-    });
-};
-
-// Turndown Rule for Youtube
-turndownService.addRule('youtube', {
-    filter: (node) => {
-        return node.nodeName === 'DIV' && node.getAttribute('data-youtube-video');
-    },
-    replacement: (content, node) => {
-        const id = node.getAttribute('data-youtube-video');
-        return `{{< youtube ${id} >}}`;
-    }
-});
-
-// Configure Marked
-marked.setOptions({
-    gfm: true,
-    breaks: true,
-});
+// Identifies a version of a post's file. A draft records the version it was based on, so
+// opening the post can tell when the file changed outside Inscript while the draft existed.
+const fileHash = (content) => createHash('sha256').update(content).digest('hex');
 
 // Configure Multer
 const storage = multer.diskStorage({
@@ -338,16 +291,17 @@ app.get('/api/posts/:filename', async (req, res) => {
         let savedTitle = '';
         let isUnpublished = false;
 
+        let sourceHash = null;
+
         // Check if original file exists
         const fileExists = await fs.pathExists(filePath);
 
         if (fileExists) {
             const content = await fs.readFile(filePath, 'utf8');
+            sourceHash = fileHash(content);
             const parsed = matter(content);
             frontmatter = parsed.data;
-            frontmatter = parsed.data;
-            const markdown = processShortcodes(parsed.content);
-            html = marked.parse(markdown);
+            html = markdownToHtml(parsed.content);
             title = frontmatter.title || title;
             savedHtml = html;
             savedTitle = title;
@@ -362,14 +316,21 @@ app.get('/api/posts/:filename', async (req, res) => {
 
         let history = [];
         let currentIndex = 0;
+        // The file changed after the draft was based on it (edited or pulled outside Inscript).
+        // Drafts written before this was recorded carry no sourceHash and count as unchanged.
+        let draftBaseChanged = false;
+        // The version the history view compares against (the post as last saved), if kept.
+        let reference = null;
 
         const hasDraft = await fs.pathExists(draftPath);
         if (hasDraft) {
             const draft = await fs.readJson(draftPath);
+            draftBaseChanged = !!(draft.sourceHash && sourceHash && draft.sourceHash !== sourceHash);
+            reference = draft.reference || null;
             const activeItem = draft.history && draft.history[draft.currentIndex];
             if (activeItem) {
                 // Drafts store HTML directly, but if we ever re-parse raw MD, we might need this.
-                // Currently draft history is HTML. If the draft was loaded from MD initially, it already went through processShortcodes.
+                // Currently draft history is HTML. If the draft was loaded from MD initially, it already went through markdownToHtml.
                 html = activeItem.html;
                 title = activeItem.title;
             }
@@ -390,7 +351,7 @@ app.get('/api/posts/:filename', async (req, res) => {
             }
         }
 
-        res.json({ filename: req.params.filename, frontmatter, html, title, savedHtml, savedTitle, hasDraft, history, currentIndex, isUnpublished });
+        res.json({ filename: req.params.filename, frontmatter, html, title, savedHtml, savedTitle, hasDraft, history, currentIndex, isUnpublished, sourceHash, draftBaseChanged, reference });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -415,7 +376,7 @@ app.post('/api/posts', async (req, res) => {
         const draftPath = path.join(DRAFTS_DIR, `${filename}.json`);
         await fs.remove(draftPath).catch(() => { });
 
-        res.json({ success: true, frontmatter });
+        res.json({ success: true, frontmatter, sourceHash: fileHash(fileContent) });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -424,13 +385,16 @@ app.post('/api/posts', async (req, res) => {
 // Draft Management
 app.post('/api/drafts/:filename', async (req, res) => {
     try {
-        const { title, history, currentIndex } = req.body;
+        const { history, currentIndex, sourceHash, reference } = req.body;
         const draftPath = path.join(DRAFTS_DIR, `${req.params.filename}.json`);
 
-        // Server is now a dumb store for the client-managed history stack
+        // Server is now a dumb store for the client-managed history stack, plus the file
+        // version it is based on and the history view's reference (see GET /api/posts/:filename).
         await fs.writeJson(draftPath, {
             history,
-            currentIndex
+            currentIndex,
+            sourceHash: sourceHash || null,
+            reference: reference || null
         }, { spaces: 4 });
 
         res.json({ success: true });

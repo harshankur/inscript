@@ -54,5 +54,7 @@
   "availableItems": "可用項目",
   "noItemsFound": "未找到項目。",
   "selected": "已選擇",
-  "none": "無"
+  "none": "無",
+  "focusMode": "專注模式",
+  "editorPanels": "編輯器面板"
 }
