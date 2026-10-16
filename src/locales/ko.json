@@ -56,5 +56,6 @@
   "selected": "선택됨",
   "none": "없음",
   "focusMode": "집중 모드",
-  "editorPanels": "편집기 패널"
+  "editorPanels": "편집기 패널",
+  "poweredBy": "<site>Inscript</site> 기반"
 }

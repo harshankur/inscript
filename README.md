@@ -264,6 +264,18 @@ The build script `npm run setup` validates these before building.
 | `AUTH_PASSWORD_HASH` | No | BCrypt hash of your password. | `$2b$10$...` |
 | `SESSION_SECRET` | No | Secret for signing session cookies. | `(any random string)` |
 | `ALLOW_PUSH` | No | Enable Git Push from UI (Dangerous). | `false` |
+| `FOOTER_COPYRIGHT_HOLDER` | No | Name in the footer's copyright line `<TITLE> © <year> <holder>`. | `Jane Doe` |
+| `FOOTER_COPYRIGHT_URL` | No | Link for that name. | `https://janedoe.com` |
+| `FOOTER_COPYRIGHT_YEAR` | No | Year in the copyright line (the year the site was first published). | `2026` |
+| `FOOTER_LEGAL_NOTICE_URL` | No | Legal notice (Impressum) link, shown above the copyright line. | `https://janedoe.com/impressum` |
+| `FOOTER_LEGAL_NOTICE_LABEL` | No | Text of that link (default `Impressum`). | `Legal notice` |
+| `FOOTER_PRIVACY_URL` | No | Privacy notice link, next to the legal notice link. | `https://janedoe.com/privacy` |
+| `FOOTER_PRIVACY_LABEL` | No | Text of that link (default `Datenschutz`). | `Privacy` |
+
+The footer appears under an open post, on the home screen and on the login screen. With no
+`FOOTER_*` set it shows only "Powered by Inscript"; each part appears once it is set. URLs must
+be absolute `http(s)` URLs, which `npm run setup` checks. The demo build takes its values from
+the committed `.env.demo`.
 
 ### Advanced Build Configuration
 If you need to change **where** the site is built (e.g. if your hosting provider expects a specific folder name like `public` or `build`), you can override the output directory using `DIST_DIR`.

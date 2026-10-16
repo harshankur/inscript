@@ -56,5 +56,6 @@
   "selected": "選択済み",
   "none": "なし",
   "focusMode": "集中モード",
-  "editorPanels": "エディターパネル"
+  "editorPanels": "エディターパネル",
+  "poweredBy": "<site>Inscript</site> で作成"
 }

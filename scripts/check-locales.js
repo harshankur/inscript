@@ -7,7 +7,8 @@
 // - src/locales/editor/_english-reference.json is the editor English those translations were
 //   made from. A string the editor rewords in a later release fails the check until it is
 //   retranslated; then `npm run check:locales -- --accept` records the new English.
-// - The app's own src/locales/<lang>.json must each have every key of src/locales/en.json.
+// - The app's own src/locales/<lang>.json must each have every key of src/locales/en.json, with
+//   the same {{placeholders}} and <tags>.
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -21,6 +22,9 @@ const I18N = path.join(ROOT, 'src/i18n.js');
 const accept = process.argv.includes('--accept');
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const placeholders = (text) => [...String(text).matchAll(/{{\s*(\w+)\s*}}/g)].map(m => m[1]).sort().join(',');
+// The <tag>s a string wraps around words (react-i18next's <Trans components>), which must
+// survive translation or the link they make disappears.
+const tags = (text) => [...String(text).matchAll(/<\/?(\w+)\s*\/?>/g)].map(m => m[0].replace(/\s+/g, '')).sort().join(',');
 const languagesIn = (dir) => fs.readdirSync(dir)
     .filter(name => /^[a-z]{2}(-[A-Z]{2})?\.json$/.test(name))
     .map(name => name.slice(0, -5))
@@ -35,8 +39,9 @@ const editorVersion = readJson(path.join(editorLocalesDir, '../../package.json')
 const failures = [];
 const warnings = [];
 
-// Every key of `english` present in `bundle`, non-empty, with the same placeholders.
-function compare(label, english, bundle) {
+// Every key of `english` present in `bundle`, non-empty, with the same placeholders (and, with
+// `checkTags`, the same <tags>).
+function compare(label, english, bundle, { checkTags = false } = {}) {
     const missing = Object.keys(english).filter(key => !(key in bundle));
     const empty = Object.keys(english).filter(key => key in bundle && !String(bundle[key]).trim());
     const broken = Object.keys(english).filter(key => key in bundle && placeholders(bundle[key]) !== placeholders(english[key]));
@@ -44,6 +49,8 @@ function compare(label, english, bundle) {
     if (missing.length) failures.push(`${label}: missing ${missing.length}: ${missing.map(key => `${key} ("${english[key]}")`).join(', ')}`);
     if (empty.length) failures.push(`${label}: empty: ${empty.join(', ')}`);
     if (broken.length) failures.push(`${label}: placeholders differ from English: ${broken.join(', ')}`);
+    const brokenTags = checkTags ? Object.keys(english).filter(key => key in bundle && tags(bundle[key]) !== tags(english[key])) : [];
+    if (brokenTags.length) failures.push(`${label}: <tags> differ from English: ${brokenTags.join(', ')}`);
     if (extra.length) warnings.push(`${label}: keys English no longer has (safe to remove): ${extra.join(', ')}`);
 }
 
@@ -83,7 +90,7 @@ if (!accept) {
 
 // --- The app's own strings ---
 const appEnglish = readJson(path.join(APP_LOCALES, 'en.json'));
-for (const lang of appLanguages) compare(`${lang}.json`, appEnglish, readJson(path.join(APP_LOCALES, `${lang}.json`)));
+for (const lang of appLanguages) compare(`${lang}.json`, appEnglish, readJson(path.join(APP_LOCALES, `${lang}.json`)), { checkTags: true });
 
 for (const warning of warnings) console.warn(`warning: ${warning}`);
 

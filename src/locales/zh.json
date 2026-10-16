@@ -56,5 +56,6 @@
   "selected": "已選擇",
   "none": "無",
   "focusMode": "專注模式",
-  "editorPanels": "編輯器面板"
+  "editorPanels": "編輯器面板",
+  "poweredBy": "由 <site>Inscript</site> 驅動"
 }

@@ -56,5 +56,6 @@
   "selected": "Выбрано",
   "none": "Нет",
   "focusMode": "Режим фокусировки",
-  "editorPanels": "Панели редактора"
+  "editorPanels": "Панели редактора",
+  "poweredBy": "Работает на <site>Inscript</site>"
 }

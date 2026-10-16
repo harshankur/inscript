@@ -56,5 +56,6 @@
   "selected": "Selecionado",
   "none": "Nenhum",
   "focusMode": "Modo foco",
-  "editorPanels": "Painéis do editor"
+  "editorPanels": "Painéis do editor",
+  "poweredBy": "Desenvolvido com <site>Inscript</site>"
 }

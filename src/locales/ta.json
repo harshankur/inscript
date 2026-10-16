@@ -56,5 +56,6 @@
   "selected": "தேர்ந்தெடுக்கப்பட்டது",
   "none": "எதுவுமில்லை",
   "focusMode": "கவன முறை",
-  "editorPanels": "திருத்தி பலகங்கள்"
+  "editorPanels": "திருத்தி பலகங்கள்",
+  "poweredBy": "<site>Inscript</site> மூலம் இயங்குகிறது"
 }

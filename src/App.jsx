@@ -52,6 +52,11 @@ import {
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Login from './components/Login';
+import SiteFooter from './components/SiteFooter';
+import { resolveFooterConfig } from './lib/footerConfig';
+
+// The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
+const FOOTER_CONFIG = resolveFooterConfig(import.meta.env);
 
 const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCategories, onTagsChange, onCategoriesChange }) => {
     const { t } = useTranslation();
@@ -1979,7 +1984,7 @@ const App = () => {
     }
 
     if (authEnabled && !user) {
-        return <Login />;
+        return <Login footerConfig={FOOTER_CONFIG} />;
     }
 
     return (
@@ -2620,23 +2625,13 @@ const App = () => {
                                 <EditorRail editor={editor} panel={editorPanel} onPanelChange={changeEditorPanel} />
                             )}
                         </div>
-                        {!showDiff && !inFocus && (
-                            <footer className="shrink-0 px-4 py-3 md:px-8 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-                                <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-zinc-400 dark:text-zinc-500">
-                                    <span>
-                                        &copy; {new Date().getFullYear()}{' '}
-                                        <a href="https://github.com/harshankur" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
-                                            Harsh Ankur
-                                        </a>
-                                    </span>
-                                    <span>
-                                        Powered by{' '}
-                                        <a href="https://inscript.harshankur.com" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
-                                            Inscript
-                                        </a>
-                                    </span>
-                                </div>
-                            </footer>
+                        {/* Hidden only in focus mode, which an author enters on purpose and leaves
+                            with the button in the header. */}
+                        {!inFocus && (
+                            <SiteFooter
+                                config={FOOTER_CONFIG}
+                                className="shrink-0 px-4 py-2 md:px-8 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950"
+                            />
                         )}
                     </>
                 ) : (
@@ -2656,6 +2651,7 @@ const App = () => {
                             <FileText size={64} className="opacity-20" />
                             <p className="text-lg">Select a post to start {!isReadonly ? 'editing' : 'reading'}</p>
                         </div>
+                        <SiteFooter config={FOOTER_CONFIG} className="shrink-0 px-4 py-4" />
                     </div>
                 )}
 
@@ -2858,7 +2854,7 @@ const App = () => {
 
                         {/* Footer */}
                         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30 text-center">
-                            <p className="text-[9px] text-zinc-600 uppercase tracking-tighter">Mission Control Dashboard &copy; 2026</p>
+                            <p className="text-[9px] text-zinc-600 uppercase tracking-tighter">Mission Control Dashboard</p>
                         </div>
                     </div>
                 )

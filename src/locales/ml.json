@@ -56,5 +56,6 @@
   "selected": "തിരഞ്ഞെടുത്തവ",
   "none": "ഒന്നുമില്ല",
   "focusMode": "ഫോക്കസ് മോഡ്",
-  "editorPanels": "എഡിറ്റർ പാനലുകൾ"
+  "editorPanels": "എഡിറ്റർ പാനലുകൾ",
+  "poweredBy": "<site>Inscript</site> ഉപയോഗിച്ച് പ്രവർത്തിക്കുന്നു"
 }

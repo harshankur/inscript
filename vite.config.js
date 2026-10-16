@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
     const CLIENT_PORT = env.CLIENT_PORT;
 
     return {
-        envPrefix: ['VITE_', 'TITLE', 'SITE_URL', 'CONTENT_DIR', 'STATIC_DIR', 'FAVICON', 'DRAFTS_DIR', 'DIST_DIR', 'SERVER_PORT', 'CLIENT_PORT', 'ALLOW_PUSH', 'ALLOWED_HOSTS', 'AUTH_'],
+        envPrefix: ['VITE_', 'TITLE', 'SITE_URL', 'CONTENT_DIR', 'STATIC_DIR', 'FAVICON', 'DRAFTS_DIR', 'DIST_DIR', 'SERVER_PORT', 'CLIENT_PORT', 'ALLOW_PUSH', 'ALLOWED_HOSTS', 'AUTH_', 'FOOTER_'],
         optimizeDeps: {
             include: [
                 '@tiptap/core',

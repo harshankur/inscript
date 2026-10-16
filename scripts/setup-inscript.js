@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import readline from 'readline';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { FOOTER_KEYS, footerConfigErrors } from '../src/lib/footerConfig.js';
+import { envValue } from './env-value.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -63,6 +65,14 @@ async function setup() {
     const serverPort = await smartQuestion('SERVER_PORT', 'Server Port', '3001', existingConfig);
     const clientPort = await smartQuestion('CLIENT_PORT', 'Client Port', '5173', existingConfig);
     const allowedHosts = await smartQuestion('ALLOWED_HOSTS', 'Allowed Hosts (comma-separated or "true")', 'true', existingConfig);
+
+    // Footer settings are optional and never prompted for: taken from the environment (CI,
+    // Docker) or kept from the existing .env, so rewriting .env below never drops them.
+    const footer = Object.fromEntries(FOOTER_KEYS.map(key => [key, (process.env[key] ?? existingConfig[key] ?? '').trim()]));
+    const footerErrors = footerConfigErrors(footer);
+    if (footerErrors.length) {
+        throw new Error(`Invalid footer configuration:\n- ${footerErrors.join('\n- ')}`);
+    }
 
     // 2. Authentication Configuration
     console.log('\n--- Authentication & Security ---');
@@ -161,6 +171,17 @@ AUTH_PASSWORD_HASH=${escapedHash}
 
 # Secret for signing session cookies
 SESSION_SECRET=${escapedSecret}
+
+# --- Footer ---
+# The footer under every screen (post, home, login): legal links first, then the line
+# "<TITLE> © <year> <holder>". All optional; unset parts are left out (see .env.example).
+FOOTER_COPYRIGHT_HOLDER=${envValue(footer.FOOTER_COPYRIGHT_HOLDER)}
+FOOTER_COPYRIGHT_URL=${envValue(footer.FOOTER_COPYRIGHT_URL)}
+FOOTER_COPYRIGHT_YEAR=${envValue(footer.FOOTER_COPYRIGHT_YEAR)}
+FOOTER_LEGAL_NOTICE_URL=${envValue(footer.FOOTER_LEGAL_NOTICE_URL)}
+FOOTER_LEGAL_NOTICE_LABEL=${envValue(footer.FOOTER_LEGAL_NOTICE_LABEL)}
+FOOTER_PRIVACY_URL=${envValue(footer.FOOTER_PRIVACY_URL)}
+FOOTER_PRIVACY_LABEL=${envValue(footer.FOOTER_PRIVACY_LABEL)}
 
 # --- Experimental Features ---
 # Allow push to remote after publishing

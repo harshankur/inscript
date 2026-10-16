@@ -56,5 +56,6 @@
   "selected": "चयन गरिएको",
   "none": "कुनै छैन",
   "focusMode": "फोकस मोड",
-  "editorPanels": "सम्पादक प्यानलहरू"
+  "editorPanels": "सम्पादक प्यानलहरू",
+  "poweredBy": "<site>Inscript</site> द्वारा सञ्चालित"
 }
