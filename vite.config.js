@@ -10,7 +10,10 @@ export default defineConfig(({ mode }) => {
     const CLIENT_PORT = env.CLIENT_PORT;
 
     return {
-        envPrefix: ['VITE_', 'TITLE', 'SITE_URL', 'CONTENT_DIR', 'STATIC_DIR', 'FAVICON', 'DRAFTS_DIR', 'DIST_DIR', 'SERVER_PORT', 'CLIENT_PORT', 'ALLOW_PUSH', 'ALLOWED_HOSTS', 'AUTH_', 'FOOTER_'],
+        // What the browser may see. Never AUTH_* or SESSION_SECRET: the sign-in settings are read by
+        // server.js from the process environment, and anything listed here is written into the
+        // published bundle for everyone to read.
+        envPrefix: ['VITE_', 'TITLE', 'SITE_URL', 'CONTENT_DIR', 'STATIC_DIR', 'FAVICON', 'DRAFTS_DIR', 'DIST_DIR', 'SERVER_PORT', 'CLIENT_PORT', 'ALLOW_PUSH', 'ALLOWED_HOSTS', 'FOOTER_'],
         optimizeDeps: {
             include: [
                 '@tiptap/core',

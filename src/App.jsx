@@ -56,7 +56,18 @@ import SiteFooter from './components/SiteFooter';
 import { resolveFooterConfig } from './lib/footerConfig';
 
 // The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
-const FOOTER_CONFIG = resolveFooterConfig(import.meta.env);
+// Named keys only: passing import.meta.env itself makes Vite write every exposed variable into
+// the bundle.
+const FOOTER_CONFIG = resolveFooterConfig({
+    TITLE: import.meta.env.TITLE,
+    FOOTER_COPYRIGHT_HOLDER: import.meta.env.FOOTER_COPYRIGHT_HOLDER,
+    FOOTER_COPYRIGHT_URL: import.meta.env.FOOTER_COPYRIGHT_URL,
+    FOOTER_COPYRIGHT_YEAR: import.meta.env.FOOTER_COPYRIGHT_YEAR,
+    FOOTER_LEGAL_NOTICE_URL: import.meta.env.FOOTER_LEGAL_NOTICE_URL,
+    FOOTER_LEGAL_NOTICE_LABEL: import.meta.env.FOOTER_LEGAL_NOTICE_LABEL,
+    FOOTER_PRIVACY_URL: import.meta.env.FOOTER_PRIVACY_URL,
+    FOOTER_PRIVACY_LABEL: import.meta.env.FOOTER_PRIVACY_LABEL,
+});
 
 const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCategories, onTagsChange, onCategoriesChange }) => {
     const { t } = useTranslation();
