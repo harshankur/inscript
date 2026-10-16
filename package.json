@@ -38,7 +38,7 @@
   ],
   "type": "module",
   "scripts": {
-    "build:demo": "cross-env DEMO_MODE=true npm run setup && vite build --mode demo && mv docs/index.html docs/inscript_demo.html && mv docs/assets/landing_source.html docs/index.html",
+    "build:demo": "cross-env DEMO_MODE=true npm run setup && vite build --mode demo && mv docs/index.html docs/inscript_demo.html && mv docs/landing.html docs/index.html",
     "build": "vite build",
     "client": "vite --host",
     "dev": "npm run setup && concurrently \"npm run server\" \"npm run client\"",
@@ -48,7 +48,8 @@
     "server": "node --watch server.js",
     "setup": "node scripts/setup-inscript.js",
     "start": "npm run dev",
-    "check:locales": "node scripts/check-locales.js"
+    "check:locales": "node scripts/check-locales.js",
+    "test": "node --test"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.6",

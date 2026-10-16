@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import fontLicenses, { fontAssetFileName } from './scripts/font-licenses.js'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -29,7 +30,7 @@ export default defineConfig(({ mode }) => {
                 'i18next'
             ]
         },
-        plugins: [react()],
+        plugins: [react(), fontLicenses(__dirname)],
         resolve: {
             alias: {
                 react: path.resolve(__dirname, 'node_modules/react'),
@@ -73,11 +74,16 @@ export default defineConfig(({ mode }) => {
                 input: mode === 'demo'
                     ? {
                         index_page: path.resolve(__dirname, 'index.html'),
-                        landing_page: path.resolve(__dirname, 'assets/landing_source.html')
+                        // At the root, like index.html, so the paths Vite writes into it
+                        // stay right once build:demo renames it to docs/index.html.
+                        landing_page: path.resolve(__dirname, 'landing.html')
                     }
                     : {
                         index: path.resolve(__dirname, 'index.html')
-                    }
+                    },
+                output: {
+                    assetFileNames: fontAssetFileName
+                }
             }
         },
         base: mode === 'demo' ? './' : '/'

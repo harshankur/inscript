@@ -6,9 +6,8 @@
    and override them (the post sidebar became `position: fixed` on desktop and covered the
    editor). */
 @import "inscript-editor/styles/content";
-/* inscript-editor no longer bundles KaTeX styles (katex is an optional peer);
-   import them here so math nodes render styled. */
-@import "katex/dist/katex.min.css";
+/* KaTeX's styles are imported from main.jsx, not here: Tailwind inlines an @import without
+   rebasing its url()s, so KaTeX's fonts were never published. */
 @source "../node_modules/inscript-editor/dist";
 @variant dark (&:where(.dark, .dark *));
 
