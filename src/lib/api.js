@@ -1,4 +1,9 @@
 // Axios is imported dynamically in non-demo mode
+// The demo's images ship with the app (small enough for Vite to inline), so the demo loads
+// no image from another site.
+import demoNatureImage from './demo-images/nature.svg';
+import demoTechImage from './demo-images/tech.svg';
+import demoUploadImage from './demo-images/upload.svg';
 
 const isDemo = import.meta.env.MODE === 'demo';
 
@@ -141,8 +146,8 @@ const mockApi = {
         if (url === '/api/images') {
             return {
                 data: [
-                    { url: 'https://images.unsplash.com/photo-1707343843437-caacff5cfa74', name: 'demo-nature.jpg' },
-                    { url: 'https://images.unsplash.com/photo-1707345512638-997d31a10cee', name: 'demo-tech.jpg' }
+                    { url: demoNatureImage, name: 'demo-nature.svg' },
+                    { url: demoTechImage, name: 'demo-tech.svg' }
                 ]
             };
         }
@@ -214,8 +219,8 @@ const mockApi = {
         }
 
         if (url === '/api/upload') {
-            // Mock upload - just return a random unsplash image to simulate "hosting"
-            return { data: { url: 'https://source.unsplash.com/random/800x600' } };
+            // Mock upload: the demo keeps no files, so it answers with a placeholder image.
+            return { data: { url: demoUploadImage } };
         }
 
         return { data: { success: true } };
