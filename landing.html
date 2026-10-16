@@ -530,6 +530,36 @@
             animation-delay: 0.3s;
         }
 
+        .site-footer {
+            padding: 4rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .site-footer p + p {
+            margin-top: 0.75rem;
+        }
+
+        .site-footer-legal,
+        .site-footer-copyright {
+            font-size: 0.875rem;
+        }
+
+        .site-footer-legal span {
+            margin: 0 0.5rem;
+        }
+
+        .site-footer a {
+            color: inherit;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .site-footer a:hover {
+            color: var(--primary);
+        }
+
         .mermaid-container {
             cursor: zoom-in;
             transition: transform 0.2s;
@@ -649,7 +679,7 @@
             <div class="nav-links">
                 <a href="#features">Features</a>
                 <a href="#installation">Setup</a>
-                <a href="https://github.com/harshankur/inscript" target="_blank">GitHub</a>
+                <a href="https://github.com/harshankur/inscript" target="_blank" rel="noopener">GitHub</a>
                 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
                     <svg id="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -681,7 +711,7 @@
                     and database-free.</p>
                 <div class="cta-group">
                     <a href="./inscript_demo.html" class="btn btn-primary">Launch Live Demo</a>
-                    <a href="https://github.com/harshankur/inscript" class="btn btn-outline">Star on GitHub</a>
+                    <a href="https://github.com/harshankur/inscript" class="btn btn-outline" target="_blank" rel="noopener">Star on GitHub</a>
                 </div>
             </div>
         </section>
@@ -1065,9 +1095,15 @@
         </section>
     </main>
 
-    <footer style="padding: 4rem 0; text-align: center; border-top: 1px solid var(--border);">
+    <footer class="site-footer">
         <div class="container">
-            <p style="color: var(--text-muted);">&copy; 2026 Inscript. Built with ❤️ for the Open Source community.</p>
+            <p>Built with ❤️ for the Open Source community.</p>
+            <p class="site-footer-legal">
+                <a href="https://harshankur.com/impressum" target="_blank" rel="noopener">Impressum</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="https://harshankur.com/datenschutz#inscript" target="_blank" rel="noopener">Datenschutz</a>
+            </p>
+            <p class="site-footer-copyright">Inscript &copy; 2026 <a href="https://harshankur.com" target="_blank" rel="noopener">Harsh Ankur</a></p>
         </div>
     </footer>
 
