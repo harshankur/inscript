@@ -11,6 +11,14 @@
 @source "../node_modules/inscript-editor/dist";
 @variant dark (&:where(.dark, .dark *));
 
+/* inscript-editor before 0.6.0 paints its YouTube facade with a thumbnail from i.ytimg.com,
+   fetched as soon as the post shows. Hidden, the facade stays a black box with a play button
+   and nothing reaches YouTube until the reader clicks. Remove once the dependency is 0.6.0,
+   whose 'local' facade loads no thumbnail. */
+.youtube-embed > button[style*="i.ytimg.com"] {
+  background-image: none !important;
+}
+
 /* Source comments are the author's hidden notes: shown as a chip while editing, never to
    someone reading the post. */
 .ProseMirror[contenteditable="false"] .html-comment {

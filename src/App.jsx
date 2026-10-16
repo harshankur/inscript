@@ -1125,7 +1125,12 @@ const App = () => {
 
     // Passed once here, the insert handlers drive the toolbar, the bubble menu and the
     // "/" menu alike (whose Image and YouTube entries only appear when they are set).
+    // YouTube embeds load nothing from YouTube until the reader clicks one (a local placeholder,
+    // no remote thumbnail), and then load from youtube-nocookie.com. Needs inscript-editor
+    // 0.6.0; before that, 'local' acts as the thumbnail facade, whose i.ytimg.com thumbnail
+    // index.css hides, and `nocookie` is ignored.
     const editorOptions = useMemo(() => ({
+        youtube: { facade: 'local', nocookie: true },
         wikilink: { enabled: true, resolver: resolveWikilink },
         onShowMediaLibrary: openMediaLibrary,
         onAddYoutube: openYoutubeModal,
@@ -2016,6 +2021,7 @@ const App = () => {
 
             {!isReadonly && (
                 <YoutubeEmbedModal
+                    nocookie
                     isOpen={showYoutubeModal}
                     onClose={() => setShowYoutubeModal(false)}
                     onConfirm={(id) => {
