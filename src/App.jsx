@@ -53,7 +53,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Login from './components/Login';
 import SiteFooter from './components/SiteFooter';
-import { resolveFooterConfig } from './lib/footerConfig';
+import { httpUrl, resolveFooterConfig } from './lib/footerConfig';
 
 // The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
 // Named keys only: passing import.meta.env itself makes Vite write every exposed variable into
@@ -68,6 +68,8 @@ const FOOTER_CONFIG = resolveFooterConfig({
     FOOTER_PRIVACY_URL: import.meta.env.FOOTER_PRIVACY_URL,
     FOOTER_PRIVACY_LABEL: import.meta.env.FOOTER_PRIVACY_LABEL,
 });
+// The site's privacy notice, linked from the YouTube consent placeholder; none when unset.
+const PRIVACY_URL = httpUrl(import.meta.env.FOOTER_PRIVACY_URL);
 
 const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCategories, onTagsChange, onCategoriesChange }) => {
     const { t } = useTranslation();
@@ -1136,12 +1138,12 @@ const App = () => {
 
     // Passed once here, the insert handlers drive the toolbar, the bubble menu and the
     // "/" menu alike (whose Image and YouTube entries only appear when they are set).
-    // YouTube embeds load nothing from YouTube until the reader clicks one (a local placeholder,
-    // no remote thumbnail), and then load from youtube-nocookie.com. Needs inscript-editor
-    // 0.6.0; before that, 'local' acts as the thumbnail facade, whose i.ytimg.com thumbnail
-    // index.css hides, and `nocookie` is ignored.
+    // YouTube embeds load nothing from YouTube until the reader consents on the placeholder
+    // (it says what loading sends to YouTube and links the site's privacy notice); the click
+    // loads the video from www.youtube.com. Needs inscript-editor 0.6.0; before that, 'local'
+    // acts as the thumbnail facade, whose i.ytimg.com thumbnail index.css hides.
     const editorOptions = useMemo(() => ({
-        youtube: { facade: 'local', nocookie: true },
+        youtube: { facade: 'local', ...(PRIVACY_URL ? { privacyUrl: PRIVACY_URL } : {}) },
         wikilink: { enabled: true, resolver: resolveWikilink },
         onShowMediaLibrary: openMediaLibrary,
         onAddYoutube: openYoutubeModal,
@@ -2032,7 +2034,7 @@ const App = () => {
 
             {!isReadonly && (
                 <YoutubeEmbedModal
-                    nocookie
+                    privacyUrl={PRIVACY_URL ?? undefined}
                     isOpen={showYoutubeModal}
                     onClose={() => setShowYoutubeModal(false)}
                     onConfirm={(id) => {
