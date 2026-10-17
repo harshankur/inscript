@@ -57,5 +57,7 @@
   "none": "कोई नहीं",
   "focusMode": "फ़ोकस मोड",
   "editorPanels": "संपादक पैनल",
-  "poweredBy": "<site>Inscript</site> द्वारा संचालित"
+  "poweredBy": "<site>Inscript</site> द्वारा संचालित",
+  "footerLegalNotice": "कानूनी सूचना",
+  "footerPrivacy": "गोपनीयता"
 }

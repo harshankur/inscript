@@ -57,5 +57,7 @@
   "none": "Nenhum",
   "focusMode": "Modo foco",
   "editorPanels": "Painéis do editor",
-  "poweredBy": "Desenvolvido com <site>Inscript</site>"
+  "poweredBy": "Desenvolvido com <site>Inscript</site>",
+  "footerLegalNotice": "Aviso legal",
+  "footerPrivacy": "Privacidade"
 }

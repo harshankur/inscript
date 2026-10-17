@@ -1,14 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
-    DEFAULT_LEGAL_NOTICE_LABEL,
-    DEFAULT_PRIVACY_LABEL,
     FOOTER_KEYS,
     FOOTER_URL_KEYS,
+    LEGAL_NOTICE_LABEL_KEY,
+    PRIVACY_LABEL_KEY,
     footerConfigErrors,
     httpUrl,
     resolveFooterConfig,
 } from './footerConfig.js';
+
+const LOCALES_DIR = new URL('../locales/', import.meta.url);
+const locale = (lang) => JSON.parse(fs.readFileSync(new URL(`${lang}.json`, LOCALES_DIR), 'utf8'));
 
 const FULL = {
     TITLE: 'Inscript',
@@ -34,8 +38,8 @@ test('a fully configured footer has both legal links and the whole copyright lin
     assert.deepEqual(resolveFooterConfig(FULL), {
         copyright: { title: 'Inscript', year: '2026', holder: 'Harsh Ankur', holderUrl: 'https://harshankur.com' },
         legalLinks: [
-            { label: 'Impressum', url: 'https://harshankur.com/impressum' },
-            { label: 'Datenschutz', url: 'https://harshankur.com/datenschutz#inscript' },
+            { labelKey: LEGAL_NOTICE_LABEL_KEY, label: null, url: 'https://harshankur.com/impressum' },
+            { labelKey: PRIVACY_LABEL_KEY, label: null, url: 'https://harshankur.com/datenschutz#inscript' },
         ],
     });
 });
@@ -62,24 +66,38 @@ test('the holder is only linked to a valid URL', () => {
 
 test('each legal link appears on its own when only its URL is set', () => {
     assert.deepEqual(resolveFooterConfig({ FOOTER_LEGAL_NOTICE_URL: 'https://example.com/legal' }).legalLinks,
-        [{ label: DEFAULT_LEGAL_NOTICE_LABEL, url: 'https://example.com/legal' }]);
+        [{ labelKey: LEGAL_NOTICE_LABEL_KEY, label: null, url: 'https://example.com/legal' }]);
     assert.deepEqual(resolveFooterConfig({ FOOTER_PRIVACY_URL: 'https://example.com/privacy' }).legalLinks,
-        [{ label: DEFAULT_PRIVACY_LABEL, url: 'https://example.com/privacy' }]);
+        [{ labelKey: PRIVACY_LABEL_KEY, label: null, url: 'https://example.com/privacy' }]);
 });
 
-test('custom labels win over the default ones, and a blank label falls back to the default', () => {
+test('custom labels are kept, and a blank label leaves the translated default', () => {
     const env = {
         FOOTER_LEGAL_NOTICE_URL: 'https://example.com/legal',
         FOOTER_LEGAL_NOTICE_LABEL: 'Legal notice',
         FOOTER_PRIVACY_URL: 'https://example.com/privacy',
         FOOTER_PRIVACY_LABEL: '  ',
     };
-    assert.deepEqual(resolveFooterConfig(env).legalLinks.map(link => link.label), ['Legal notice', 'Datenschutz']);
+    assert.deepEqual(resolveFooterConfig(env).legalLinks.map(link => link.label), ['Legal notice', null]);
 });
 
 test('a legal link with an invalid URL is left out', () => {
     assert.deepEqual(resolveFooterConfig({ FOOTER_LEGAL_NOTICE_URL: '/impressum', FOOTER_PRIVACY_URL: 'https://example.com/p' }).legalLinks,
-        [{ label: 'Datenschutz', url: 'https://example.com/p' }]);
+        [{ labelKey: PRIVACY_LABEL_KEY, label: null, url: 'https://example.com/p' }]);
+});
+
+test('the default labels read in the UI language: German and English as fixed, every language translated', () => {
+    assert.equal(locale('de')[LEGAL_NOTICE_LABEL_KEY], 'Impressum');
+    assert.equal(locale('de')[PRIVACY_LABEL_KEY], 'Datenschutz');
+    assert.equal(locale('en')[LEGAL_NOTICE_LABEL_KEY], 'Legal notice');
+    assert.equal(locale('en')[PRIVACY_LABEL_KEY], 'Privacy');
+    const languages = fs.readdirSync(LOCALES_DIR).filter(name => /^[a-z]{2}(-[A-Z]{2})?\.json$/.test(name)).map(name => name.slice(0, -5));
+    assert.equal(languages.length, 19);
+    for (const lang of languages) {
+        for (const key of [LEGAL_NOTICE_LABEL_KEY, PRIVACY_LABEL_KEY]) {
+            assert.ok(String(locale(lang)[key] ?? '').trim(), `${lang} has ${key}`);
+        }
+    }
 });
 
 test('footerConfigErrors names every URL key set to something that is not an http(s) URL', () => {

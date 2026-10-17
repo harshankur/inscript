@@ -57,5 +57,7 @@
   "none": "없음",
   "focusMode": "집중 모드",
   "editorPanels": "편집기 패널",
-  "poweredBy": "<site>Inscript</site> 기반"
+  "poweredBy": "<site>Inscript</site> 기반",
+  "footerLegalNotice": "법적 고지",
+  "footerPrivacy": "개인정보 보호"
 }

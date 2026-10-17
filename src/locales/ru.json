@@ -57,5 +57,7 @@
   "none": "Нет",
   "focusMode": "Режим фокусировки",
   "editorPanels": "Панели редактора",
-  "poweredBy": "Работает на <site>Inscript</site>"
+  "poweredBy": "Работает на <site>Inscript</site>",
+  "footerLegalNotice": "Правовая информация",
+  "footerPrivacy": "Конфиденциальность"
 }

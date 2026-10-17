@@ -16,9 +16,11 @@ export const FOOTER_KEYS = [
 // The keys holding a link, which must be an absolute http(s) URL.
 export const FOOTER_URL_KEYS = ['FOOTER_COPYRIGHT_URL', 'FOOTER_LEGAL_NOTICE_URL', 'FOOTER_PRIVACY_URL'];
 
-// The German legal terms, which visitors look for under these names in every language.
-export const DEFAULT_LEGAL_NOTICE_LABEL = 'Impressum';
-export const DEFAULT_PRIVACY_LABEL = 'Datenschutz';
+// The i18n keys (src/locales/<lang>.json) of the legal links' default labels, so a link reads in
+// the visitor's language (German "Impressum" and "Datenschutz", English "Legal notice" and
+// "Privacy") unless FOOTER_LEGAL_NOTICE_LABEL or FOOTER_PRIVACY_LABEL sets fixed text.
+export const LEGAL_NOTICE_LABEL_KEY = 'footerLegalNotice';
+export const PRIVACY_LABEL_KEY = 'footerPrivacy';
 
 const text = (value) => (typeof value === 'string' ? value.trim() : '');
 
@@ -44,7 +46,9 @@ export function footerConfigErrors(env = {}) {
 
 // `copyright` is the line `<title> © <year> <holder>` (holder linked to holderUrl when set),
 // or null when neither a holder nor a year is set; parts that are unset are left out.
-// `legalLinks` are the legal notice and privacy links that have a valid URL, in that order.
+// `legalLinks` are the legal notice and privacy links that have a valid URL, in that order. Each
+// has the i18n key of its default label (`labelKey`) and the label set in the environment
+// (`label`, null when unset or blank), which wins over the translated one.
 export function resolveFooterConfig(env = {}) {
     const title = text(env.TITLE) || null;
     const holder = text(env.FOOTER_COPYRIGHT_HOLDER) || null;
@@ -53,8 +57,8 @@ export function resolveFooterConfig(env = {}) {
         ? { title, year, holder, holderUrl: holder ? httpUrl(env.FOOTER_COPYRIGHT_URL) : null }
         : null;
     const legalLinks = [
-        { label: text(env.FOOTER_LEGAL_NOTICE_LABEL) || DEFAULT_LEGAL_NOTICE_LABEL, url: httpUrl(env.FOOTER_LEGAL_NOTICE_URL) },
-        { label: text(env.FOOTER_PRIVACY_LABEL) || DEFAULT_PRIVACY_LABEL, url: httpUrl(env.FOOTER_PRIVACY_URL) },
+        { labelKey: LEGAL_NOTICE_LABEL_KEY, label: text(env.FOOTER_LEGAL_NOTICE_LABEL) || null, url: httpUrl(env.FOOTER_LEGAL_NOTICE_URL) },
+        { labelKey: PRIVACY_LABEL_KEY, label: text(env.FOOTER_PRIVACY_LABEL) || null, url: httpUrl(env.FOOTER_PRIVACY_URL) },
     ].filter(link => link.url);
     return { copyright, legalLinks };
 }

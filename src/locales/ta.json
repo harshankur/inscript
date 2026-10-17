@@ -57,5 +57,7 @@
   "none": "எதுவுமில்லை",
   "focusMode": "கவன முறை",
   "editorPanels": "திருத்தி பலகங்கள்",
-  "poweredBy": "<site>Inscript</site> மூலம் இயங்குகிறது"
+  "poweredBy": "<site>Inscript</site> மூலம் இயங்குகிறது",
+  "footerLegalNotice": "சட்ட அறிவிப்பு",
+  "footerPrivacy": "தனியுரிமை"
 }

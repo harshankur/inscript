@@ -57,5 +57,7 @@
   "none": "কিছুই না",
   "focusMode": "ফোকাস মোড",
   "editorPanels": "সম্পাদক প্যানেল",
-  "poweredBy": "<site>Inscript</site> দ্বারা চালিত"
+  "poweredBy": "<site>Inscript</site> দ্বারা চালিত",
+  "footerLegalNotice": "আইনি বিজ্ঞপ্তি",
+  "footerPrivacy": "গোপনীয়তা"
 }

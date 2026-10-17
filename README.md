@@ -268,9 +268,9 @@ The build script `npm run setup` validates these before building.
 | `FOOTER_COPYRIGHT_URL` | No | Link for that name. | `https://janedoe.com` |
 | `FOOTER_COPYRIGHT_YEAR` | No | Year in the copyright line (the year the site was first published). | `2026` |
 | `FOOTER_LEGAL_NOTICE_URL` | No | Legal notice (Impressum) link, shown above the copyright line. | `https://janedoe.com/impressum` |
-| `FOOTER_LEGAL_NOTICE_LABEL` | No | Text of that link (default `Impressum`). | `Legal notice` |
+| `FOOTER_LEGAL_NOTICE_LABEL` | No | Fixed text of that link, in every language. Unset, it reads in the visitor's language (`Legal notice` in English, `Impressum` in German). | `Imprint` |
 | `FOOTER_PRIVACY_URL` | No | Privacy notice link, next to the legal notice link. | `https://janedoe.com/privacy` |
-| `FOOTER_PRIVACY_LABEL` | No | Text of that link (default `Datenschutz`). | `Privacy` |
+| `FOOTER_PRIVACY_LABEL` | No | Fixed text of that link, in every language. Unset, it reads in the visitor's language (`Privacy` in English, `Datenschutz` in German). | `Privacy policy` |
 
 The footer appears under an open post, on the home screen and on the login screen. With no
 `FOOTER_*` set it shows only "Powered by Inscript"; each part appears once it is set. URLs must

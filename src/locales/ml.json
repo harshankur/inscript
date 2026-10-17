@@ -57,5 +57,7 @@
   "none": "ഒന്നുമില്ല",
   "focusMode": "ഫോക്കസ് മോഡ്",
   "editorPanels": "എഡിറ്റർ പാനലുകൾ",
-  "poweredBy": "<site>Inscript</site> ഉപയോഗിച്ച് പ്രവർത്തിക്കുന്നു"
+  "poweredBy": "<site>Inscript</site> ഉപയോഗിച്ച് പ്രവർത്തിക്കുന്നു",
+  "footerLegalNotice": "നിയമപരമായ അറിയിപ്പ്",
+  "footerPrivacy": "സ്വകാര്യത"
 }

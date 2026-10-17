@@ -57,5 +57,7 @@
   "none": "Geen",
   "focusMode": "Fokusmodus",
   "editorPanels": "Redigeerderpanele",
-  "poweredBy": "Aangedryf deur <site>Inscript</site>"
+  "poweredBy": "Aangedryf deur <site>Inscript</site>",
+  "footerLegalNotice": "Regskennisgewing",
+  "footerPrivacy": "Privaatheid"
 }

@@ -57,5 +57,7 @@
   "none": "なし",
   "focusMode": "集中モード",
   "editorPanels": "エディターパネル",
-  "poweredBy": "<site>Inscript</site> で作成"
+  "poweredBy": "<site>Inscript</site> で作成",
+  "footerLegalNotice": "法的表示",
+  "footerPrivacy": "プライバシー"
 }

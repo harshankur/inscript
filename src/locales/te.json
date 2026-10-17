@@ -57,5 +57,7 @@
   "none": "ఏదీ లేదు",
   "focusMode": "ఫోకస్ మోడ్",
   "editorPanels": "ఎడిటర్ ప్యానెల్‌లు",
-  "poweredBy": "<site>Inscript</site> ద్వారా నడుస్తుంది"
+  "poweredBy": "<site>Inscript</site> ద్వారా నడుస్తుంది",
+  "footerLegalNotice": "చట్టపరమైన నోటీసు",
+  "footerPrivacy": "గోప్యత"
 }
