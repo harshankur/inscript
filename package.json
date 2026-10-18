@@ -27,7 +27,6 @@
     "src",
     "dist",
     "scripts",
-    "docs",
     "server.js",
     "vite.config.js",
     "index.html",
