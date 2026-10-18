@@ -59,5 +59,6 @@
   "editorPanels": "Editor-Bereiche",
   "poweredBy": "Betrieben mit <site>Inscript</site>",
   "footerLegalNotice": "Impressum",
-  "footerPrivacy": "Datenschutz"
+  "footerPrivacy": "Datenschutz",
+  "footerPrivacySettings": "Datenschutz-Einstellungen"
 }

@@ -101,4 +101,12 @@ registerInscriptEditorTranslations(i18n, {
   }
 });
 
+// The page's language follows the app's, for screen readers and for anything that reads <html lang>
+// (viewcounter's consent question asks in German on a German page, in English otherwise).
+const syncDocumentLanguage = (language) => {
+  if (typeof document !== 'undefined' && language) document.documentElement.lang = language;
+};
+i18n.on('languageChanged', syncDocumentLanguage);
+syncDocumentLanguage(i18n.resolvedLanguage || i18n.language);
+
 export default i18n;

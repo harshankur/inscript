@@ -6,6 +6,7 @@ import readline from 'readline';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { FOOTER_KEYS, footerConfigErrors } from '../src/lib/footerConfig.js';
+import { VIEW_COUNTING_KEYS, viewCountingErrors } from '../src/lib/viewCounting.js';
 import { envValue } from './env-value.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -72,6 +73,12 @@ async function setup() {
     const footerErrors = footerConfigErrors(footer);
     if (footerErrors.length) {
         throw new Error(`Invalid footer configuration:\n- ${footerErrors.join('\n- ')}`);
+    }
+    // View counting is optional and never prompted for either, for the same reason.
+    const viewCounting = Object.fromEntries(VIEW_COUNTING_KEYS.map(key => [key, (process.env[key] ?? existingConfig[key] ?? '').trim()]));
+    const viewCountingProblems = viewCountingErrors(viewCounting);
+    if (viewCountingProblems.length) {
+        throw new Error(`Invalid view counting configuration:\n- ${viewCountingProblems.join('\n- ')}`);
     }
 
     // 2. Authentication Configuration
@@ -182,6 +189,13 @@ FOOTER_LEGAL_NOTICE_URL=${envValue(footer.FOOTER_LEGAL_NOTICE_URL)}
 FOOTER_LEGAL_NOTICE_LABEL=${envValue(footer.FOOTER_LEGAL_NOTICE_LABEL)}
 FOOTER_PRIVACY_URL=${envValue(footer.FOOTER_PRIVACY_URL)}
 FOOTER_PRIVACY_LABEL=${envValue(footer.FOOTER_PRIVACY_LABEL)}
+
+# --- View counting ---
+# Counts page views on the published site with your viewcounter instance, after asking each
+# visitor; off while VIEWCOUNTER_URL and VIEWCOUNTER_APP_ID are unset (see .env.example).
+VIEWCOUNTER_URL=${envValue(viewCounting.VIEWCOUNTER_URL)}
+VIEWCOUNTER_APP_ID=${envValue(viewCounting.VIEWCOUNTER_APP_ID)}
+VIEWCOUNTER_EDGE=${envValue(viewCounting.VIEWCOUNTER_EDGE)}
 
 # --- Experimental Features ---
 # Allow push to remote after publishing

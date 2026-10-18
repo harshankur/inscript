@@ -271,11 +271,29 @@ The build script `npm run setup` validates these before building.
 | `FOOTER_LEGAL_NOTICE_LABEL` | No | Fixed text of that link, in every language. Unset, it reads in the visitor's language (`Legal notice` in English, `Impressum` in German). | `Imprint` |
 | `FOOTER_PRIVACY_URL` | No | Privacy notice link, next to the legal notice link. | `https://janedoe.com/privacy` |
 | `FOOTER_PRIVACY_LABEL` | No | Fixed text of that link, in every language. Unset, it reads in the visitor's language (`Privacy` in English, `Datenschutz` in German). | `Privacy policy` |
+| `VIEWCOUNTER_URL` | No | Your [viewcounter](https://viewcounter.harshankur.com) instance, to count page views on the published site (see below). | `https://views.janedoe.com` |
+| `VIEWCOUNTER_APP_ID` | No | The app ID the blog's views are stored under in that instance. Set with `VIEWCOUNTER_URL`. | `blog` |
+| `VIEWCOUNTER_EDGE` | No | `true` when viewcounter's edge Worker counts the site's pages without consent, so the consent question says so. Default `false`. | `true` |
 
 The footer appears under an open post, on the home screen and on the login screen. With no
 `FOOTER_*` set it shows only "Powered by Inscript"; each part appears once it is set. URLs must
 be absolute `http(s)` URLs, which `npm run setup` checks. The demo build takes its values from
 the committed `.env.demo`.
+
+### Counting page views
+
+Inscript can count the published site's page views with
+[viewcounter](https://viewcounter.harshankur.com), a privacy-first view counter you run
+yourself. Set `VIEWCOUNTER_URL` and `VIEWCOUNTER_APP_ID`, and add the app to the instance's
+`allowed.json` with your `SITE_URL` among its origins. The published site then loads the
+instance's `consent.js`, which asks each visitor whether their visits may be counted and only
+with their yes loads viewcounter's tracker; the footer gets a **Privacy settings** link that asks
+again, and the question links to your `FOOTER_PRIVACY_URL`. Each post counts as its own page
+(`/?post=<name>`), and nothing else of an address is sent. The question is asked only on
+`SITE_URL`'s hostname, never on a preview or a local build, and the editor never counts anything.
+If viewcounter's edge Worker stands in front of the site, set `VIEWCOUNTER_EDGE=true` and give the
+site's entry in the Worker's `SITES` `"query": ["post"]`, so both count a post alike. Describe the
+counting in your privacy notice.
 
 ### Advanced Build Configuration
 If you need to change **where** the site is built (e.g. if your hosting provider expects a specific folder name like `public` or `build`), you can override the output directory using `DIST_DIR`.

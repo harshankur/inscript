@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { PRIVACY_SETTINGS_LABEL_KEY } from '../lib/viewCounting';
 
 const INSCRIPT_URL = 'https://inscript.harshankur.com';
 const LINK_CLASS = 'underline decoration-zinc-300 dark:decoration-zinc-700 underline-offset-2 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors';
@@ -12,8 +13,11 @@ const ExternalLink = ({ href, children }) => (
 // "Powered by Inscript" on one line, then the copyright line `<title> © <year> <holder>`
 // last. `config` comes from resolveFooterConfig (src/lib/footerConfig.js). A legal link reads
 // in the visitor's language unless the environment set its label. The "poweredBy" string wraps
-// the name in <site> (not <link>, which the Trans parser treats as a void element).
-const SiteFooter = ({ config, className = '' }) => {
+// the name in <site> (not <link>, which the Trans parser treats as a void element). With
+// `privacySettings` (view counting is on, src/lib/viewCounting.js) a "Privacy settings" link after
+// the legal links asks the visitor again whether their visits may be counted: viewcounter's
+// consent.js opens its question for any click on an element with data-viewcounter-consent.
+const SiteFooter = ({ config, privacySettings = false, className = '' }) => {
     const { t } = useTranslation();
     const { copyright, legalLinks } = config;
     return (
@@ -25,6 +29,12 @@ const SiteFooter = ({ config, className = '' }) => {
                         <span aria-hidden="true">&middot;</span>
                     </React.Fragment>
                 ))}
+                {privacySettings && (
+                    <>
+                        <button type="button" data-viewcounter-consent="" className={LINK_CLASS}>{t(PRIVACY_SETTINGS_LABEL_KEY)}</button>
+                        <span aria-hidden="true">&middot;</span>
+                    </>
+                )}
                 <span>
                     <Trans i18nKey="poweredBy" components={{ site: <ExternalLink href={INSCRIPT_URL} /> }} />
                 </span>

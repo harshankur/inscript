@@ -54,6 +54,7 @@ import { useTranslation } from 'react-i18next';
 import Login from './components/Login';
 import SiteFooter from './components/SiteFooter';
 import { httpUrl, resolveFooterConfig } from './lib/footerConfig';
+import { loadViewCounting, resolveViewCounting } from './lib/viewCounting';
 
 // The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
 // Named keys only: passing import.meta.env itself makes Vite write every exposed variable into
@@ -70,6 +71,17 @@ const FOOTER_CONFIG = resolveFooterConfig({
 });
 // The site's privacy notice, linked from the YouTube consent placeholder; none when unset.
 const PRIVACY_URL = httpUrl(import.meta.env.FOOTER_PRIVACY_URL);
+// Page view counting with viewcounter, from the VIEWCOUNTER_* settings: only on the published
+// (read-only) site, never in the editor; null when off.
+const VIEW_COUNTING = import.meta.env.MODE === 'readonly'
+    ? resolveViewCounting({
+        VIEWCOUNTER_URL: import.meta.env.VIEWCOUNTER_URL,
+        VIEWCOUNTER_APP_ID: import.meta.env.VIEWCOUNTER_APP_ID,
+        VIEWCOUNTER_EDGE: import.meta.env.VIEWCOUNTER_EDGE,
+        SITE_URL: import.meta.env.SITE_URL,
+        FOOTER_PRIVACY_URL: import.meta.env.FOOTER_PRIVACY_URL,
+    })
+    : null;
 
 const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCategories, onTagsChange, onCategoriesChange }) => {
     const { t } = useTranslation();
@@ -1076,6 +1088,8 @@ const App = () => {
     const [authLoading, setAuthLoading] = useState(true);
 
     const isReadonlyEnv = import.meta.env.MODE === 'readonly';
+    // The consent question, and with the visitor's yes the tracker.
+    useEffect(() => loadViewCounting(VIEW_COUNTING), []);
     const [isReadonlyUser, setIsReadonlyUser] = useState(() => new URLSearchParams(window.location.search).get('readonly') === 'true');
     const isReadonly = isReadonlyEnv || isReadonlyUser;
     const [toolbarConfig, setToolbarConfig] = useState(() => loadToolConfig('inscript:toolbar-config', 'toolbar'));
@@ -1382,22 +1396,23 @@ const App = () => {
         return () => document.removeEventListener('visibilitychange', onHide);
     }, []);
 
-    // Routing: Sync URL with filename
+    // Routing: Sync URL with filename. The title changes first: a page view counter that sees the
+    // address change (viewcounter's tracker) reads the new page's title as it does.
     useEffect(() => {
         const appTitle = APP_TITLE;
         if (filename) {
             const url = new URL(window.location);
             url.searchParams.set('post', filename.replace('.md', ''));
-            window.history.replaceState({}, '', url);
             document.title = `${title} | ${appTitle}`;
+            window.history.replaceState({}, '', url);
         } else {
             // Only clear if we didn't start with a post param (prevent race condition wipe)
             const startupPost = startupParamsRef.current.get('post');
             if (!startupPost) {
                 const url = new URL(window.location);
                 url.searchParams.delete('post');
-                window.history.replaceState({}, '', url);
                 document.title = appTitle;
+                window.history.replaceState({}, '', url);
             }
         }
     }, [filename, title]);
@@ -2649,6 +2664,7 @@ const App = () => {
                         {!inFocus && (
                             <SiteFooter
                                 config={FOOTER_CONFIG}
+                                privacySettings={Boolean(VIEW_COUNTING)}
                                 className="shrink-0 px-4 py-2 md:px-8 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950"
                             />
                         )}
@@ -2670,7 +2686,7 @@ const App = () => {
                             <FileText size={64} className="opacity-20" />
                             <p className="text-lg">Select a post to start {!isReadonly ? 'editing' : 'reading'}</p>
                         </div>
-                        <SiteFooter config={FOOTER_CONFIG} className="shrink-0 px-4 py-4" />
+                        <SiteFooter config={FOOTER_CONFIG} privacySettings={Boolean(VIEW_COUNTING)} className="shrink-0 px-4 py-4" />
                     </div>
                 )}
 

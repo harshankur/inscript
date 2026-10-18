@@ -59,5 +59,6 @@
   "editorPanels": "編輯器面板",
   "poweredBy": "由 <site>Inscript</site> 驅動",
   "footerLegalNotice": "法律聲明",
-  "footerPrivacy": "隱私"
+  "footerPrivacy": "隱私",
+  "footerPrivacySettings": "隱私設定"
 }

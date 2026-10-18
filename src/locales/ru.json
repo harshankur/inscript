@@ -59,5 +59,6 @@
   "editorPanels": "Панели редактора",
   "poweredBy": "Работает на <site>Inscript</site>",
   "footerLegalNotice": "Правовая информация",
-  "footerPrivacy": "Конфиденциальность"
+  "footerPrivacy": "Конфиденциальность",
+  "footerPrivacySettings": "Настройки конфиденциальности"
 }
