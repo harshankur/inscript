@@ -1169,8 +1169,7 @@ const App = () => {
     // "/" menu alike (whose Image and YouTube entries only appear when they are set).
     // YouTube embeds load nothing from YouTube until the reader consents on the placeholder
     // (it says what loading sends to YouTube and links the site's privacy notice); the click
-    // loads the video from www.youtube.com. Needs inscript-editor 0.6.0; before that, 'local'
-    // acts as the thumbnail facade, whose i.ytimg.com thumbnail index.css hides.
+    // loads the video from www.youtube.com.
     const editorOptions = useMemo(() => ({
         youtube: { facade: 'local', ...(privacyUrl ? { privacyUrl } : {}) },
         wikilink: { enabled: true, resolver: resolveWikilink },
