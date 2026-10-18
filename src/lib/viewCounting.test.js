@@ -9,6 +9,7 @@ import {
     loadViewCounting,
     resolveViewCounting,
     viewCountingErrors,
+    viewCountingOn,
 } from './viewCounting.js';
 
 const LOCALES_DIR = new URL('../locales/', import.meta.url);
@@ -96,6 +97,18 @@ test('loadViewCounting adds the consent script once, deferred, and nothing when 
     assert.equal(script.defer, true);
     assert.equal(script.attributes.src, 'https://views.harshankur.com/consent.js');
     assert.equal(script.attributes['data-query'], 'post');
+});
+
+test('counting is on only at SITE_URL\'s host, so a preview or a local build requests nothing from the counter', () => {
+    const config = resolveViewCounting(ON);
+    assert.equal(viewCountingOn(config, 'blog.harshankur.com'), config);
+    assert.equal(viewCountingOn(config, 'BLOG.harshankur.com'), config);
+    assert.equal(viewCountingOn(config, 'localhost'), null);
+    assert.equal(viewCountingOn(config, 'blog-preview.example.workers.dev'), null);
+    assert.equal(viewCountingOn(null, 'blog.harshankur.com'), null);
+    // Without a site URL there is no host to hold to.
+    const anywhere = resolveViewCounting({ VIEWCOUNTER_URL: 'https://views.example.com', VIEWCOUNTER_APP_ID: 'blog' });
+    assert.equal(viewCountingOn(anywhere, 'localhost'), anywhere);
 });
 
 test('the Privacy settings link reads in every language', () => {

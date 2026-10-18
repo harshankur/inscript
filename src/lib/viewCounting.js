@@ -57,6 +57,14 @@ export function resolveViewCounting(env = {}) {
     };
 }
 
+// The counting settings where the page is now: the settings on SITE_URL's host (or anywhere, when
+// SITE_URL gives none), null anywhere else. A preview or a local build then neither requests the
+// consent script from the counter nor shows a "Privacy settings" link that could not do anything.
+export function viewCountingOn(config, hostname) {
+    if (!config) return null;
+    return !config.hosts || String(hostname).toLowerCase() === config.hosts.toLowerCase() ? config : null;
+}
+
 // The consent script's tag attributes for these settings (see viewcounter's consent.js).
 export function consentScriptAttributes(config) {
     const attributes = {

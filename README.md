@@ -289,8 +289,8 @@ yourself. Set `VIEWCOUNTER_URL` and `VIEWCOUNTER_APP_ID`, and add the app to the
 instance's `consent.js`, which asks each visitor whether their visits may be counted and only
 with their yes loads viewcounter's tracker; the footer gets a **Privacy settings** link that asks
 again, and the question links to your `FOOTER_PRIVACY_URL`. Each post counts as its own page
-(`/?post=<name>`), and nothing else of an address is sent. The question is asked only on
-`SITE_URL`'s hostname, never on a preview or a local build, and the editor never counts anything.
+(`/?post=<name>`), and nothing else of an address is sent. Only on `SITE_URL`'s hostname is
+anything loaded or the link shown, never on a preview or a local build, and the editor never counts anything.
 If viewcounter's edge Worker stands in front of the site, set `VIEWCOUNTER_EDGE=true` and give the
 site's entry in the Worker's `SITES` `"query": ["post"]`, so both count a post alike. Describe the
 counting in your privacy notice.

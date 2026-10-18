@@ -54,7 +54,7 @@ import { useTranslation } from 'react-i18next';
 import Login from './components/Login';
 import SiteFooter from './components/SiteFooter';
 import { httpUrl, resolveFooterConfig } from './lib/footerConfig';
-import { loadViewCounting, resolveViewCounting } from './lib/viewCounting';
+import { loadViewCounting, resolveViewCounting, viewCountingOn } from './lib/viewCounting';
 
 // The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
 // Named keys only: passing import.meta.env itself makes Vite write every exposed variable into
@@ -72,15 +72,15 @@ const FOOTER_CONFIG = resolveFooterConfig({
 // The site's privacy notice, linked from the YouTube consent placeholder; none when unset.
 const PRIVACY_URL = httpUrl(import.meta.env.FOOTER_PRIVACY_URL);
 // Page view counting with viewcounter, from the VIEWCOUNTER_* settings: only on the published
-// (read-only) site, never in the editor; null when off.
+// (read-only) site at SITE_URL's host, never in the editor or on a preview; null when off.
 const VIEW_COUNTING = import.meta.env.MODE === 'readonly'
-    ? resolveViewCounting({
+    ? viewCountingOn(resolveViewCounting({
         VIEWCOUNTER_URL: import.meta.env.VIEWCOUNTER_URL,
         VIEWCOUNTER_APP_ID: import.meta.env.VIEWCOUNTER_APP_ID,
         VIEWCOUNTER_EDGE: import.meta.env.VIEWCOUNTER_EDGE,
         SITE_URL: import.meta.env.SITE_URL,
         FOOTER_PRIVACY_URL: import.meta.env.FOOTER_PRIVACY_URL,
-    })
+    }), window.location.hostname)
     : null;
 
 const MetadataModal = ({ isOpen, onClose, tags, categories, postTags, postCategories, onTagsChange, onCategoriesChange }) => {
