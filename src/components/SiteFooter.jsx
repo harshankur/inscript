@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { urlForLanguage } from '../lib/footerConfig';
 import { PRIVACY_SETTINGS_LABEL_KEY } from '../lib/viewCounting';
 
 const INSCRIPT_URL = 'https://inscript.harshankur.com';
@@ -18,14 +19,15 @@ const ExternalLink = ({ href, children }) => (
 // the legal links asks the visitor again whether their visits may be counted: viewcounter's
 // consent.js opens its question for any click on an element with data-viewcounter-consent.
 const SiteFooter = ({ config, privacySettings = false, className = '' }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { copyright, legalLinks } = config;
+    const language = i18n.resolvedLanguage || i18n.language;
     return (
         <footer className={`text-[11px] leading-5 text-center text-zinc-500 dark:text-zinc-400 ${className}`}>
             <p className="flex flex-wrap items-center justify-center gap-x-2">
                 {legalLinks.map(link => (
                     <React.Fragment key={link.url}>
-                        <ExternalLink href={link.url}>{link.label ?? t(link.labelKey)}</ExternalLink>
+                        <ExternalLink href={urlForLanguage(link.url, link.urls, language)}>{link.label ?? t(link.labelKey)}</ExternalLink>
                         <span aria-hidden="true">&middot;</span>
                     </React.Fragment>
                 ))}

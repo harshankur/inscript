@@ -9,6 +9,7 @@ import {
     loadViewCounting,
     resolveViewCounting,
     viewCountingErrors,
+    setViewCountingLanguage,
     viewCountingOn,
 } from './viewCounting.js';
 
@@ -48,6 +49,7 @@ test('with the instance and the app set, the published site asks with consent.js
         edge: true,
         hosts: 'blog.harshankur.com',
         privacyUrl: 'https://harshankur.com/datenschutz#blog',
+        privacyUrls: {},
     });
 });
 
@@ -87,10 +89,10 @@ test('half a configuration, or a bad value, is an error and counts nothing', () 
 
 test('loadViewCounting adds the consent script once, deferred, and nothing when counting is off', () => {
     const doc = fakeDocument();
-    loadViewCounting(null, doc);
+    loadViewCounting(null, 'en', doc);
     assert.equal(doc.appended.length, 0);
-    loadViewCounting(resolveViewCounting(ON), doc);
-    loadViewCounting(resolveViewCounting(ON), doc);
+    loadViewCounting(resolveViewCounting(ON), 'en', doc);
+    loadViewCounting(resolveViewCounting(ON), 'en', doc);
     assert.equal(doc.appended.length, 1);
     const [script] = doc.appended;
     assert.equal(script.tag, 'script');
@@ -122,4 +124,21 @@ test('the build exposes the VIEWCOUNTER_ settings to the page, and they are all 
     const vite = fs.readFileSync(new URL('../../vite.config.js', import.meta.url), 'utf8');
     assert.match(vite, /envPrefix:[^\n]*'VIEWCOUNTER_'/);
     assert.deepEqual(VIEW_COUNTING_KEYS, ['VIEWCOUNTER_URL', 'VIEWCOUNTER_APP_ID', 'VIEWCOUNTER_EDGE']);
+});
+
+test('the consent question links the privacy notice in the visitor\'s language, and follows a change of language', () => {
+    const config = resolveViewCounting({
+        ...ON,
+        FOOTER_PRIVACY_URL: 'https://harshankur.com/datenschutz#en-blog',
+        FOOTER_PRIVACY_URLS: 'de=https://harshankur.com/datenschutz#blog',
+    });
+    assert.equal(consentScriptAttributes(config, 'de')['data-privacy-url'], 'https://harshankur.com/datenschutz#blog');
+    assert.equal(consentScriptAttributes(config, 'ja')['data-privacy-url'], 'https://harshankur.com/datenschutz#en-blog');
+    const doc = fakeDocument();
+    setViewCountingLanguage(config, 'de', doc); // nothing loaded yet: nothing to change
+    loadViewCounting(config, 'en', doc);
+    const [script] = doc.appended;
+    assert.equal(script.attributes['data-privacy-url'], 'https://harshankur.com/datenschutz#en-blog');
+    setViewCountingLanguage(config, 'de', doc);
+    assert.equal(script.attributes['data-privacy-url'], 'https://harshankur.com/datenschutz#blog');
 });

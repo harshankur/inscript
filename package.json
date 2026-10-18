@@ -25,7 +25,6 @@
   "main": "server.js",
   "files": [
     "src",
-    "dist",
     "scripts",
     "server.js",
     "vite.config.js",

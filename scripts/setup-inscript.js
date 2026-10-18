@@ -182,20 +182,21 @@ SESSION_SECRET=${escapedSecret}
 # --- Footer ---
 # The footer under every screen (post, home, login): legal links first, then the line
 # "<TITLE> © <year> <holder>". All optional; unset parts are left out (see .env.example).
-FOOTER_COPYRIGHT_HOLDER=${envValue(footer.FOOTER_COPYRIGHT_HOLDER)}
-FOOTER_COPYRIGHT_URL=${envValue(footer.FOOTER_COPYRIGHT_URL)}
-FOOTER_COPYRIGHT_YEAR=${envValue(footer.FOOTER_COPYRIGHT_YEAR)}
-FOOTER_LEGAL_NOTICE_URL=${envValue(footer.FOOTER_LEGAL_NOTICE_URL)}
-FOOTER_LEGAL_NOTICE_LABEL=${envValue(footer.FOOTER_LEGAL_NOTICE_LABEL)}
-FOOTER_PRIVACY_URL=${envValue(footer.FOOTER_PRIVACY_URL)}
-FOOTER_PRIVACY_LABEL=${envValue(footer.FOOTER_PRIVACY_LABEL)}
+FOOTER_COPYRIGHT_HOLDER=${envValue(footer.FOOTER_COPYRIGHT_HOLDER, 'FOOTER_COPYRIGHT_HOLDER')}
+FOOTER_COPYRIGHT_URL=${envValue(footer.FOOTER_COPYRIGHT_URL, 'FOOTER_COPYRIGHT_URL')}
+FOOTER_COPYRIGHT_YEAR=${envValue(footer.FOOTER_COPYRIGHT_YEAR, 'FOOTER_COPYRIGHT_YEAR')}
+FOOTER_LEGAL_NOTICE_URL=${envValue(footer.FOOTER_LEGAL_NOTICE_URL, 'FOOTER_LEGAL_NOTICE_URL')}
+FOOTER_LEGAL_NOTICE_LABEL=${envValue(footer.FOOTER_LEGAL_NOTICE_LABEL, 'FOOTER_LEGAL_NOTICE_LABEL')}
+FOOTER_PRIVACY_URL=${envValue(footer.FOOTER_PRIVACY_URL, 'FOOTER_PRIVACY_URL')}
+FOOTER_PRIVACY_URLS=${envValue(footer.FOOTER_PRIVACY_URLS, 'FOOTER_PRIVACY_URLS')}
+FOOTER_PRIVACY_LABEL=${envValue(footer.FOOTER_PRIVACY_LABEL, 'FOOTER_PRIVACY_LABEL')}
 
 # --- View counting ---
 # Counts page views on the published site with your viewcounter instance, after asking each
 # visitor; off while VIEWCOUNTER_URL and VIEWCOUNTER_APP_ID are unset (see .env.example).
-VIEWCOUNTER_URL=${envValue(viewCounting.VIEWCOUNTER_URL)}
-VIEWCOUNTER_APP_ID=${envValue(viewCounting.VIEWCOUNTER_APP_ID)}
-VIEWCOUNTER_EDGE=${envValue(viewCounting.VIEWCOUNTER_EDGE)}
+VIEWCOUNTER_URL=${envValue(viewCounting.VIEWCOUNTER_URL, 'VIEWCOUNTER_URL')}
+VIEWCOUNTER_APP_ID=${envValue(viewCounting.VIEWCOUNTER_APP_ID, 'VIEWCOUNTER_APP_ID')}
+VIEWCOUNTER_EDGE=${envValue(viewCounting.VIEWCOUNTER_EDGE, 'VIEWCOUNTER_EDGE')}
 
 # --- Experimental Features ---
 # Allow push to remote after publishing

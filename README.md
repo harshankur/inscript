@@ -271,6 +271,7 @@ The build script `npm run setup` validates these before building.
 | `FOOTER_LEGAL_NOTICE_LABEL` | No | Fixed text of that link, in every language. Unset, it reads in the visitor's language (`Legal notice` in English, `Impressum` in German). | `Imprint` |
 | `FOOTER_PRIVACY_URL` | No | Privacy notice link, next to the legal notice link. | `https://janedoe.com/privacy` |
 | `FOOTER_PRIVACY_LABEL` | No | Fixed text of that link, in every language. Unset, it reads in the visitor's language (`Privacy` in English, `Datenschutz` in German). | `Privacy policy` |
+| `FOOTER_PRIVACY_URLS` | No | The privacy notice for visitors of other languages, as comma-separated `<language>=<URL>` pairs. A listed language gets its address (in the footer, the YouTube placeholder and the counting question), every other one `FOOTER_PRIVACY_URL`. | `de=https://janedoe.com/datenschutz` |
 | `VIEWCOUNTER_URL` | No | Your [viewcounter](https://viewcounter.harshankur.com) instance, to count page views on the published site (see below). | `https://views.janedoe.com` |
 | `VIEWCOUNTER_APP_ID` | No | The app ID the blog's views are stored under in that instance. Set with `VIEWCOUNTER_URL`. | `blog` |
 | `VIEWCOUNTER_EDGE` | No | `true` when viewcounter's edge Worker counts the site's pages without consent, so the consent question says so. Default `false`. | `true` |
@@ -287,10 +288,11 @@ Inscript can count the published site's page views with
 yourself. Set `VIEWCOUNTER_URL` and `VIEWCOUNTER_APP_ID`, and add the app to the instance's
 `allowed.json` with your `SITE_URL` among its origins. The published site then loads the
 instance's `consent.js`, which asks each visitor whether their visits may be counted and only
-with their yes loads viewcounter's tracker; the footer gets a **Privacy settings** link that asks
-again, and the question links to your `FOOTER_PRIVACY_URL`. Each post counts as its own page
+with their yes loads viewcounter's tracker; the footer gets a **Privacy settings** button that asks
+again, and the question links to your privacy notice (`FOOTER_PRIVACY_URL`, or the visitor's language's in
+`FOOTER_PRIVACY_URLS`, which needs viewcounter 3.7.1 to follow a change of language in place). Each post counts as its own page
 (`/?post=<name>`), and nothing else of an address is sent. Only on `SITE_URL`'s hostname is
-anything loaded or the link shown, never on a preview or a local build, and the editor never counts anything.
+anything loaded or the button shown, never on a preview or a local build, and the editor never counts anything.
 If viewcounter's edge Worker stands in front of the site, set `VIEWCOUNTER_EDGE=true` and give the
 site's entry in the Worker's `SITES` `"query": ["post"]`, so both count a post alike. Describe the
 counting in your privacy notice.

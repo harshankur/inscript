@@ -101,12 +101,15 @@ registerInscriptEditorTranslations(i18n, {
   }
 });
 
-// The page's language follows the app's, for screen readers and for anything that reads <html lang>
-// (viewcounter's consent question asks in German on a German page, in English otherwise).
-const syncDocumentLanguage = (language) => {
+// The page's language follows the language the app shows, for screen readers and for anything that
+// reads <html lang> (viewcounter's consent question asks in German on a German page, in English
+// otherwise). That is the resolved language, not the one asked for: a Swedish browser sees the
+// English fallback, so the page is "en", not "sv".
+const syncDocumentLanguage = () => {
+  const language = i18n.resolvedLanguage || i18n.language;
   if (typeof document !== 'undefined' && language) document.documentElement.lang = language;
 };
 i18n.on('languageChanged', syncDocumentLanguage);
-syncDocumentLanguage(i18n.resolvedLanguage || i18n.language);
+syncDocumentLanguage();
 
 export default i18n;

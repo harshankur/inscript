@@ -5,7 +5,7 @@
 // footerConfig.js, so scripts/setup-inscript.js validates with the same rules and Node's test
 // runner can test them.
 
-import { httpUrl } from './footerConfig.js';
+import { httpUrl, parseLanguageUrls, urlForLanguage } from './footerConfig.js';
 
 export const VIEW_COUNTING_KEYS = ['VIEWCOUNTER_URL', 'VIEWCOUNTER_APP_ID', 'VIEWCOUNTER_EDGE'];
 
@@ -36,7 +36,8 @@ export function viewCountingErrors(env = {}) {
 
 // The counting settings, or null when counting is off (or set wrongly, which setup refuses).
 // `hosts` is SITE_URL's hostname, so the question is only ever asked on the published site and
-// never on a preview or a local build; `privacyUrl` is the footer's privacy notice.
+// never on a preview or a local build; `privacyUrl` and `privacyUrls` are the footer's privacy
+// notice, the second by language (FOOTER_PRIVACY_URLS).
 export function resolveViewCounting(env = {}) {
     if (viewCountingErrors(env).length) return null;
     const base = httpUrl(env.VIEWCOUNTER_URL);
@@ -54,6 +55,7 @@ export function resolveViewCounting(env = {}) {
         edge: text(env.VIEWCOUNTER_EDGE) === 'true',
         hosts,
         privacyUrl: httpUrl(env.FOOTER_PRIVACY_URL),
+        privacyUrls: parseLanguageUrls(env.FOOTER_PRIVACY_URLS).urls,
     };
 }
 
@@ -65,8 +67,14 @@ export function viewCountingOn(config, hostname) {
     return !config.hosts || String(hostname).toLowerCase() === config.hosts.toLowerCase() ? config : null;
 }
 
-// The consent script's tag attributes for these settings (see viewcounter's consent.js).
-export function consentScriptAttributes(config) {
+// The privacy notice the consent question links, for a visitor of a language: the footer's.
+export function privacyUrlFor(config, language) {
+    return urlForLanguage(config.privacyUrl, config.privacyUrls, language);
+}
+
+// The consent script's tag attributes for these settings (see viewcounter's consent.js), for a
+// visitor of a language.
+export function consentScriptAttributes(config, language) {
     const attributes = {
         src: config.scriptUrl,
         'data-app': config.appId,
@@ -76,16 +84,27 @@ export function consentScriptAttributes(config) {
         'data-edge': config.edge ? 'true' : 'false',
     };
     if (config.hosts) attributes['data-hosts'] = config.hosts;
-    if (config.privacyUrl) attributes['data-privacy-url'] = config.privacyUrl;
+    const privacyUrl = privacyUrlFor(config, language);
+    if (privacyUrl) attributes['data-privacy-url'] = privacyUrl;
     return attributes;
 }
 
 // Add the consent script to the page, once.
-export function loadViewCounting(config, doc = document) {
+export function loadViewCounting(config, language, doc = document) {
     if (!config || doc.querySelector('script[data-inscript-view-counting]')) return;
     const script = doc.createElement('script');
     script.defer = true;
-    for (const [name, value] of Object.entries(consentScriptAttributes(config))) script.setAttribute(name, value);
+    for (const [name, value] of Object.entries(consentScriptAttributes(config, language))) script.setAttribute(name, value);
     script.setAttribute('data-inscript-view-counting', '');
     doc.head.appendChild(script);
+}
+
+// After a change of language, point the consent question at the privacy notice in it. consent.js
+// (viewcounter 3.7.1 and later) reads the address each time it shows the question.
+export function setViewCountingLanguage(config, language, doc = document) {
+    const script = config ? doc.querySelector('script[data-inscript-view-counting]') : null;
+    if (!script) return;
+    const privacyUrl = privacyUrlFor(config, language);
+    if (privacyUrl) script.setAttribute('data-privacy-url', privacyUrl);
+    else script.removeAttribute('data-privacy-url');
 }

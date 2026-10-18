@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
     FOOTER_KEYS,
+    parseLanguageUrls,
+    urlForLanguage,
     FOOTER_URL_KEYS,
     LEGAL_NOTICE_LABEL_KEY,
     PRIVACY_LABEL_KEY,
@@ -38,8 +40,8 @@ test('a fully configured footer has both legal links and the whole copyright lin
     assert.deepEqual(resolveFooterConfig(FULL), {
         copyright: { title: 'Inscript', year: '2026', holder: 'Harsh Ankur', holderUrl: 'https://harshankur.com' },
         legalLinks: [
-            { labelKey: LEGAL_NOTICE_LABEL_KEY, label: null, url: 'https://harshankur.com/impressum' },
-            { labelKey: PRIVACY_LABEL_KEY, label: null, url: 'https://harshankur.com/datenschutz#inscript' },
+            { labelKey: LEGAL_NOTICE_LABEL_KEY, label: null, url: 'https://harshankur.com/impressum', urls: {} },
+            { labelKey: PRIVACY_LABEL_KEY, label: null, url: 'https://harshankur.com/datenschutz#inscript', urls: {} },
         ],
     });
 });
@@ -66,9 +68,9 @@ test('the holder is only linked to a valid URL', () => {
 
 test('each legal link appears on its own when only its URL is set', () => {
     assert.deepEqual(resolveFooterConfig({ FOOTER_LEGAL_NOTICE_URL: 'https://example.com/legal' }).legalLinks,
-        [{ labelKey: LEGAL_NOTICE_LABEL_KEY, label: null, url: 'https://example.com/legal' }]);
+        [{ labelKey: LEGAL_NOTICE_LABEL_KEY, label: null, url: 'https://example.com/legal', urls: {} }]);
     assert.deepEqual(resolveFooterConfig({ FOOTER_PRIVACY_URL: 'https://example.com/privacy' }).legalLinks,
-        [{ labelKey: PRIVACY_LABEL_KEY, label: null, url: 'https://example.com/privacy' }]);
+        [{ labelKey: PRIVACY_LABEL_KEY, label: null, url: 'https://example.com/privacy', urls: {} }]);
 });
 
 test('custom labels are kept, and a blank label leaves the translated default', () => {
@@ -83,7 +85,7 @@ test('custom labels are kept, and a blank label leaves the translated default', 
 
 test('a legal link with an invalid URL is left out', () => {
     assert.deepEqual(resolveFooterConfig({ FOOTER_LEGAL_NOTICE_URL: '/impressum', FOOTER_PRIVACY_URL: 'https://example.com/p' }).legalLinks,
-        [{ labelKey: PRIVACY_LABEL_KEY, label: null, url: 'https://example.com/p' }]);
+        [{ labelKey: PRIVACY_LABEL_KEY, label: null, url: 'https://example.com/p', urls: {} }]);
 });
 
 test('the default labels read in the UI language: German and English as fixed, every language translated', () => {
@@ -111,4 +113,27 @@ test('footerConfigErrors names every URL key set to something that is not an htt
 test('the URL keys are footer keys', () => {
     for (const key of FOOTER_URL_KEYS) assert.ok(FOOTER_KEYS.includes(key), key);
     assert.ok(FOOTER_KEYS.every(key => key.startsWith('FOOTER_')));
+});
+
+test('FOOTER_PRIVACY_URLS gives the privacy link an address per language, and the rest keep FOOTER_PRIVACY_URL', () => {
+    const env = {
+        FOOTER_PRIVACY_URL: 'https://harshankur.com/datenschutz#en-blog',
+        FOOTER_PRIVACY_URLS: ' de=https://harshankur.com/datenschutz#blog , pt-BR=https://example.com/pt ',
+    };
+    assert.deepEqual(footerConfigErrors(env), []);
+    const [privacy] = resolveFooterConfig(env).legalLinks;
+    assert.deepEqual(privacy.urls, { de: 'https://harshankur.com/datenschutz#blog', 'pt-br': 'https://example.com/pt' });
+    assert.equal(urlForLanguage(privacy.url, privacy.urls, 'de'), 'https://harshankur.com/datenschutz#blog');
+    assert.equal(urlForLanguage(privacy.url, privacy.urls, 'de-AT'), 'https://harshankur.com/datenschutz#blog');
+    assert.equal(urlForLanguage(privacy.url, privacy.urls, 'pt-BR'), 'https://example.com/pt');
+    assert.equal(urlForLanguage(privacy.url, privacy.urls, 'fr'), 'https://harshankur.com/datenschutz#en-blog');
+    assert.equal(urlForLanguage(privacy.url, privacy.urls, ''), 'https://harshankur.com/datenschutz#en-blog');
+});
+
+test('a bad FOOTER_PRIVACY_URLS entry, or one without FOOTER_PRIVACY_URL, is refused by setup', () => {
+    assert.match(footerConfigErrors({ FOOTER_PRIVACY_URL: 'https://a.example', FOOTER_PRIVACY_URLS: 'de:https://b.example' }).join('\n'), /<language>=<absolute http\(s\) URL>/);
+    assert.match(footerConfigErrors({ FOOTER_PRIVACY_URL: 'https://a.example', FOOTER_PRIVACY_URLS: 'de=javascript:alert(1)' }).join('\n'), /got "de=javascript/);
+    assert.match(footerConfigErrors({ FOOTER_PRIVACY_URLS: 'de=https://b.example' }).join('\n'), /needs FOOTER_PRIVACY_URL/);
+    // Only the good entries are used.
+    assert.deepEqual(parseLanguageUrls('de=https://b.example,x y=https://c.example').urls, { de: 'https://b.example' });
 });

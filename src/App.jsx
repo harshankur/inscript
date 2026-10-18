@@ -53,8 +53,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Login from './components/Login';
 import SiteFooter from './components/SiteFooter';
-import { httpUrl, resolveFooterConfig } from './lib/footerConfig';
-import { loadViewCounting, resolveViewCounting, viewCountingOn } from './lib/viewCounting';
+import { httpUrl, parseLanguageUrls, resolveFooterConfig, urlForLanguage } from './lib/footerConfig';
+import { loadViewCounting, resolveViewCounting, setViewCountingLanguage, viewCountingOn } from './lib/viewCounting';
 
 // The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
 // Named keys only: passing import.meta.env itself makes Vite write every exposed variable into
@@ -67,10 +67,13 @@ const FOOTER_CONFIG = resolveFooterConfig({
     FOOTER_LEGAL_NOTICE_URL: import.meta.env.FOOTER_LEGAL_NOTICE_URL,
     FOOTER_LEGAL_NOTICE_LABEL: import.meta.env.FOOTER_LEGAL_NOTICE_LABEL,
     FOOTER_PRIVACY_URL: import.meta.env.FOOTER_PRIVACY_URL,
+    FOOTER_PRIVACY_URLS: import.meta.env.FOOTER_PRIVACY_URLS,
     FOOTER_PRIVACY_LABEL: import.meta.env.FOOTER_PRIVACY_LABEL,
 });
-// The site's privacy notice, linked from the YouTube consent placeholder; none when unset.
+// The site's privacy notice, linked from the YouTube consent placeholder, and its addresses by
+// language (FOOTER_PRIVACY_URLS); none when unset.
 const PRIVACY_URL = httpUrl(import.meta.env.FOOTER_PRIVACY_URL);
+const PRIVACY_URLS = parseLanguageUrls(import.meta.env.FOOTER_PRIVACY_URLS).urls;
 // Page view counting with viewcounter, from the VIEWCOUNTER_* settings: only on the published
 // (read-only) site at SITE_URL's host, never in the editor or on a preview; null when off.
 const VIEW_COUNTING = import.meta.env.MODE === 'readonly'
@@ -80,6 +83,7 @@ const VIEW_COUNTING = import.meta.env.MODE === 'readonly'
         VIEWCOUNTER_EDGE: import.meta.env.VIEWCOUNTER_EDGE,
         SITE_URL: import.meta.env.SITE_URL,
         FOOTER_PRIVACY_URL: import.meta.env.FOOTER_PRIVACY_URL,
+        FOOTER_PRIVACY_URLS: import.meta.env.FOOTER_PRIVACY_URLS,
     }), window.location.hostname)
     : null;
 
@@ -1088,8 +1092,19 @@ const App = () => {
     const [authLoading, setAuthLoading] = useState(true);
 
     const isReadonlyEnv = import.meta.env.MODE === 'readonly';
-    // The consent question, and with the visitor's yes the tracker.
-    useEffect(() => loadViewCounting(VIEW_COUNTING), []);
+    // The consent question, and with the visitor's yes the tracker. Opened with a post's link, the
+    // page waits until that post is shown, so the tracker's first view carries the post's title,
+    // not the site's (a later address change to the same post is not a new view).
+    const [countingReady, setCountingReady] = useState(() => !new URLSearchParams(window.location.search).get('post'));
+    const language = i18n.resolvedLanguage || i18n.language;
+    useEffect(() => {
+        if (countingReady) loadViewCounting(VIEW_COUNTING, language);
+        // Loaded once; a change of language only points the question at the notice in it (below).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [countingReady]);
+    useEffect(() => setViewCountingLanguage(VIEW_COUNTING, language), [language]);
+    // The privacy notice in the visitor's language, for the YouTube consent placeholder.
+    const privacyUrl = urlForLanguage(PRIVACY_URL, PRIVACY_URLS, language);
     const [isReadonlyUser, setIsReadonlyUser] = useState(() => new URLSearchParams(window.location.search).get('readonly') === 'true');
     const isReadonly = isReadonlyEnv || isReadonlyUser;
     const [toolbarConfig, setToolbarConfig] = useState(() => loadToolConfig('inscript:toolbar-config', 'toolbar'));
@@ -1157,11 +1172,12 @@ const App = () => {
     // loads the video from www.youtube.com. Needs inscript-editor 0.6.0; before that, 'local'
     // acts as the thumbnail facade, whose i.ytimg.com thumbnail index.css hides.
     const editorOptions = useMemo(() => ({
-        youtube: { facade: 'local', ...(PRIVACY_URL ? { privacyUrl: PRIVACY_URL } : {}) },
+        youtube: { facade: 'local', ...(privacyUrl ? { privacyUrl } : {}) },
         wikilink: { enabled: true, resolver: resolveWikilink },
         onShowMediaLibrary: openMediaLibrary,
         onAddYoutube: openYoutubeModal,
-    }), [resolveWikilink, openMediaLibrary, openYoutubeModal]);
+        // A change of language changes the privacy link, which rebuilds the editor; it keeps the document.
+    }), [resolveWikilink, openMediaLibrary, openYoutubeModal, privacyUrl]);
 
     // Undo, redo and restores put another version in the editor, and its title, tags and
     // categories come back with it. An edit leaves them as they are.
@@ -1417,6 +1433,11 @@ const App = () => {
         }
     }, [filename, title]);
 
+    // The post opened by the page's address is shown, with its title: counting may start.
+    useEffect(() => {
+        if (!countingReady && filename && !loading) setCountingReady(true);
+    }, [countingReady, filename, loading]);
+
     useEffect(() => {
         checkAuth();
         fetchPosts();
@@ -1465,12 +1486,16 @@ const App = () => {
                     loadPost(targetFilename, loadedPosts);
                     // Clear the startup ref so future navigations work normally
                     startupParamsRef.current = new URLSearchParams();
+                } else {
+                    // No such post: nothing to wait for before counting.
+                    setCountingReady(true);
                 }
             }
 
 
         } catch (error) {
             console.error('Error fetching posts:', error);
+            setCountingReady(true);
         }
     };
 
@@ -2049,7 +2074,7 @@ const App = () => {
 
             {!isReadonly && (
                 <YoutubeEmbedModal
-                    privacyUrl={PRIVACY_URL ?? undefined}
+                    privacyUrl={privacyUrl ?? undefined}
                     isOpen={showYoutubeModal}
                     onClose={() => setShowYoutubeModal(false)}
                     onConfirm={(id) => {
