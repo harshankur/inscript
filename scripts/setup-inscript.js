@@ -9,6 +9,7 @@ import { FOOTER_KEYS, footerConfigErrors } from '../src/lib/footerConfig.js';
 import { VIEW_COUNTING_KEYS, viewCountingErrors } from '../src/lib/viewCounting.js';
 import { envValue } from './env-value.js';
 import { corsOrigins } from './server-config.js';
+import { FAVICON_FILE, webManifest } from './manifest.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -250,7 +251,7 @@ ALLOW_PUSH=${existingConfig.ALLOW_PUSH || 'false'}
 
     // Favicon
     const defaultFavicon = path.join(ASSETS_DIR, 'favicon_default.png');
-    const targetFavicon = path.join(PUBLIC_DIR, 'favicon.png');
+    const targetFavicon = path.join(PUBLIC_DIR, FAVICON_FILE);
     let faviconCopied = false;
 
     if (process.env.FAVICON && !DEMO_MODE) {
@@ -267,12 +268,11 @@ ALLOW_PUSH=${existingConfig.ALLOW_PUSH || 'false'}
         console.log('- Using default Inscript favicon.');
     }
 
-    // Manifest
+    // Manifest, claiming the size the favicon really has
     const manifestSrc = path.join(ASSETS_DIR, 'manifest.json');
     if (await fs.pathExists(manifestSrc)) {
-        const manifest = await fs.readJson(manifestSrc);
-        manifest.name = title;
-        manifest.short_name = title;
+        const favicon = await fs.pathExists(targetFavicon) ? await fs.readFile(targetFavicon) : null;
+        const manifest = webManifest(await fs.readJson(manifestSrc), { title, favicon });
         await fs.writeJson(path.join(PUBLIC_DIR, 'manifest.json'), manifest, { spaces: 4 });
         console.log('- Generated manifest.json');
     }

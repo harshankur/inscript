@@ -75,6 +75,13 @@ test('the demo build asks nothing and writes no .env when there is none', async 
     assert.ok(exists(root, 'public/favicon.png'));
 });
 
+test('the manifest claims the size the favicon really has', async () => {
+    const root = checkout({ '.env.demo': DEMO_ENV });
+    await setup(root, { DEMO_MODE: 'true' });
+    // The default favicon is 128 by 128 pixels.
+    assert.deepEqual(JSON.parse(read(root, 'public/manifest.json')).icons, [{ src: 'favicon.png', sizes: '128x128', type: 'image/png' }]);
+});
+
 test('the environment wins over .env.demo in the demo build, as it does in Vite', async () => {
     const root = checkout({ '.env': DEVELOPER_ENV, '.env.demo': DEMO_ENV });
     await setup(root, { DEMO_MODE: 'true', TITLE: 'From The Shell' });
