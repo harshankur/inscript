@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import fontLicenses, { fontAssetFileName } from './scripts/font-licenses.js'
+import htmlHead from './scripts/html-head.js'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -33,7 +34,12 @@ export default defineConfig(({ mode }) => {
                 'i18next'
             ]
         },
-        plugins: [react(), fontLicenses(__dirname)],
+        plugins: [
+            react(),
+            fontLicenses(__dirname),
+            // The app page is titled after the site; the demo's editor is kept out of search results.
+            htmlHead({ root: __dirname, title: env.TITLE, noindex: mode === 'demo' }),
+        ],
         resolve: {
             alias: {
                 react: path.resolve(__dirname, 'node_modules/react'),

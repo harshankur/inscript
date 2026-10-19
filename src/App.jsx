@@ -55,6 +55,7 @@ import Login from './components/Login';
 import SiteFooter from './components/SiteFooter';
 import { httpUrl, parseLanguageUrls, resolveFooterConfig, urlForLanguage } from './lib/footerConfig';
 import { loadViewCounting, resolveViewCounting, setViewCountingLanguage, viewCountingOn } from './lib/viewCounting';
+import { siteTitle } from './lib/siteTitle';
 import { withUploadReason } from './lib/uploadError';
 
 // The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
@@ -1049,7 +1050,7 @@ const App = () => {
 
     const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
-    const APP_TITLE = import.meta.env.MODE === 'demo' ? 'Inscript Demo' : import.meta.env.TITLE;
+    const APP_TITLE = import.meta.env.MODE === 'demo' ? 'Inscript Demo' : siteTitle(import.meta.env.TITLE);
     const [posts, setPosts] = useState([]);
     const [isCopied, setIsCopied] = useState(false);
     const [currentPost, setCurrentPost] = useState(null);

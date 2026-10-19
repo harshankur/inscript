@@ -249,7 +249,7 @@ The build script `npm run setup` validates these before building.
 
 | Variable | Required | Description | Example Value |
 | :--- | :--- | :--- | :--- |
-| `TITLE` | **Yes** | The blog title (used in Manifest). | `My Tech Blog` |
+| `TITLE` | **Yes** | The blog title: the page's `<title>`, the sidebar and the manifest. Unset, they read `Inscript`. | `My Tech Blog` |
 | `SITE_URL` | **Yes** | Public URL (used in Sitemap/Robots). | `https://example.com` |
 | `CONTENT_DIR` | **Yes** | Relative path to markdown content. | `../content` |
 | `STATIC_DIR` | **Yes** | Relative path to source images/assets. | `../static` |
