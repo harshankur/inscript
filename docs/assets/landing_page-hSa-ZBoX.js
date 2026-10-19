@@ -1,0 +1,1 @@
+import"./preload-helper-DeZ3Xi7d.js";import{n as e}from"./mermaid.core-p9nbwOw_.js";e.initialize({startOnLoad:!1,theme:document.documentElement.getAttribute(`data-theme`)===`dark`?`dark`:`default`,securityLevel:`strict`,flowchart:{useMaxWidth:!0,htmlLabels:!0,curve:`basis`}}),e.run();
