@@ -2711,7 +2711,6 @@ const App = () => {
                             >
                                 {showSidebar ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
                             </button>
-                            <h1 className="text-xl font-bold text-zinc-400 dark:text-zinc-500"></h1>
                         </div>
                         <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 gap-4 p-4 text-center">
                             <FileText size={64} className="opacity-20" />
