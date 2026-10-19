@@ -13,6 +13,7 @@ import { promisify } from 'util';
 import bcrypt from 'bcryptjs';
 import session from 'express-session';
 import { createTurndownService, markdownToHtml } from './scripts/markdown.js';
+import { commitAll, push } from './scripts/git.js';
 
 const execAsync = promisify(exec);
 
@@ -437,23 +438,16 @@ app.post('/api/publish', async (req, res) => {
 // Git Commit
 app.post('/api/git/commit', async (req, res) => {
     try {
-        const { message, filename } = req.body;
-        console.log(`📝 Committing changes: ${message}`);
+        const { message } = req.body;
+        console.log('📝 Committing changes');
 
         // Ensure we are in the project root (one level up from inscript/ if server.js is in inscript/)
         const projectRoot = path.join(__dirname, '..');
 
-        // Add all changes (or could be specific to filename if provided)
-        await execAsync('git add .', { cwd: projectRoot });
-        const { stdout } = await execAsync(`git commit -m "${message || 'Update blog content'}"`, { cwd: projectRoot });
-
-        res.json({ success: true, output: stdout });
+        const { output } = await commitAll(projectRoot, message);
+        res.json({ success: true, output });
     } catch (err) {
-        // If nothing to commit, git commit returns non-zero. Check for that.
-        if (err.stdout && err.stdout.includes('nothing to commit')) {
-            return res.json({ success: true, output: 'Nothing to commit, working tree clean' });
-        }
-        res.status(500).json({ error: err.message });
+        res.status(err instanceof RangeError ? 400 : 500).json({ error: err.message });
     }
 });
 
@@ -462,8 +456,8 @@ app.post('/api/git/push', async (req, res) => {
     try {
         console.log('⬆️ Pushing to remote...');
         const projectRoot = path.join(__dirname, '..');
-        const { stdout } = await execAsync('git push', { cwd: projectRoot });
-        res.json({ success: true, output: stdout });
+        const output = await push(projectRoot);
+        res.json({ success: true, output });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
