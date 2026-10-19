@@ -15,6 +15,11 @@ const __dirname = path.dirname(__filename);
 
 const INSCRIPT_ROOT = path.resolve(__dirname, '..');
 const ENV_PATH = path.join(INSCRIPT_ROOT, '.env');
+// The demo build (npm run build:demo) takes its settings from .env.demo, read over .env just as Vite
+// reads them for its "demo" mode. It never prompts and never writes .env: the demo's values (its
+// title, its site URL) are not the developer's, and a developer's own .env stays as it is.
+const DEMO_ENV_PATH = path.join(INSCRIPT_ROOT, '.env.demo');
+const DEMO_MODE = process.env.DEMO_MODE === 'true';
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -33,25 +38,35 @@ const smartQuestion = async (key, query, defaultValue, existingConfig) => {
     if (process.env[key]) return process.env[key];
     // Then check existing .env config
     if (existingConfig[key]) return existingConfig[key];
+    // The demo build asks nothing: what it does not set keeps its default.
+    if (DEMO_MODE) return defaultValue;
     // Finally fall back to interactive prompt
     return await question(query, defaultValue);
 };
+
+// A .env file's settings, with the $$ that Docker Compose needs read back as $; {} when the file
+// does not exist.
+async function readEnvFile(file) {
+    if (!(await fs.pathExists(file))) return {};
+    const config = dotenv.parse(await fs.readFile(file, 'utf8'));
+    for (const key in config) {
+        if (typeof config[key] === 'string') {
+            config[key] = config[key].replace(/\$\$/g, '$');
+        }
+    }
+    return config;
+}
 
 async function setup() {
     console.log('\n🚀 Welcome to the Inscript Setup Wizard!');
     console.log('This will help you configure your CMS environment and security.\n');
 
     // 0. Load existing config if available
-    let existingConfig = {};
-    if (await fs.pathExists(ENV_PATH)) {
-        const content = await fs.readFile(ENV_PATH, 'utf8');
-        existingConfig = dotenv.parse(content);
-        // Unescape $$ sequences from existing config for internal use
-        for (const key in existingConfig) {
-            if (typeof existingConfig[key] === 'string') {
-                existingConfig[key] = existingConfig[key].replace(/\$\$/g, '$');
-            }
-        }
+    let existingConfig = await readEnvFile(ENV_PATH);
+    if (DEMO_MODE) {
+        existingConfig = { ...existingConfig, ...(await readEnvFile(DEMO_ENV_PATH)) };
+        console.log('ℹ️  Demo build: using .env.demo over .env. .env is left as it is.\n');
+    } else if (await fs.pathExists(ENV_PATH)) {
         console.log('ℹ️  Found existing .env file. Checking for missing configuration...\n');
     }
 
@@ -87,44 +102,47 @@ async function setup() {
     const corsOriginList = (process.env.CORS_ORIGINS ?? existingConfig.CORS_ORIGINS ?? '').trim();
     corsOrigins(corsOriginList);
 
-    // 2. Authentication Configuration
-    console.log('\n--- Authentication & Security ---');
-    let authEnabled = (process.env.AUTH_ENABLED || existingConfig.AUTH_ENABLED) === 'true';
-    if (process.env.AUTH_ENABLED === undefined && existingConfig.AUTH_ENABLED === undefined) {
-        const enableAuthString = await question(`Enable authentication? (y/n)`, 'n');
-        authEnabled = enableAuthString.toLowerCase().startsWith('y');
-    }
-    let authUsername = '';
-    let authPasswordHash = '';
-    let sessionSecret = '';
+    // Sign-in and .env are not for the demo build, which has no sign-in and keeps its settings in
+    // .env.demo.
+    if (!DEMO_MODE) {
+        // 2. Authentication Configuration
+        console.log('\n--- Authentication & Security ---');
+        let authEnabled = (process.env.AUTH_ENABLED || existingConfig.AUTH_ENABLED) === 'true';
+        if (process.env.AUTH_ENABLED === undefined && existingConfig.AUTH_ENABLED === undefined) {
+            const enableAuthString = await question(`Enable authentication? (y/n)`, 'n');
+            authEnabled = enableAuthString.toLowerCase().startsWith('y');
+        }
+        let authUsername = '';
+        let authPasswordHash = '';
+        let sessionSecret = '';
 
-    if (authEnabled) {
-        authUsername = await smartQuestion('AUTH_USERNAME', 'Admin Username', 'admin', existingConfig);
-        authPasswordHash = existingConfig.AUTH_PASSWORD_HASH || process.env.AUTH_PASSWORD_HASH || '';
-        sessionSecret = existingConfig.SESSION_SECRET || process.env.SESSION_SECRET || '';
+        if (authEnabled) {
+            authUsername = await smartQuestion('AUTH_USERNAME', 'Admin Username', 'admin', existingConfig);
+            authPasswordHash = existingConfig.AUTH_PASSWORD_HASH || process.env.AUTH_PASSWORD_HASH || '';
+            sessionSecret = existingConfig.SESSION_SECRET || process.env.SESSION_SECRET || '';
 
-        while (!authPasswordHash) {
-            const password = process.env.AUTH_PASSWORD || await question('Enter admin password (to be hashed)');
-            if (password) {
-                const salt = await bcrypt.genSalt(10);
-                authPasswordHash = await bcrypt.hash(password, salt);
-                console.log('✅ Password hash generated.');
-            } else {
-                console.warn('⚠️ Password cannot be empty if authentication is enabled, please try again.');
+            while (!authPasswordHash) {
+                const password = process.env.AUTH_PASSWORD || await question('Enter admin password (to be hashed)');
+                if (password) {
+                    const salt = await bcrypt.genSalt(10);
+                    authPasswordHash = await bcrypt.hash(password, salt);
+                    console.log('✅ Password hash generated.');
+                } else {
+                    console.warn('⚠️ Password cannot be empty if authentication is enabled, please try again.');
+                }
+            }
+
+            if (!sessionSecret) {
+                sessionSecret = crypto.randomBytes(32).toString('hex');
+                console.log('✅ Secure Session Secret generated.');
             }
         }
 
-        if (!sessionSecret) {
-            sessionSecret = crypto.randomBytes(32).toString('hex');
-            console.log('✅ Secure Session Secret generated.');
-        }
-    }
+        // 3. Save to .env (Escape $ as $$ for Docker Compose compatibility)
+        const escapedHash = authPasswordHash.replace(/\$/g, '$$$$');
+        const escapedSecret = sessionSecret.replace(/\$/g, '$$$$');
 
-    // 3. Save to .env (Escape $ as $$ for Docker Compose compatibility)
-    const escapedHash = authPasswordHash.replace(/\$/g, '$$$$');
-    const escapedSecret = sessionSecret.replace(/\$/g, '$$$$');
-
-    const envContent = `# Inscript Configuration Generated on ${new Date().toISOString()}
+        const envContent = `# Inscript Configuration Generated on ${new Date().toISOString()}
 # NOTE: All the directory paths are relative to inscript/ directory or absolute paths.
 
 # --- General ---
@@ -215,8 +233,9 @@ VIEWCOUNTER_EDGE=${envValue(viewCounting.VIEWCOUNTER_EDGE, 'VIEWCOUNTER_EDGE')}
 ALLOW_PUSH=${existingConfig.ALLOW_PUSH || 'false'}
 `;
 
-    await fs.writeFile(ENV_PATH, envContent);
-    console.log('\n✅ .env file updated successfully.');
+        await fs.writeFile(ENV_PATH, envContent);
+        console.log('\n✅ .env file updated successfully.');
+    }
 
     // 4. Asset Generation (Favicon, Robots, Manifest)
     console.log('\n--- Post-Setup Tasks ---');
@@ -234,7 +253,7 @@ ALLOW_PUSH=${existingConfig.ALLOW_PUSH || 'false'}
     const targetFavicon = path.join(PUBLIC_DIR, 'favicon.png');
     let faviconCopied = false;
 
-    if (process.env.FAVICON && process.env.DEMO_MODE !== 'true') {
+    if (process.env.FAVICON && !DEMO_MODE) {
         const customFaviconPath = path.resolve(INSCRIPT_ROOT, staticDir, process.env.FAVICON);
         if (await fs.pathExists(customFaviconPath)) {
             await fs.copy(customFaviconPath, targetFavicon);
@@ -258,7 +277,7 @@ ALLOW_PUSH=${existingConfig.ALLOW_PUSH || 'false'}
         console.log('- Generated manifest.json');
     }
 
-    // Robots.txt
+    // Robots.txt. It names no sitemap: generate-sitemap.js adds that line when a build writes one.
     const robotsSrc = path.join(ASSETS_DIR, 'robots.txt');
     if (await fs.pathExists(robotsSrc)) {
         let robots = await fs.readFile(robotsSrc, 'utf8');
@@ -268,8 +287,10 @@ ALLOW_PUSH=${existingConfig.ALLOW_PUSH || 'false'}
     }
 
     console.log('\n✨ Inscript setup complete! Run "npm run dev" to start.');
-    console.log('\n💡 Tip: You can edit the .env file directly to modify any configuration you just set.');
-    console.log('🔑 Forgot your credentials? Delete the AUTH_USERNAME and AUTH_PASSWORD_HASH lines from .env and run this setup again.');
+    if (!DEMO_MODE) {
+        console.log('\n💡 Tip: You can edit the .env file directly to modify any configuration you just set.');
+        console.log('🔑 Forgot your credentials? Delete the AUTH_USERNAME and AUTH_PASSWORD_HASH lines from .env and run this setup again.');
+    }
     rl.close();
 }
 

@@ -1,6 +1,6 @@
 {
-    "name": "My Inscript Blog",
-    "short_name": "My Inscript Blog",
+    "name": "Inscript",
+    "short_name": "Inscript",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
