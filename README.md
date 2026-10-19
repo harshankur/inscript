@@ -262,7 +262,8 @@ The build script `npm run setup` validates these before building.
 | `AUTH_ENABLED` | No | Enable local password authentication. | `true` |
 | `AUTH_USERNAME` | No | Admin username for login. | `admin` |
 | `AUTH_PASSWORD_HASH` | No | BCrypt hash of your password. | `$2b$10$...` |
-| `SESSION_SECRET` | No | Secret for signing session cookies. | `(any random string)` |
+| `SESSION_SECRET` | With auth | Secret for signing session cookies. Setup generates it; the server will not start with authentication on and no secret. | `(any random string)` |
+| `CORS_ORIGINS` | No | Other sites allowed to call the API, as comma-separated origins. None by default; the editor itself needs none. | `https://cms.me.com` |
 | `ALLOW_PUSH` | No | Enable Git Push from UI (Dangerous). | `false` |
 | `FOOTER_COPYRIGHT_HOLDER` | No | Name in the footer's copyright line `<TITLE> © <year> <holder>`. | `Jane Doe` |
 | `FOOTER_COPYRIGHT_URL` | No | Link for that name. | `https://janedoe.com` |

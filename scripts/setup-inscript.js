@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import { FOOTER_KEYS, footerConfigErrors } from '../src/lib/footerConfig.js';
 import { VIEW_COUNTING_KEYS, viewCountingErrors } from '../src/lib/viewCounting.js';
 import { envValue } from './env-value.js';
+import { corsOrigins } from './server-config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -80,6 +81,11 @@ async function setup() {
     if (viewCountingProblems.length) {
         throw new Error(`Invalid view counting configuration:\n- ${viewCountingProblems.join('\n- ')}`);
     }
+
+    // Cross-origin API access is optional and never prompted for; checked here so a typo
+    // fails setup instead of the server.
+    const corsOriginList = (process.env.CORS_ORIGINS ?? existingConfig.CORS_ORIGINS ?? '').trim();
+    corsOrigins(corsOriginList);
 
     // 2. Authentication Configuration
     console.log('\n--- Authentication & Security ---');
@@ -176,8 +182,13 @@ AUTH_USERNAME=${authUsername}
 # BCrypt hash of your password
 AUTH_PASSWORD_HASH=${escapedHash}
 
-# Secret for signing session cookies
+# Secret for signing session cookies. Required while AUTH_ENABLED is true: the server
+# refuses to start without it. Setup generates one.
 SESSION_SECRET=${escapedSecret}
+
+# Other sites allowed to call the API (comma-separated origins such as https://cms.example.com).
+# Default: none. The editor reaches the API through its own address and needs no entry.
+CORS_ORIGINS=${envValue(corsOriginList, 'CORS_ORIGINS')}
 
 # --- Footer ---
 # The footer under every screen (post, home, login): legal links first, then the line

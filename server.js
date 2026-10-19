@@ -14,6 +14,8 @@ import bcrypt from 'bcryptjs';
 import session from 'express-session';
 import { createTurndownService, markdownToHtml } from './scripts/markdown.js';
 import { commitAll, push } from './scripts/git.js';
+import { draftPath, postPath } from './scripts/post-path.js';
+import { corsOrigins, sessionSecret } from './scripts/server-config.js';
 
 const execAsync = promisify(exec);
 
@@ -23,7 +25,11 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.SERVER_PORT;
 
-app.use(cors());
+// Cross-origin access only for the origins listed in CORS_ORIGINS (none by default).
+const CORS_ORIGINS = corsOrigins(process.env.CORS_ORIGINS);
+if (CORS_ORIGINS.length) {
+    app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
+}
 app.use(express.json({ limit: '50mb' }));
 
 // Configuration from Env
@@ -40,7 +46,8 @@ const AUTH_ENABLED = process.env.AUTH_ENABLED === 'true';
 const AUTH_USERNAME = process.env.AUTH_USERNAME;
 // Docker Compose may use $$ to escape $, so we unescape it for the app
 const AUTH_PASSWORD_HASH = process.env.AUTH_PASSWORD_HASH?.replace(/\$\$/g, '$');
-const SESSION_SECRET = process.env.SESSION_SECRET?.replace(/\$\$/g, '$') || 'inscript-secret';
+// Refuses to start when authentication is on and no secret is set.
+const SESSION_SECRET = sessionSecret(process.env);
 
 // Auth Middleware
 const authGuard = (req, res, next) => {
@@ -139,6 +146,9 @@ fs.ensureDirSync(DRAFTS_DIR);
 
 // Markdown <-> editor HTML (see scripts/markdown.js)
 const turndownService = createTurndownService();
+
+// Sent when a request names a post file that is not a plain *.md name inside the posts folder.
+const INVALID_FILENAME = 'Invalid post file name';
 
 // Identifies a version of a post's file. A draft records the version it was based on, so
 // opening the post can tell when the file changed outside Inscript while the draft existed.
@@ -282,8 +292,9 @@ app.get('/api/posts', async (req, res) => {
 // Get single post (with merged draft if exists)
 app.get('/api/posts/:filename', async (req, res) => {
     try {
-        const filePath = path.join(POSTS_DIR, req.params.filename);
-        const draftPath = path.join(DRAFTS_DIR, `${req.params.filename}.json`);
+        const filePath = postPath(POSTS_DIR, req.params.filename);
+        const draftFile = draftPath(DRAFTS_DIR, req.params.filename);
+        if (!filePath || !draftFile) return res.status(400).json({ error: INVALID_FILENAME });
 
         let frontmatter = {};
         let html = '';
@@ -308,7 +319,7 @@ app.get('/api/posts/:filename', async (req, res) => {
             savedTitle = title;
         } else {
             // Check if it's an unpublished draft
-            const draftExists = await fs.pathExists(draftPath);
+            const draftExists = await fs.pathExists(draftFile);
             if (!draftExists) {
                 return res.status(404).json({ error: 'Post not found' });
             }
@@ -323,9 +334,9 @@ app.get('/api/posts/:filename', async (req, res) => {
         // The version the history view compares against (the post as last saved), if kept.
         let reference = null;
 
-        const hasDraft = await fs.pathExists(draftPath);
+        const hasDraft = await fs.pathExists(draftFile);
         if (hasDraft) {
-            const draft = await fs.readJson(draftPath);
+            const draft = await fs.readJson(draftFile);
             draftBaseChanged = !!(draft.sourceHash && sourceHash && draft.sourceHash !== sourceHash);
             reference = draft.reference || null;
             const activeItem = draft.history && draft.history[draft.currentIndex];
@@ -362,6 +373,9 @@ app.get('/api/posts/:filename', async (req, res) => {
 app.post('/api/posts', async (req, res) => {
     try {
         const { filename, frontmatter, html } = req.body;
+        const filePath = postPath(POSTS_DIR, filename);
+        const draftFile = draftPath(DRAFTS_DIR, filename);
+        if (!filePath || !draftFile) return res.status(400).json({ error: INVALID_FILENAME });
         const markdown = turndownService.turndown(html);
 
         // Enforce modified time. Preserve existing created time or set it if missing.
@@ -371,11 +385,10 @@ app.post('/api/posts', async (req, res) => {
             frontmatter.created = now;
         }
         const fileContent = matter.stringify(markdown, frontmatter);
-        await fs.writeFile(path.join(POSTS_DIR, filename), fileContent);
+        await fs.writeFile(filePath, fileContent);
 
         // Clear draft on successful permanent save
-        const draftPath = path.join(DRAFTS_DIR, `${filename}.json`);
-        await fs.remove(draftPath).catch(() => { });
+        await fs.remove(draftFile).catch(() => { });
 
         res.json({ success: true, frontmatter, sourceHash: fileHash(fileContent) });
     } catch (err) {
@@ -387,11 +400,12 @@ app.post('/api/posts', async (req, res) => {
 app.post('/api/drafts/:filename', async (req, res) => {
     try {
         const { history, currentIndex, sourceHash, reference } = req.body;
-        const draftPath = path.join(DRAFTS_DIR, `${req.params.filename}.json`);
+        const draftFile = draftPath(DRAFTS_DIR, req.params.filename);
+        if (!draftFile) return res.status(400).json({ error: INVALID_FILENAME });
 
         // Server is now a dumb store for the client-managed history stack, plus the file
         // version it is based on and the history view's reference (see GET /api/posts/:filename).
-        await fs.writeJson(draftPath, {
+        await fs.writeJson(draftFile, {
             history,
             currentIndex,
             sourceHash: sourceHash || null,
@@ -406,8 +420,9 @@ app.post('/api/drafts/:filename', async (req, res) => {
 
 app.delete('/api/drafts/:filename', async (req, res) => {
     try {
-        const draftPath = path.join(DRAFTS_DIR, `${req.params.filename}.json`);
-        await fs.remove(draftPath);
+        const draftFile = draftPath(DRAFTS_DIR, req.params.filename);
+        if (!draftFile) return res.status(400).json({ error: INVALID_FILENAME });
+        await fs.remove(draftFile);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -466,11 +481,12 @@ app.post('/api/git/push', async (req, res) => {
 app.delete('/api/posts/:filename', async (req, res) => {
     try {
         const { filename } = req.params;
-        const filePath = path.join(POSTS_DIR, filename);
-        const draftPath = path.join(DRAFTS_DIR, `${filename}.json`);
+        const filePath = postPath(POSTS_DIR, filename);
+        const draftFile = draftPath(DRAFTS_DIR, filename);
+        if (!filePath || !draftFile) return res.status(400).json({ error: INVALID_FILENAME });
 
         if (await fs.pathExists(filePath)) await fs.remove(filePath);
-        if (await fs.pathExists(draftPath)) await fs.remove(draftPath);
+        if (await fs.pathExists(draftFile)) await fs.remove(draftFile);
 
         res.json({ success: true });
     } catch (err) {
