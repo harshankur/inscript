@@ -60,5 +60,7 @@
   "poweredBy": "<site>Inscript</site> द्वारा सञ्चालित",
   "footerLegalNotice": "कानुनी सूचना",
   "footerPrivacy": "गोपनीयता",
-  "footerPrivacySettings": "गोपनीयता सेटिङहरू"
+  "footerPrivacySettings": "गोपनीयता सेटिङहरू",
+  "uploadNotAnImage": "PNG, JPEG, GIF, WebP र AVIF तस्बिरहरू मात्र अपलोड गर्न सकिन्छ।",
+  "uploadTooLarge": "यो तस्बिर धेरै ठूलो छ। तस्बिरहरू बढीमा {{size}} MB सम्मको हुन सक्छन्।"
 }

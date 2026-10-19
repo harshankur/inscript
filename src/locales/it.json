@@ -60,5 +60,7 @@
   "poweredBy": "Realizzato con <site>Inscript</site>",
   "footerLegalNotice": "Note legali",
   "footerPrivacy": "Privacy",
-  "footerPrivacySettings": "Impostazioni privacy"
+  "footerPrivacySettings": "Impostazioni privacy",
+  "uploadNotAnImage": "Si possono caricare solo immagini PNG, JPEG, GIF, WebP e AVIF.",
+  "uploadTooLarge": "Questa immagine è troppo grande. Le immagini possono pesare al massimo {{size}} MB."
 }

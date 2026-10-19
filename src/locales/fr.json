@@ -60,5 +60,7 @@
   "poweredBy": "Propulsé par <site>Inscript</site>",
   "footerLegalNotice": "Mentions légales",
   "footerPrivacy": "Confidentialité",
-  "footerPrivacySettings": "Paramètres de confidentialité"
+  "footerPrivacySettings": "Paramètres de confidentialité",
+  "uploadNotAnImage": "Seules les images PNG, JPEG, GIF, WebP et AVIF peuvent être importées.",
+  "uploadTooLarge": "Cette image est trop volumineuse. Les images ne peuvent pas dépasser {{size}} Mo."
 }

@@ -60,5 +60,7 @@
   "poweredBy": "<site>Inscript</site> மூலம் இயங்குகிறது",
   "footerLegalNotice": "சட்ட அறிவிப்பு",
   "footerPrivacy": "தனியுரிமை",
-  "footerPrivacySettings": "தனியுரிமை அமைப்புகள்"
+  "footerPrivacySettings": "தனியுரிமை அமைப்புகள்",
+  "uploadNotAnImage": "PNG, JPEG, GIF, WebP, AVIF படங்களை மட்டுமே பதிவேற்ற முடியும்.",
+  "uploadTooLarge": "இந்தப் படம் மிகப் பெரியது. படங்கள் அதிகபட்சம் {{size}} MB இருக்கலாம்."
 }

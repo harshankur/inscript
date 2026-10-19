@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { corsOrigins, sessionSecret } from './server-config.js';
+import { corsOrigins, pushAllowed, sessionSecret } from './server-config.js';
 
 test('with authentication on, a missing session secret stops the server', () => {
     for (const SESSION_SECRET of [undefined, '', '   ']) {
@@ -30,5 +30,12 @@ test('listed origins are allowed', () => {
 test('anything that is not an exact http(s) origin is refused', () => {
     for (const value of ['*', 'true', 'cms.example.com', 'https://cms.example.com/', 'https://cms.example.com/path', 'ftp://cms.example.com', 'javascript:alert(1)', 'https://CMS.example.com']) {
         assert.throws(() => corsOrigins(value), /CORS_ORIGINS/, value);
+    }
+});
+
+test('pushing is allowed only when ALLOW_PUSH is exactly "true"', () => {
+    assert.equal(pushAllowed({ ALLOW_PUSH: 'true' }), true);
+    for (const ALLOW_PUSH of [undefined, '', 'false', 'TRUE', '1', 'yes']) {
+        assert.equal(pushAllowed({ ALLOW_PUSH }), false, String(ALLOW_PUSH));
     }
 });

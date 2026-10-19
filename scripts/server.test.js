@@ -7,6 +7,7 @@ import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { MAX_IMAGE_UPLOAD_BYTES } from './image-upload.js';
 
 const SERVER = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'server.js');
 const START_TIMEOUT_MS = 15000;
@@ -41,6 +42,9 @@ function runServer(t, folders, env) {
             STATIC_DIR: folders.static,
             DRAFTS_DIR: folders.drafts,
             AUTH_ENABLED: 'false',
+            // Any git command the server runs points at nothing, so a regression in a test can
+            // never commit to or push the repository this checkout sits in.
+            GIT_DIR: path.join(folders.root, 'no-repository'),
             ...env,
         },
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -77,6 +81,14 @@ async function startServer(t, env = {}) {
         }
     }
     throw new Error(`server.js did not start:\n${server.output()}`);
+}
+
+const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+
+function uploadForm(content, name, type) {
+    const form = new FormData();
+    form.append('image', new Blob([content], { type }), name);
+    return { method: 'POST', body: form };
 }
 
 const json = (body) => ({ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
@@ -150,4 +162,52 @@ test('an invalid CORS_ORIGINS stops the server instead of opening access', async
     const server = runServer(t, folders, { SERVER_PORT: String(await freePort()), CORS_ORIGINS: '*' });
     assert.notEqual(await exitCode(server), 0);
     assert.match(server.output(), /CORS_ORIGINS/);
+});
+
+test('only real images can be uploaded, and they get a name and type from the server', async (t) => {
+    const { base, folders } = await startServer(t);
+
+    const res = await fetch(`${base}/api/upload`, uploadForm(PNG, '../../evil.html', 'text/html'));
+    assert.equal(res.status, 200);
+    const { url } = await res.json();
+    assert.match(url, /^\d+-\d+\.png$/);
+    assert.deepEqual(fs.readFileSync(path.join(folders.static, url)), PNG);
+
+    const served = await fetch(`${base}/${url}`);
+    assert.equal(served.headers.get('content-type'), 'image/png');
+    assert.equal(served.headers.get('x-content-type-options'), 'nosniff');
+
+    const attacks = [
+        ['<script>alert(document.cookie)</script>', 'photo.png', 'image/png'],
+        ['<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>', 'logo.svg', 'image/svg+xml'],
+        ['<!doctype html><script>alert(1)</script>', 'page.html', 'text/html'],
+    ];
+    for (const [content, name, type] of attacks) {
+        assert.equal((await fetch(`${base}/api/upload`, uploadForm(content, name, type))).status, 415, name);
+    }
+    assert.deepEqual(fs.readdirSync(folders.static), [url]);
+    assert.equal(fs.existsSync(path.join(folders.root, 'evil.html')), false);
+});
+
+test('an upload over the size limit is refused and not written', async (t) => {
+    const { base, folders } = await startServer(t);
+    const big = Buffer.concat([PNG, Buffer.alloc(MAX_IMAGE_UPLOAD_BYTES)]);
+    assert.equal((await fetch(`${base}/api/upload`, uploadForm(big, 'big.png', 'image/png'))).status, 413);
+    assert.deepEqual(fs.readdirSync(folders.static), []);
+});
+
+test('an SVG already in the static folder is served without the power to run script', async (t) => {
+    const { base, folders } = await startServer(t);
+    fs.writeFileSync(path.join(folders.static, 'icon.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>');
+    const res = await fetch(`${base}/icon.svg`);
+    assert.equal(res.status, 200);
+    assert.match(res.headers.get('content-security-policy'), /sandbox/);
+    assert.match(res.headers.get('content-security-policy'), /default-src 'none'/);
+});
+
+test('the push route refuses unless ALLOW_PUSH is true', async (t) => {
+    for (const ALLOW_PUSH of [undefined, 'false', 'TRUE', '1']) {
+        const { base } = await startServer(t, ALLOW_PUSH === undefined ? {} : { ALLOW_PUSH });
+        assert.equal((await fetch(`${base}/api/git/push`, { method: 'POST' })).status, 403, String(ALLOW_PUSH));
+    }
 });

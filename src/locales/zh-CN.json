@@ -60,5 +60,7 @@
   "poweredBy": "由 <site>Inscript</site> 驱动",
   "footerLegalNotice": "法律声明",
   "footerPrivacy": "隐私",
-  "footerPrivacySettings": "隐私设置"
+  "footerPrivacySettings": "隐私设置",
+  "uploadNotAnImage": "只能上传 PNG、JPEG、GIF、WebP 和 AVIF 格式的图片。",
+  "uploadTooLarge": "图片太大。图片最大为 {{size}} MB。"
 }

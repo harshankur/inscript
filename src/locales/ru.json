@@ -60,5 +60,7 @@
   "poweredBy": "Работает на <site>Inscript</site>",
   "footerLegalNotice": "Правовая информация",
   "footerPrivacy": "Конфиденциальность",
-  "footerPrivacySettings": "Настройки конфиденциальности"
+  "footerPrivacySettings": "Настройки конфиденциальности",
+  "uploadNotAnImage": "Можно загружать только изображения PNG, JPEG, GIF, WebP и AVIF.",
+  "uploadTooLarge": "Это изображение слишком большое. Размер изображения не может превышать {{size}} МБ."
 }

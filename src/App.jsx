@@ -55,6 +55,7 @@ import Login from './components/Login';
 import SiteFooter from './components/SiteFooter';
 import { httpUrl, parseLanguageUrls, resolveFooterConfig, urlForLanguage } from './lib/footerConfig';
 import { loadViewCounting, resolveViewCounting, setViewCountingLanguage, viewCountingOn } from './lib/viewCounting';
+import { withUploadReason } from './lib/uploadError';
 
 // The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
 // Named keys only: passing import.meta.env itself makes Vite write every exposed variable into
@@ -1861,7 +1862,12 @@ const App = () => {
         const formData = new FormData();
         formData.append('image', file);
 
-        await api.post('/api/upload', formData);
+        try {
+            await api.post('/api/upload', formData);
+        } catch (err) {
+            // The media library shows the reason when the server refused the file.
+            throw withUploadReason(err, t);
+        }
         fetchLibraryImages();
     };
 

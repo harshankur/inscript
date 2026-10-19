@@ -36,3 +36,8 @@ export function corsOrigins(value) {
         return entry;
     });
 }
+
+/** Whether the editor may push to the remote. Off unless ALLOW_PUSH is exactly "true". */
+export function pushAllowed(env) {
+    return env.ALLOW_PUSH === 'true';
+}

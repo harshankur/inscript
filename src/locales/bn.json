@@ -60,5 +60,7 @@
   "poweredBy": "<site>Inscript</site> দ্বারা চালিত",
   "footerLegalNotice": "আইনি বিজ্ঞপ্তি",
   "footerPrivacy": "গোপনীয়তা",
-  "footerPrivacySettings": "গোপনীয়তা সেটিংস"
+  "footerPrivacySettings": "গোপনীয়তা সেটিংস",
+  "uploadNotAnImage": "শুধু PNG, JPEG, GIF, WebP ও AVIF ছবি আপলোড করা যায়।",
+  "uploadTooLarge": "ছবিটি খুব বড়। ছবি সর্বোচ্চ {{size}} MB হতে পারে।"
 }

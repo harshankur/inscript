@@ -60,5 +60,7 @@
   "poweredBy": "Aangedryf deur <site>Inscript</site>",
   "footerLegalNotice": "Regskennisgewing",
   "footerPrivacy": "Privaatheid",
-  "footerPrivacySettings": "Privaatheidsinstellings"
+  "footerPrivacySettings": "Privaatheidsinstellings",
+  "uploadNotAnImage": "Slegs PNG-, JPEG-, GIF-, WebP- en AVIF-prente kan opgelaai word.",
+  "uploadTooLarge": "Hierdie prent is te groot. Prente kan hoogstens {{size}} MB wees."
 }

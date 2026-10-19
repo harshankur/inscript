@@ -60,5 +60,7 @@
   "poweredBy": "Betrieben mit <site>Inscript</site>",
   "footerLegalNotice": "Impressum",
   "footerPrivacy": "Datenschutz",
-  "footerPrivacySettings": "Datenschutz-Einstellungen"
+  "footerPrivacySettings": "Datenschutz-Einstellungen",
+  "uploadNotAnImage": "Hochladen lassen sich nur Bilder im Format PNG, JPEG, GIF, WebP oder AVIF.",
+  "uploadTooLarge": "Dieses Bild ist zu groß. Bilder dürfen höchstens {{size}} MB groß sein."
 }

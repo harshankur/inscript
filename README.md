@@ -264,7 +264,7 @@ The build script `npm run setup` validates these before building.
 | `AUTH_PASSWORD_HASH` | No | BCrypt hash of your password. | `$2b$10$...` |
 | `SESSION_SECRET` | With auth | Secret for signing session cookies. Setup generates it; the server will not start with authentication on and no secret. | `(any random string)` |
 | `CORS_ORIGINS` | No | Other sites allowed to call the API, as comma-separated origins. None by default; the editor itself needs none. | `https://cms.me.com` |
-| `ALLOW_PUSH` | No | Enable Git Push from UI (Dangerous). | `false` |
+| `ALLOW_PUSH` | No | Enable Git Push from the UI. The server refuses a push unless this is exactly `true`. | `false` |
 | `FOOTER_COPYRIGHT_HOLDER` | No | Name in the footer's copyright line `<TITLE> © <year> <holder>`. | `Jane Doe` |
 | `FOOTER_COPYRIGHT_URL` | No | Link for that name. | `https://janedoe.com` |
 | `FOOTER_COPYRIGHT_YEAR` | No | Year in the copyright line (the year the site was first published). | `2026` |

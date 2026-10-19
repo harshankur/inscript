@@ -60,5 +60,7 @@
   "poweredBy": "<site>Inscript</site> ద్వారా నడుస్తుంది",
   "footerLegalNotice": "చట్టపరమైన నోటీసు",
   "footerPrivacy": "గోప్యత",
-  "footerPrivacySettings": "గోప్యతా సెట్టింగ్‌లు"
+  "footerPrivacySettings": "గోప్యతా సెట్టింగ్‌లు",
+  "uploadNotAnImage": "PNG, JPEG, GIF, WebP, AVIF చిత్రాలను మాత్రమే అప్‌లోడ్ చేయగలరు.",
+  "uploadTooLarge": "ఈ చిత్రం చాలా పెద్దది. చిత్రాలు గరిష్ఠంగా {{size}} MB ఉండవచ్చు."
 }

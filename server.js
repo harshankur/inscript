@@ -8,14 +8,15 @@ import matter from 'gray-matter';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createHash } from 'crypto';
+import { createHash, randomInt } from 'crypto';
 import { promisify } from 'util';
 import bcrypt from 'bcryptjs';
 import session from 'express-session';
 import { createTurndownService, markdownToHtml } from './scripts/markdown.js';
 import { commitAll, push } from './scripts/git.js';
 import { draftPath, postPath } from './scripts/post-path.js';
-import { corsOrigins, sessionSecret } from './scripts/server-config.js';
+import { corsOrigins, pushAllowed, sessionSecret } from './scripts/server-config.js';
+import { imageExtension, MAX_IMAGE_UPLOAD_BYTES } from './scripts/image-upload.js';
 
 const execAsync = promisify(exec);
 
@@ -137,8 +138,15 @@ app.get('/favicon.png', (req, res) => {
     }
 });
 
-// Serve static files from the configured static directory
-app.use(express.static(STATIC_DIR));
+// Serve static files from the configured static directory. Browsers must not guess another
+// type, and an SVG may not run script or load anything, since these share the editor's address.
+const SVG_POLICY = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox";
+app.use(express.static(STATIC_DIR, {
+    setHeaders: (res, filePath) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        if (path.extname(filePath).toLowerCase() === '.svg') res.setHeader('Content-Security-Policy', SVG_POLICY);
+    }
+}));
 
 // Ensure directories exist
 fs.ensureDirSync(POSTS_DIR);
@@ -154,17 +162,11 @@ const INVALID_FILENAME = 'Invalid post file name';
 // opening the post can tell when the file changed outside Inscript while the draft existed.
 const fileHash = (content) => createHash('sha256').update(content).digest('hex');
 
-// Configure Multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, STATIC_DIR);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
-const upload = multer({ storage });
+// Uploads are held in memory up to MAX_IMAGE_UPLOAD_BYTES, so their content can be checked
+// before anything is written. The saved name and extension come from the server, never the client.
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES, files: 1 } });
+const UPLOAD_FILENAME_RANGE = 1e9;
+const NOT_AN_IMAGE = 'Only PNG, JPEG, GIF, WebP and AVIF images can be uploaded';
 
 // List all posts
 app.get('/api/youtube/search', async (req, res) => {
@@ -466,8 +468,12 @@ app.post('/api/git/commit', async (req, res) => {
     }
 });
 
-// Git Push
+// Git Push, only when ALLOW_PUSH is on: the editor hides the button otherwise, and the
+// server enforces the same setting.
 app.post('/api/git/push', async (req, res) => {
+    if (!pushAllowed(process.env)) {
+        return res.status(403).json({ error: 'Pushing is turned off. Set ALLOW_PUSH=true in .env to allow it.' });
+    }
     try {
         console.log('⬆️ Pushing to remote...');
         const projectRoot = path.join(__dirname, '..');
@@ -495,13 +501,23 @@ app.delete('/api/posts/:filename', async (req, res) => {
 });
 
 // Upload image
-app.post('/api/upload', upload.single('image'), (req, res) => {
-    try {
-        if (!req.file) throw new Error('No file uploaded');
-        res.json({ url: req.file.filename });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+app.post('/api/upload', (req, res) => {
+    upload.single('image')(req, res, async (uploadError) => {
+        if (uploadError) {
+            const tooLarge = uploadError.code === 'LIMIT_FILE_SIZE';
+            return res.status(tooLarge ? 413 : 400).json({ error: tooLarge ? `The image is larger than ${MAX_IMAGE_UPLOAD_BYTES / 1024 / 1024} MB` : uploadError.message });
+        }
+        try {
+            if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+            const extension = imageExtension(req.file.buffer);
+            if (!extension) return res.status(415).json({ error: NOT_AN_IMAGE });
+            const filename = `${Date.now()}-${randomInt(UPLOAD_FILENAME_RANGE)}${extension}`;
+            await fs.writeFile(path.join(STATIC_DIR, filename), req.file.buffer, { flag: 'wx' });
+            res.json({ url: filename });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
 });
 
 // Helper for recursive files
