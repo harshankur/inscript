@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import fs from 'fs-extra';
 import path from 'path';
-import matter from 'gray-matter';
 import { fileURLToPath } from 'url';
 import { markdownToHtml } from './markdown.js';
+import { readPublishedPosts } from './published-posts.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,42 +47,34 @@ async function main() {
         }
     }
 
-    // 3. Process Posts
+    // 3. Process Posts (a post marked `draft: true` is left out, as from the sitemap)
     console.log('Processing posts...');
-    const files = await fs.readdir(POSTS_DIR);
-    const posts = await Promise.all(
-        files.filter(f => f.endsWith('.md')).map(async (filename) => {
-            const filePath = path.join(POSTS_DIR, filename);
-            const content = await fs.readFile(filePath, 'utf8');
-            const stats = await fs.stat(filePath);
-            const { data, content: markdown } = matter(content);
+    const posts = (await readPublishedPosts(POSTS_DIR)).map(({ filename, data, content: markdown, stats }) => {
+        // Convert Markdown to HTML (source comments stay hidden on the published site)
+        const html = markdownToHtml(markdown);
 
-            // Convert Markdown to HTML (source comments stay hidden on the published site)
-            const html = markdownToHtml(markdown);
+        // Use frontmatter created/modified or fallback to file stats
+        const created = data.created
+            ? new Date(data.created).toISOString()
+            : (stats.birthtime || stats.ctime).toISOString();
 
-            // Use frontmatter created/modified or fallback to file stats
-            const created = data.created
-                ? new Date(data.created).toISOString()
-                : (stats.birthtime || stats.ctime).toISOString();
+        const modified = data.modified
+            ? new Date(data.modified).toISOString()
+            : stats.mtime.toISOString();
 
-            const modified = data.modified
-                ? new Date(data.modified).toISOString()
-                : stats.mtime.toISOString();
-
-            return {
-                filename,
-                title: data.title || filename,
-                created,
-                modified,
-                html, // Full content for static preview
-                hasDraft: false, // No drafts in static preview
-                isUnpublished: false,
-                tags: data.tags || [],
-                categories: data.categories || [],
-                type: data.type,
-            };
-        })
-    );
+        return {
+            filename,
+            title: data.title || filename,
+            created,
+            modified,
+            html, // Full content for static preview
+            hasDraft: false, // No drafts in static preview
+            isUnpublished: false,
+            tags: data.tags || [],
+            categories: data.categories || [],
+            type: data.type,
+        };
+    });
 
     // Sort posts (optional, but good for consistency)
     posts.sort((a, b) => new Date(b.created) - new Date(a.created));

@@ -155,8 +155,8 @@ npm run publish
 #### What `npm run publish` does:
 1.  **Setup**: Generates `public/robots.txt` and `public/manifest.json` based on your configuration.
 2.  **Build UI**: Builds the React app in `readonly` mode (no editing features).
-3.  **Generate Data**: Parses all markdown files and creates a `dist/data.json` for your frontend.
-4.  **Sitemap**: Generates a SEO-ready `sitemap.xml`.
+3.  **Generate Data**: Parses all markdown files and creates a `dist/data.json` for your frontend. A post whose frontmatter has `draft: true` is left out, here and in the sitemap.
+4.  **Sitemap**: Generates a SEO-ready `sitemap.xml` from `SITE_URL`, dating each post by its `modified` (else `created`) frontmatter, and adds a `Sitemap:` line pointing at it to `robots.txt` when that names none yet.
 5.  **Assets**: Copies all images from `STATIC_DIR` to `DIST_DIR`.
 
 ## Deployment

@@ -1,9 +1,9 @@
-
 import 'dotenv/config';
 import fs from 'fs-extra';
 import path from 'path';
-import matter from 'gray-matter';
 import { fileURLToPath } from 'url';
+import { readPublishedPosts } from './published-posts.js';
+import { ROBOTS_FILE, SITEMAP_FILE, buildSitemap, robotsWithSitemap, siteRoot, sitemapUrl } from './sitemap.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,63 +16,36 @@ const DIST_DIR_REL = process.env.DIST_DIR;
 
 const POSTS_DIR = path.resolve(INSCRIPT_ROOT, CONTENT_DIR_REL);
 const OUTPUT_DIR = path.resolve(INSCRIPT_ROOT, DIST_DIR_REL);
-const BASE_URL = process.env.SITE_URL;
 
-// Ensure output directory exists
-fs.ensureDirSync(OUTPUT_DIR);
+async function generateSitemap() {
+    console.log(`Generating ${SITEMAP_FILE}...`);
 
-function generateSitemap() {
-    console.log('Generating sitemap.xml...');
+    // A sitemap lists absolute addresses, so without the site's own there is none to write.
+    const root = siteRoot(process.env.SITE_URL);
+    if (!root) {
+        console.warn(`SITE_URL is not an absolute http(s) URL, so no ${SITEMAP_FILE} is written.`);
+        return;
+    }
 
-    // 1. Get all published posts
-    const files = fs.readdirSync(POSTS_DIR).filter(file => file.endsWith('.md'));
-    const posts = [];
+    await fs.ensureDir(OUTPUT_DIR);
+    const posts = await readPublishedPosts(POSTS_DIR);
+    await fs.writeFile(path.join(OUTPUT_DIR, SITEMAP_FILE), buildSitemap(root, posts));
+    console.log(`Sitemap generated with ${posts.length} posts to ${path.join(OUTPUT_DIR, SITEMAP_FILE)}`);
 
-    files.forEach(file => {
-        const filePath = path.join(POSTS_DIR, file);
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
-        const { data, content } = matter(fileContent);
-
-        // Only include published posts
-        if (data.draft !== true) {
-            posts.push({
-                filename: file.replace('.md', ''),
-                lastmod: data.date ? new Date(data.date).toISOString() : new Date().toISOString()
-            });
+    // robots.txt names the sitemap only now that there is one, so a build without this step (the
+    // demo, a plain `vite build`) never publishes a robots.txt pointing at a sitemap it lacks.
+    const robotsPath = path.join(OUTPUT_DIR, ROBOTS_FILE);
+    if (await fs.pathExists(robotsPath)) {
+        const robots = await fs.readFile(robotsPath, 'utf8');
+        const updated = robotsWithSitemap(robots, sitemapUrl(root));
+        if (updated !== robots) {
+            await fs.writeFile(robotsPath, updated);
+            console.log(`Pointed ${ROBOTS_FILE} at the sitemap.`);
         }
-    });
-
-    // 2. Build XML content
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <url>
-        <loc>${BASE_URL}/</loc>
-        <lastmod>${new Date().toISOString()}</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>1.0</priority>
-    </url>
-`;
-
-    posts.forEach(post => {
-        // Construct deep link URL
-        // Currently using query param structure: ?post=filename
-        // Ideally this should match the actual production URL structure
-        const postUrl = `${BASE_URL}/?post=${post.filename}`;
-
-        xml += `    <url>
-        <loc>${postUrl}</loc>
-        <lastmod>${post.lastmod}</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
-    </url>
-`;
-    });
-
-    xml += `</urlset>`;
-
-    // 3. Write to file
-    fs.writeFileSync(path.join(OUTPUT_DIR, 'sitemap.xml'), xml);
-    console.log(`Sitemap generated with ${posts.length} posts to ${OUTPUT_DIR}/sitemap.xml`);
+    }
 }
 
-generateSitemap();
+generateSitemap().catch(err => {
+    console.error('Error generating sitemap:', err);
+    process.exit(1);
+});
