@@ -224,9 +224,7 @@ FOOTER_PRIVACY_LABEL=${envValue(footer.FOOTER_PRIVACY_LABEL, 'FOOTER_PRIVACY_LAB
 # --- View counting ---
 # Counts page views on the published site with your viewcounter instance, after asking each
 # visitor; off while VIEWCOUNTER_URL and VIEWCOUNTER_APP_ID are unset (see .env.example).
-VIEWCOUNTER_URL=${envValue(viewCounting.VIEWCOUNTER_URL, 'VIEWCOUNTER_URL')}
-VIEWCOUNTER_APP_ID=${envValue(viewCounting.VIEWCOUNTER_APP_ID, 'VIEWCOUNTER_APP_ID')}
-VIEWCOUNTER_EDGE=${envValue(viewCounting.VIEWCOUNTER_EDGE, 'VIEWCOUNTER_EDGE')}
+${VIEW_COUNTING_KEYS.map(key => `${key}=${envValue(viewCounting[key], key)}`).join('\n')}
 
 # --- Experimental Features ---
 # Allow push to remote after publishing

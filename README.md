@@ -276,6 +276,7 @@ The build script `npm run setup` validates these before building.
 | `VIEWCOUNTER_URL` | No | Your [viewcounter](https://viewcounter.harshankur.com) instance, to count page views on the published site (see below). | `https://views.janedoe.com` |
 | `VIEWCOUNTER_APP_ID` | No | The app ID the blog's views are stored under in that instance. Set with `VIEWCOUNTER_URL`. | `blog` |
 | `VIEWCOUNTER_EDGE` | No | `true` when viewcounter's edge Worker counts the site's pages without consent, so the consent question says so. Default `false`. | `true` |
+| `VIEWCOUNTER_OPERATOR` | No | Who runs the site, named by the consent question ("This site is run by Jane Doe."). Unset, it names no one; it is not taken from `FOOTER_COPYRIGHT_HOLDER`. One line, up to 100 characters. | `Jane Doe` |
 
 The footer appears under an open post, on the home screen and on the login screen. With no
 `FOOTER_*` set it shows only "Powered by Inscript"; each part appears once it is set. URLs must

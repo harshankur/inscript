@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
+    OPERATOR_MAX_LENGTH,
     PAGE_QUERY,
     PRIVACY_SETTINGS_LABEL_KEY,
     VIEW_COUNTING_KEYS,
@@ -50,6 +51,7 @@ test('with the instance and the app set, the published site asks with consent.js
         hosts: 'blog.harshankur.com',
         privacyUrl: 'https://harshankur.com/datenschutz#blog',
         privacyUrls: {},
+        operator: null,
     });
 });
 
@@ -123,7 +125,12 @@ test('the Privacy settings link reads in every language', () => {
 test('the build exposes the VIEWCOUNTER_ settings to the page, and they are all public', () => {
     const vite = fs.readFileSync(new URL('../../vite.config.js', import.meta.url), 'utf8');
     assert.match(vite, /envPrefix:[^\n]*'VIEWCOUNTER_'/);
-    assert.deepEqual(VIEW_COUNTING_KEYS, ['VIEWCOUNTER_URL', 'VIEWCOUNTER_APP_ID', 'VIEWCOUNTER_EDGE']);
+    assert.deepEqual(VIEW_COUNTING_KEYS, ['VIEWCOUNTER_URL', 'VIEWCOUNTER_APP_ID', 'VIEWCOUNTER_EDGE', 'VIEWCOUNTER_OPERATOR']);
+});
+
+test('the published app passes every VIEWCOUNTER_ setting on to resolveViewCounting', () => {
+    const app = fs.readFileSync(new URL('../App.jsx', import.meta.url), 'utf8');
+    for (const key of VIEW_COUNTING_KEYS) assert.ok(app.includes(`${key}: import.meta.env.${key},`), key);
 });
 
 test('the consent question links the privacy notice in the visitor\'s language, and follows a change of language', () => {
@@ -141,4 +148,61 @@ test('the consent question links the privacy notice in the visitor\'s language, 
     assert.equal(script.attributes['data-privacy-url'], 'https://harshankur.com/datenschutz#en-blog');
     setViewCountingLanguage(config, 'de', doc);
     assert.equal(script.attributes['data-privacy-url'], 'https://harshankur.com/datenschutz#blog');
+});
+
+const OPERATED = { ...ON, VIEWCOUNTER_OPERATOR: '  Harsh Ankur  ' };
+
+test('with an operator set, the consent question names who runs the site', () => {
+    const config = resolveViewCounting(OPERATED);
+    assert.equal(config.operator, 'Harsh Ankur');
+    assert.equal(consentScriptAttributes(config)['data-operator'], 'Harsh Ankur');
+    const doc = fakeDocument();
+    loadViewCounting(config, 'en', doc);
+    assert.equal(doc.appended[0].attributes['data-operator'], 'Harsh Ankur');
+});
+
+test('without an operator, or a blank one, the consent script gets no data-operator', () => {
+    for (const env of [ON, { ...ON, VIEWCOUNTER_OPERATOR: '' }, { ...ON, VIEWCOUNTER_OPERATOR: '   ' }]) {
+        const config = resolveViewCounting(env);
+        assert.equal(config.operator, null);
+        assert.equal('data-operator' in consentScriptAttributes(config), false);
+    }
+});
+
+test('the operator is never taken from the copyright holder', () => {
+    const config = resolveViewCounting({ ...ON, FOOTER_COPYRIGHT_HOLDER: 'Harsh Ankur' });
+    assert.equal(config.operator, null);
+    assert.equal('data-operator' in consentScriptAttributes(config), false);
+});
+
+test('an operator is one line of up to OPERATOR_MAX_LENGTH characters', () => {
+    assert.equal(OPERATOR_MAX_LENGTH, 100);
+    const longest = 'ä'.repeat(OPERATOR_MAX_LENGTH);
+    assert.deepEqual(viewCountingErrors({ ...ON, VIEWCOUNTER_OPERATOR: longest }), []);
+    assert.equal(resolveViewCounting({ ...ON, VIEWCOUNTER_OPERATOR: longest }).operator, longest);
+    // Characters, not UTF-16 units: 100 emoji are 200 units and still fit.
+    assert.deepEqual(viewCountingErrors({ ...ON, VIEWCOUNTER_OPERATOR: '🙂'.repeat(OPERATOR_MAX_LENGTH) }), []);
+    const cases = [
+        ['a'.repeat(OPERATOR_MAX_LENGTH + 1), `VIEWCOUNTER_OPERATOR may be up to ${OPERATOR_MAX_LENGTH} characters long, got ${OPERATOR_MAX_LENGTH + 1}`],
+        ['Harsh\nAnkur', 'VIEWCOUNTER_OPERATOR must be a single line of text, without tabs or other control characters'],
+        ['Harsh\rAnkur', 'VIEWCOUNTER_OPERATOR must be a single line of text, without tabs or other control characters'],
+        ['Harsh\tAnkur', 'VIEWCOUNTER_OPERATOR must be a single line of text, without tabs or other control characters'],
+        ['Harsh\u0085Ankur', 'VIEWCOUNTER_OPERATOR must be a single line of text, without tabs or other control characters'],
+    ];
+    for (const [operator, message] of cases) {
+        assert.deepEqual(viewCountingErrors({ ...ON, VIEWCOUNTER_OPERATOR: operator }), [message]);
+        assert.equal(resolveViewCounting({ ...ON, VIEWCOUNTER_OPERATOR: operator }), null);
+    }
+});
+
+test('the operator alone turns nothing on', () => {
+    assert.deepEqual(viewCountingErrors({ VIEWCOUNTER_OPERATOR: 'Harsh Ankur' }), []);
+    assert.equal(resolveViewCounting({ VIEWCOUNTER_OPERATOR: 'Harsh Ankur' }), null);
+});
+
+test('.env.example and the README state the operator\'s length limit', () => {
+    const example = fs.readFileSync(new URL('../../.env.example', import.meta.url), 'utf8');
+    const readme = fs.readFileSync(new URL('../../README.md', import.meta.url), 'utf8');
+    assert.match(example, new RegExp(`up to ${OPERATOR_MAX_LENGTH} characters[\\s\\S]*\\nVIEWCOUNTER_OPERATOR=\\n`));
+    assert.match(readme, new RegExp(`\\| \`VIEWCOUNTER_OPERATOR\` \\|[^\\n]*up to ${OPERATOR_MAX_LENGTH} characters`));
 });

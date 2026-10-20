@@ -7,7 +7,11 @@
 
 import { httpUrl, parseLanguageUrls, urlForLanguage } from './footerConfig.js';
 
-export const VIEW_COUNTING_KEYS = ['VIEWCOUNTER_URL', 'VIEWCOUNTER_APP_ID', 'VIEWCOUNTER_EDGE'];
+export const VIEW_COUNTING_KEYS = ['VIEWCOUNTER_URL', 'VIEWCOUNTER_APP_ID', 'VIEWCOUNTER_EDGE', 'VIEWCOUNTER_OPERATOR'];
+
+// The longest VIEWCOUNTER_OPERATOR, in characters: a person's or a company's name, which the
+// consent question shows in one sentence.
+export const OPERATOR_MAX_LENGTH = 100;
 
 // The i18n key (src/locales/<lang>.json) of the footer link that reopens the consent question.
 export const PRIVACY_SETTINGS_LABEL_KEY = 'footerPrivacySettings';
@@ -19,6 +23,9 @@ export const PAGE_QUERY = 'post';
 // As viewcounter accepts an app ID.
 const APP_ID = /^[A-Za-z0-9_-]{1,64}$/;
 
+// A line break, a tab or any other control character, none of which belongs in a name.
+const CONTROL_CHARACTER = /[\u0000-\u001f\u007f-\u009f]/;
+
 const text = (value) => (typeof value === 'string' ? value.trim() : '');
 
 // One message per setting that is set but cannot work, and one when only half is set.
@@ -27,17 +34,23 @@ export function viewCountingErrors(env = {}) {
     const url = text(env.VIEWCOUNTER_URL);
     const appId = text(env.VIEWCOUNTER_APP_ID);
     const edge = text(env.VIEWCOUNTER_EDGE);
+    const operator = text(env.VIEWCOUNTER_OPERATOR);
     if (url && !httpUrl(url)) errors.push(`VIEWCOUNTER_URL must be an absolute http(s) URL, got "${url}"`);
     if (appId && !APP_ID.test(appId)) errors.push(`VIEWCOUNTER_APP_ID may hold only letters, digits, _ and - (up to 64), got "${appId}"`);
     if (Boolean(url) !== Boolean(appId)) errors.push('VIEWCOUNTER_URL and VIEWCOUNTER_APP_ID are set together or not at all');
     if (edge && edge !== 'true' && edge !== 'false') errors.push(`VIEWCOUNTER_EDGE must be true or false, got "${edge}"`);
+    if (CONTROL_CHARACTER.test(operator)) errors.push('VIEWCOUNTER_OPERATOR must be a single line of text, without tabs or other control characters');
+    if ([...operator].length > OPERATOR_MAX_LENGTH) errors.push(`VIEWCOUNTER_OPERATOR may be up to ${OPERATOR_MAX_LENGTH} characters long, got ${[...operator].length}`);
     return errors;
 }
 
 // The counting settings, or null when counting is off (or set wrongly, which setup refuses).
 // `hosts` is SITE_URL's hostname, so the question is only ever asked on the published site and
 // never on a preview or a local build; `privacyUrl` and `privacyUrls` are the footer's privacy
-// notice, the second by language (FOOTER_PRIVACY_URLS).
+// notice, the second by language (FOOTER_PRIVACY_URLS). `operator` is who runs the site
+// (VIEWCOUNTER_OPERATOR), which the question names; null when unset. It is set on its own and
+// never taken from FOOTER_COPYRIGHT_HOLDER: who holds the copyright is not always who runs the
+// site, and the question must not name the wrong one.
 export function resolveViewCounting(env = {}) {
     if (viewCountingErrors(env).length) return null;
     const base = httpUrl(env.VIEWCOUNTER_URL);
@@ -56,6 +69,7 @@ export function resolveViewCounting(env = {}) {
         hosts,
         privacyUrl: httpUrl(env.FOOTER_PRIVACY_URL),
         privacyUrls: parseLanguageUrls(env.FOOTER_PRIVACY_URLS).urls,
+        operator: text(env.VIEWCOUNTER_OPERATOR) || null,
     };
 }
 
@@ -84,6 +98,9 @@ export function consentScriptAttributes(config, language) {
         'data-edge': config.edge ? 'true' : 'false',
     };
     if (config.hosts) attributes['data-hosts'] = config.hosts;
+    // consent.js then says who runs the site before it asks; a consent.js from before
+    // data-operator ignores the attribute.
+    if (config.operator) attributes['data-operator'] = config.operator;
     const privacyUrl = privacyUrlFor(config, language);
     if (privacyUrl) attributes['data-privacy-url'] = privacyUrl;
     return attributes;

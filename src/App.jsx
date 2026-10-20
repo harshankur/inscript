@@ -83,6 +83,7 @@ const VIEW_COUNTING = import.meta.env.MODE === 'readonly'
         VIEWCOUNTER_URL: import.meta.env.VIEWCOUNTER_URL,
         VIEWCOUNTER_APP_ID: import.meta.env.VIEWCOUNTER_APP_ID,
         VIEWCOUNTER_EDGE: import.meta.env.VIEWCOUNTER_EDGE,
+        VIEWCOUNTER_OPERATOR: import.meta.env.VIEWCOUNTER_OPERATOR,
         SITE_URL: import.meta.env.SITE_URL,
         FOOTER_PRIVACY_URL: import.meta.env.FOOTER_PRIVACY_URL,
         FOOTER_PRIVACY_URLS: import.meta.env.FOOTER_PRIVACY_URLS,

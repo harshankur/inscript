@@ -109,3 +109,49 @@ test('a normal setup still writes .env from the environment and the existing .en
     // robots.txt names no sitemap: the publish step adds it with the sitemap.
     assert.equal(read(root, 'public/robots.txt'), 'User-agent: *\nAllow: /\n');
 });
+
+// What a build service sets so that setup asks nothing.
+const BUILD_ENV = {
+    SITE_URL: 'https://blog.example.org',
+    FAVICON: 'favicon.png',
+    DRAFTS_DIR: '../drafts',
+    DIST_DIR: '../dist',
+    SERVER_PORT: '3001',
+    CLIENT_PORT: '5173',
+    ALLOWED_HOSTS: 'true',
+};
+const COUNTING_ENV = { VIEWCOUNTER_URL: 'https://views.example.com', VIEWCOUNTER_APP_ID: 'blog', VIEWCOUNTER_EDGE: 'true' };
+
+test('setup carries the view counting settings into .env, the operator with them', async () => {
+    const root = checkout({ '.env': DEVELOPER_ENV });
+    await setup(root, { ...BUILD_ENV, ...COUNTING_ENV, VIEWCOUNTER_OPERATOR: 'Jane Doe' });
+    const env = read(root, '.env');
+    assert.match(env, /^VIEWCOUNTER_URL=https:\/\/views\.example\.com$/m);
+    assert.match(env, /^VIEWCOUNTER_APP_ID=blog$/m);
+    assert.match(env, /^VIEWCOUNTER_EDGE=true$/m);
+    assert.match(env, /^VIEWCOUNTER_OPERATOR=Jane Doe$/m);
+});
+
+test('setup keeps the operator an existing .env sets, and writes it empty when none is set', async () => {
+    const kept = checkout({ '.env': `${DEVELOPER_ENV}VIEWCOUNTER_OPERATOR="Jane Doe & Co #1"\n` });
+    await setup(kept, BUILD_ENV);
+    assert.match(read(kept, '.env'), /^VIEWCOUNTER_OPERATOR="Jane Doe & Co #1"$/m);
+    const unset = checkout({ '.env': DEVELOPER_ENV });
+    await setup(unset, BUILD_ENV);
+    assert.match(read(unset, '.env'), /^VIEWCOUNTER_OPERATOR=$/m);
+});
+
+test('setup refuses an operator of more than one line, and leaves .env as it was', async () => {
+    const root = checkout({ '.env': DEVELOPER_ENV });
+    await assert.rejects(
+        setup(root, { ...BUILD_ENV, ...COUNTING_ENV, VIEWCOUNTER_OPERATOR: 'Jane\nDoe' }),
+        (err) => /VIEWCOUNTER_OPERATOR must be a single line/.test(err.stderr),
+    );
+    assert.equal(read(root, '.env'), DEVELOPER_ENV);
+});
+
+test('the demo build still writes no .env, whatever operator the environment sets', async () => {
+    const root = checkout({ '.env.demo': DEMO_ENV });
+    await setup(root, { DEMO_MODE: 'true', VIEWCOUNTER_OPERATOR: 'Jane Doe' });
+    assert.equal(exists(root, '.env'), false);
+});
