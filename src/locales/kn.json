@@ -62,5 +62,19 @@
   "footerPrivacy": "ಗೌಪ್ಯತೆ",
   "footerPrivacySettings": "ಗೌಪ್ಯತಾ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
   "uploadNotAnImage": "PNG, JPEG, GIF, WebP ಮತ್ತು AVIF ಚಿತ್ರಗಳನ್ನು ಮಾತ್ರ ಅಪ್‌ಲೋಡ್ ಮಾಡಬಹುದು.",
-  "uploadTooLarge": "ಈ ಚಿತ್ರ ತುಂಬಾ ದೊಡ್ಡದಾಗಿದೆ. ಚಿತ್ರಗಳು ಗರಿಷ್ಠ {{size}} MB ಇರಬಹುದು."
+  "uploadTooLarge": "ಈ ಚಿತ್ರ ತುಂಬಾ ದೊಡ್ಡದಾಗಿದೆ. ಚಿತ್ರಗಳು ಗರಿಷ್ಠ {{size}} MB ಇರಬಹುದು.",
+  "editorSettings": "ಸಂಪಾದಕ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+  "resetToDefaults": "ಡಿಫಾಲ್ಟ್‌ಗೆ ಮರುಹೊಂದಿಸಿ",
+  "lineWidth": "ಸಾಲಿನ ಅಗಲ",
+  "lineWidthNarrow": "ಕಿರಿದು",
+  "lineWidthComfortable": "ಆರಾಮದಾಯಕ",
+  "lineWidthWide": "ಅಗಲ",
+  "lineWidthFull": "ಹೆಚ್ಚು ಅಗಲ",
+  "textSize": "ಪಠ್ಯದ ಗಾತ್ರ",
+  "focusWidthSame": "ಅದೇ ಅಗಲ",
+  "focusWidthCustom": "ಸ್ವಂತ ಅಗಲ",
+  "focusWidthSlider": "ಫೋಕಸ್ ಮೋಡ್‌ನಲ್ಲಿ ಸಾಲಿನ ಅಗಲ",
+  "focusDim": "ಉಳಿದ ಪ್ಯಾರಾಗಳನ್ನು ಮಂದಗೊಳಿಸಿ",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

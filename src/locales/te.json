@@ -62,5 +62,19 @@
   "footerPrivacy": "గోప్యత",
   "footerPrivacySettings": "గోప్యతా సెట్టింగ్‌లు",
   "uploadNotAnImage": "PNG, JPEG, GIF, WebP, AVIF చిత్రాలను మాత్రమే అప్‌లోడ్ చేయగలరు.",
-  "uploadTooLarge": "ఈ చిత్రం చాలా పెద్దది. చిత్రాలు గరిష్ఠంగా {{size}} MB ఉండవచ్చు."
+  "uploadTooLarge": "ఈ చిత్రం చాలా పెద్దది. చిత్రాలు గరిష్ఠంగా {{size}} MB ఉండవచ్చు.",
+  "editorSettings": "ఎడిటర్ సెట్టింగులు",
+  "resetToDefaults": "డిఫాల్ట్‌లకు రీసెట్ చేయి",
+  "lineWidth": "పంక్తి వెడల్పు",
+  "lineWidthNarrow": "ఇరుకు",
+  "lineWidthComfortable": "సౌకర్యవంతం",
+  "lineWidthWide": "వెడల్పు",
+  "lineWidthFull": "అదనపు వెడల్పు",
+  "textSize": "టెక్స్ట్ పరిమాణం",
+  "focusWidthSame": "అదే వెడల్పు",
+  "focusWidthCustom": "సొంత వెడల్పు",
+  "focusWidthSlider": "ఫోకస్ మోడ్‌లో పంక్తి వెడల్పు",
+  "focusDim": "ఇతర పేరాలను మసకబార్చు",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

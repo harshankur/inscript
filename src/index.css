@@ -33,4 +33,42 @@
   }
 }
 
-
+/* The editor settings' sliders: one look in every browser and in both themes. The part before the
+   thumb is filled (--range-progress is set from the value), the part after is the track. */
+.inscript-range {
+  --range-fill: #10b981;
+  --range-track: #d4d4d8;
+  --range-ring: #fafafa;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: linear-gradient(to right, var(--range-fill) var(--range-progress, 0%), var(--range-track) var(--range-progress, 0%));
+  cursor: pointer;
+}
+.dark .inscript-range {
+  --range-track: #3f3f46;
+  --range-ring: #18181b;
+}
+.inscript-range:disabled { cursor: not-allowed; }
+.inscript-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: var(--range-fill);
+  box-shadow: 0 0 0 2px var(--range-ring);
+}
+.inscript-range::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--range-fill);
+  box-shadow: 0 0 0 2px var(--range-ring);
+}
+.inscript-range:focus-visible {
+  outline: 2px solid var(--range-fill);
+  outline-offset: 4px;
+}

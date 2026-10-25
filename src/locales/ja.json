@@ -62,5 +62,19 @@
   "footerPrivacy": "プライバシー",
   "footerPrivacySettings": "プライバシー設定",
   "uploadNotAnImage": "アップロードできるのは PNG、JPEG、GIF、WebP、AVIF 形式の画像のみです。",
-  "uploadTooLarge": "この画像は大きすぎます。画像のサイズは {{size}} MB までです。"
+  "uploadTooLarge": "この画像は大きすぎます。画像のサイズは {{size}} MB までです。",
+  "editorSettings": "エディター設定",
+  "resetToDefaults": "初期設定に戻す",
+  "lineWidth": "行の幅",
+  "lineWidthNarrow": "狭め",
+  "lineWidthComfortable": "標準的",
+  "lineWidthWide": "広め",
+  "lineWidthFull": "かなり広め",
+  "textSize": "文字サイズ",
+  "focusWidthSame": "同じ幅",
+  "focusWidthCustom": "専用の幅",
+  "focusWidthSlider": "集中モードの行の幅",
+  "focusDim": "ほかの段落を暗くする",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

@@ -62,5 +62,19 @@
   "footerPrivacy": "தனியுரிமை",
   "footerPrivacySettings": "தனியுரிமை அமைப்புகள்",
   "uploadNotAnImage": "PNG, JPEG, GIF, WebP, AVIF படங்களை மட்டுமே பதிவேற்ற முடியும்.",
-  "uploadTooLarge": "இந்தப் படம் மிகப் பெரியது. படங்கள் அதிகபட்சம் {{size}} MB இருக்கலாம்."
+  "uploadTooLarge": "இந்தப் படம் மிகப் பெரியது. படங்கள் அதிகபட்சம் {{size}} MB இருக்கலாம்.",
+  "editorSettings": "எடிட்டர் அமைப்புகள்",
+  "resetToDefaults": "இயல்புநிலைக்கு மீட்டமை",
+  "lineWidth": "வரி அகலம்",
+  "lineWidthNarrow": "குறுகலானது",
+  "lineWidthComfortable": "வசதியானது",
+  "lineWidthWide": "அகலமானது",
+  "lineWidthFull": "மிக அகலமானது",
+  "textSize": "எழுத்து அளவு",
+  "focusWidthSame": "அதே அகலம்",
+  "focusWidthCustom": "தனி அகலம்",
+  "focusWidthSlider": "கவன முறையில் வரி அகலம்",
+  "focusDim": "மற்ற பத்திகளை மங்கலாக்கு",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

@@ -62,5 +62,19 @@
   "footerPrivacy": "സ്വകാര്യത",
   "footerPrivacySettings": "സ്വകാര്യതാ ക്രമീകരണങ്ങൾ",
   "uploadNotAnImage": "PNG, JPEG, GIF, WebP, AVIF ചിത്രങ്ങൾ മാത്രമേ അപ്‌ലോഡ് ചെയ്യാനാകൂ.",
-  "uploadTooLarge": "ഈ ചിത്രം വളരെ വലുതാണ്. ചിത്രങ്ങൾക്ക് പരമാവധി {{size}} MB വരെയാകാം."
+  "uploadTooLarge": "ഈ ചിത്രം വളരെ വലുതാണ്. ചിത്രങ്ങൾക്ക് പരമാവധി {{size}} MB വരെയാകാം.",
+  "editorSettings": "എഡിറ്റർ ക്രമീകരണങ്ങൾ",
+  "resetToDefaults": "സ്ഥിരസ്ഥിതിയിലേക്ക് പുനഃസജ്ജമാക്കുക",
+  "lineWidth": "വരിയുടെ വീതി",
+  "lineWidthNarrow": "ഇടുങ്ങിയത്",
+  "lineWidthComfortable": "സൗകര്യപ്രദം",
+  "lineWidthWide": "വീതിയുള്ളത്",
+  "lineWidthFull": "വളരെ വീതിയുള്ളത്",
+  "textSize": "അക്ഷര വലുപ്പം",
+  "focusWidthSame": "അതേ വീതി",
+  "focusWidthCustom": "സ്വന്തം വീതി",
+  "focusWidthSlider": "ഫോക്കസ് മോഡിലെ വരിയുടെ വീതി",
+  "focusDim": "മറ്റ് ഖണ്ഡികകൾ മങ്ങിക്കുക",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

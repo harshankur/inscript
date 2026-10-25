@@ -62,5 +62,19 @@
   "footerPrivacy": "Конфиденциальность",
   "footerPrivacySettings": "Настройки конфиденциальности",
   "uploadNotAnImage": "Можно загружать только изображения PNG, JPEG, GIF, WebP и AVIF.",
-  "uploadTooLarge": "Это изображение слишком большое. Размер изображения не может превышать {{size}} МБ."
+  "uploadTooLarge": "Это изображение слишком большое. Размер изображения не может превышать {{size}} МБ.",
+  "editorSettings": "Настройки редактора",
+  "resetToDefaults": "Сбросить настройки",
+  "lineWidth": "Ширина строки",
+  "lineWidthNarrow": "Узкая",
+  "lineWidthComfortable": "Удобная",
+  "lineWidthWide": "Широкая",
+  "lineWidthFull": "Очень широкая",
+  "textSize": "Размер текста",
+  "focusWidthSame": "Та же ширина",
+  "focusWidthCustom": "Своя ширина",
+  "focusWidthSlider": "Ширина строки в режиме фокусировки",
+  "focusDim": "Приглушать остальные абзацы",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

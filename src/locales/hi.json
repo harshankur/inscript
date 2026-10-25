@@ -62,5 +62,19 @@
   "footerPrivacy": "गोपनीयता",
   "footerPrivacySettings": "गोपनीयता सेटिंग्स",
   "uploadNotAnImage": "केवल PNG, JPEG, GIF, WebP और AVIF चित्र ही अपलोड किए जा सकते हैं।",
-  "uploadTooLarge": "यह चित्र बहुत बड़ा है। चित्र अधिकतम {{size}} MB का हो सकता है।"
+  "uploadTooLarge": "यह चित्र बहुत बड़ा है। चित्र अधिकतम {{size}} MB का हो सकता है।",
+  "editorSettings": "संपादक सेटिंग्स",
+  "resetToDefaults": "डिफ़ॉल्ट पर रीसेट करें",
+  "lineWidth": "पंक्ति की चौड़ाई",
+  "lineWidthNarrow": "संकरी",
+  "lineWidthComfortable": "आरामदायक",
+  "lineWidthWide": "चौड़ी",
+  "lineWidthFull": "बहुत चौड़ी",
+  "textSize": "टेक्स्ट का आकार",
+  "focusWidthSame": "समान चौड़ाई",
+  "focusWidthCustom": "अपनी चौड़ाई",
+  "focusWidthSlider": "फ़ोकस मोड में पंक्ति की चौड़ाई",
+  "focusDim": "बाकी अनुच्छेद धुंधले करें",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

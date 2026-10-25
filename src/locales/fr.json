@@ -62,5 +62,19 @@
   "footerPrivacy": "Confidentialité",
   "footerPrivacySettings": "Paramètres de confidentialité",
   "uploadNotAnImage": "Seules les images PNG, JPEG, GIF, WebP et AVIF peuvent être importées.",
-  "uploadTooLarge": "Cette image est trop volumineuse. Les images ne peuvent pas dépasser {{size}} Mo."
+  "uploadTooLarge": "Cette image est trop volumineuse. Les images ne peuvent pas dépasser {{size}} Mo.",
+  "editorSettings": "Paramètres de l'éditeur",
+  "resetToDefaults": "Réinitialiser",
+  "lineWidth": "Largeur de ligne",
+  "lineWidthNarrow": "Étroite",
+  "lineWidthComfortable": "Confortable",
+  "lineWidthWide": "Large",
+  "lineWidthFull": "Très large",
+  "textSize": "Taille du texte",
+  "focusWidthSame": "Même largeur",
+  "focusWidthCustom": "Largeur propre",
+  "focusWidthSlider": "Largeur de ligne en mode concentration",
+  "focusDim": "Atténuer les autres paragraphes",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}} %"
 }

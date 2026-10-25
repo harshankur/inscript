@@ -62,5 +62,19 @@
   "footerPrivacy": "গোপনীয়তা",
   "footerPrivacySettings": "গোপনীয়তা সেটিংস",
   "uploadNotAnImage": "শুধু PNG, JPEG, GIF, WebP ও AVIF ছবি আপলোড করা যায়।",
-  "uploadTooLarge": "ছবিটি খুব বড়। ছবি সর্বোচ্চ {{size}} MB হতে পারে।"
+  "uploadTooLarge": "ছবিটি খুব বড়। ছবি সর্বোচ্চ {{size}} MB হতে পারে।",
+  "editorSettings": "এডিটর সেটিংস",
+  "resetToDefaults": "ডিফল্টে রিসেট করুন",
+  "lineWidth": "লাইনের প্রস্থ",
+  "lineWidthNarrow": "সরু",
+  "lineWidthComfortable": "আরামদায়ক",
+  "lineWidthWide": "চওড়া",
+  "lineWidthFull": "অতি চওড়া",
+  "textSize": "লেখার আকার",
+  "focusWidthSame": "একই প্রস্থ",
+  "focusWidthCustom": "নিজস্ব প্রস্থ",
+  "focusWidthSlider": "ফোকাস মোডে লাইনের প্রস্থ",
+  "focusDim": "অন্য অনুচ্ছেদ ঝাপসা করুন",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

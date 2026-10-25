@@ -62,5 +62,19 @@
   "footerPrivacy": "隐私",
   "footerPrivacySettings": "隐私设置",
   "uploadNotAnImage": "只能上传 PNG、JPEG、GIF、WebP 和 AVIF 格式的图片。",
-  "uploadTooLarge": "图片太大。图片最大为 {{size}} MB。"
+  "uploadTooLarge": "图片太大。图片最大为 {{size}} MB。",
+  "editorSettings": "编辑器设置",
+  "resetToDefaults": "恢复默认",
+  "lineWidth": "行宽",
+  "lineWidthNarrow": "窄",
+  "lineWidthComfortable": "适中",
+  "lineWidthWide": "宽",
+  "lineWidthFull": "特宽",
+  "textSize": "文字大小",
+  "focusWidthSame": "相同宽度",
+  "focusWidthCustom": "独立宽度",
+  "focusWidthSlider": "专注模式行宽",
+  "focusDim": "淡化其他段落",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

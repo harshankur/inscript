@@ -62,5 +62,19 @@
   "footerPrivacy": "Privacy",
   "footerPrivacySettings": "Impostazioni privacy",
   "uploadNotAnImage": "Si possono caricare solo immagini PNG, JPEG, GIF, WebP e AVIF.",
-  "uploadTooLarge": "Questa immagine è troppo grande. Le immagini possono pesare al massimo {{size}} MB."
+  "uploadTooLarge": "Questa immagine è troppo grande. Le immagini possono pesare al massimo {{size}} MB.",
+  "editorSettings": "Impostazioni editor",
+  "resetToDefaults": "Ripristina predefiniti",
+  "lineWidth": "Larghezza riga",
+  "lineWidthNarrow": "Stretta",
+  "lineWidthComfortable": "Comoda",
+  "lineWidthWide": "Larga",
+  "lineWidthFull": "Molto larga",
+  "textSize": "Dimensione testo",
+  "focusWidthSame": "Stessa larghezza",
+  "focusWidthCustom": "Larghezza propria",
+  "focusWidthSlider": "Larghezza riga in modalità focus",
+  "focusDim": "Attenua gli altri paragrafi",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

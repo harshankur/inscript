@@ -57,6 +57,12 @@ import { httpUrl, parseLanguageUrls, resolveFooterConfig, urlForLanguage } from 
 import { loadViewCounting, resolveViewCounting, setViewCountingLanguage, viewCountingOn } from './lib/viewCounting';
 import { siteTitle } from './lib/siteTitle';
 import { displayTitle, editableTitle } from './lib/postTitle';
+import {
+    clearEditorSettings, DEFAULT_EDITOR_SETTINGS, editorViewFor, isDefaultEditorSettings,
+    readEditorSettings, updateEditorSettings, writeEditorSettings,
+} from './lib/editorSettings';
+import { measureColumnWidth } from './lib/editorColumn';
+import EditorSettings from './components/EditorSettings';
 import { withUploadReason } from './lib/uploadError';
 
 // The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
@@ -1134,10 +1140,30 @@ const App = () => {
         } catch (e) { /* storage unavailable */ }
     }, []);
 
-    // Focus mode hides the toolbar, both sidebars and the rail, and narrows the column.
-    // It applies only while a post is open for editing, so it can't strand the empty state.
+    // Focus mode hides the toolbar, both sidebars and the rail, and dims the paragraphs around
+    // the one being written. The column keeps the editor's width unless the editor settings
+    // give focus mode a narrower one. It applies only while a post is open for editing, so it
+    // can't strand the empty state.
     const [focusMode, setFocusMode] = useState(false);
     const inFocus = focusMode && !!filename && !isReadonly && !showDiff;
+    // How the writing column looks (line width, text size, focus mode): a view preference kept
+    // in this browser, never part of a post (lib/editorSettings.js).
+    const [editorSettings, setEditorSettings] = useState(() => readEditorSettings(localStorage));
+    // The width the column had when focus mode was entered, which focus mode keeps.
+    const [focusColumnWidth, setFocusColumnWidth] = useState(null);
+    const editorView = useMemo(() => editorViewFor(editorSettings, focusColumnWidth), [editorSettings, focusColumnWidth]);
+    const changeEditorSettings = (patch) => {
+        const next = updateEditorSettings(editorSettings, patch);
+        setEditorSettings(next);
+        writeEditorSettings(localStorage, next);
+        // A new width is what the author asked for, in focus mode too.
+        if ('lineWidth' in patch) setFocusColumnWidth(null);
+    };
+    const resetEditorSettings = () => {
+        clearEditorSettings(localStorage);
+        setEditorSettings(updateEditorSettings(DEFAULT_EDITOR_SETTINGS, {}));
+        setFocusColumnWidth(null);
+    };
     // The editor column: the toolbar customizer opens inside it instead of over the page.
     const [editorPaneEl, setEditorPaneEl] = useState(null);
 
@@ -2610,6 +2636,7 @@ const App = () => {
                                     <button
                                         onClick={() => {
                                             const next = !inFocus;
+                                            if (next) setFocusColumnWidth(measureColumnWidth(editorPaneEl));
                                             setFocusMode(next);
                                             if (next) setShowDiff(false);
                                         }}
@@ -2620,6 +2647,12 @@ const App = () => {
                                     >
                                         <Focus size={20} />
                                     </button>
+                                    <EditorSettings
+                                        settings={editorSettings}
+                                        onChange={changeEditorSettings}
+                                        onReset={resetEditorSettings}
+                                        isDefault={isDefaultEditorSettings(editorSettings)}
+                                    />
                                     <div className="flex items-center gap-1 md:mr-4 bg-zinc-50 dark:bg-zinc-900 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800">
                                         <button
                                             onClick={() => setShowDiff(false)}
@@ -2676,6 +2709,8 @@ const App = () => {
                                     isReadonly={isReadonly}
                                     showDiff={showDiff}
                                     focusMode={inFocus}
+                                    theme={editorView.theme}
+                                    focusDim={editorView.focusDim}
                                     customizerContainer={editorPaneEl}
                                     history={history}
                                     historyIndex={historyIndex}

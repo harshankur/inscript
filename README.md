@@ -32,7 +32,8 @@ Try the editor in your browser without installing anything!
 -   **Writing Tools**: Checklists, tables, citations, footnotes, math, Mermaid diagrams, and wikilinks that link one post to another by its title.
 -   **Hidden Comments**: `<!-- notes -->` in a post show as a chip while you edit and never appear to readers.
 -   **Outline & Minimap**: A side rail with a clickable outline of the post's headings, or a minimap of the whole post.
--   **Focus Mode**: Hides everything but the text you're writing.
+-   **Focus Mode**: Hides everything but the text you're writing. The column keeps the width it had, so the text does not wrap anywhere else.
+-   **Editor Settings**: The sliders button beside Focus Mode sets the line width, the text size, and whether focus mode keeps the editor's width or has a column of its own. They are a view preference, kept in your browser and never part of a post.
 -   **Customizable Toolbar**: Choose which tools appear in the toolbar and the selection menu.
 -   **Theme-Aware**: Content automatically adjusts for dark mode, ensuring perfect readability.
 -   **WYSIWYG**: The look and feel of the CMS is exactly the same as the published blog. It is essentially the same application, ensuring there are no surprises in the final UI.

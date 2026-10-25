@@ -62,5 +62,19 @@
   "footerPrivacy": "Privaatheid",
   "footerPrivacySettings": "Privaatheidsinstellings",
   "uploadNotAnImage": "Slegs PNG-, JPEG-, GIF-, WebP- en AVIF-prente kan opgelaai word.",
-  "uploadTooLarge": "Hierdie prent is te groot. Prente kan hoogstens {{size}} MB wees."
+  "uploadTooLarge": "Hierdie prent is te groot. Prente kan hoogstens {{size}} MB wees.",
+  "editorSettings": "Redigeerder-instellings",
+  "resetToDefaults": "Stel terug na verstek",
+  "lineWidth": "Lynwydte",
+  "lineWidthNarrow": "Smal",
+  "lineWidthComfortable": "Gemaklik",
+  "lineWidthWide": "Wyd",
+  "lineWidthFull": "Ekstra wyd",
+  "textSize": "Teksgrootte",
+  "focusWidthSame": "Dieselfde wydte",
+  "focusWidthCustom": "Eie wydte",
+  "focusWidthSlider": "Lynwydte in fokusmodus",
+  "focusDim": "Verdof die ander paragrawe",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }

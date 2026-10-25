@@ -62,5 +62,19 @@
   "footerPrivacy": "Datenschutz",
   "footerPrivacySettings": "Datenschutz-Einstellungen",
   "uploadNotAnImage": "Hochladen lassen sich nur Bilder im Format PNG, JPEG, GIF, WebP oder AVIF.",
-  "uploadTooLarge": "Dieses Bild ist zu groß. Bilder dürfen höchstens {{size}} MB groß sein."
+  "uploadTooLarge": "Dieses Bild ist zu groß. Bilder dürfen höchstens {{size}} MB groß sein.",
+  "editorSettings": "Editoreinstellungen",
+  "resetToDefaults": "Auf Standard zurücksetzen",
+  "lineWidth": "Zeilenbreite",
+  "lineWidthNarrow": "Schmal",
+  "lineWidthComfortable": "Angenehm",
+  "lineWidthWide": "Breit",
+  "lineWidthFull": "Extrabreit",
+  "textSize": "Textgröße",
+  "focusWidthSame": "Gleiche Breite",
+  "focusWidthCustom": "Eigene Breite",
+  "focusWidthSlider": "Zeilenbreite im Fokusmodus",
+  "focusDim": "Andere Absätze abdunkeln",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}} %"
 }

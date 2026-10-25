@@ -62,5 +62,19 @@
   "footerPrivacy": "개인정보 보호",
   "footerPrivacySettings": "개인정보 설정",
   "uploadNotAnImage": "PNG, JPEG, GIF, WebP, AVIF 이미지만 업로드할 수 있습니다.",
-  "uploadTooLarge": "이미지가 너무 큽니다. 이미지는 최대 {{size}}MB까지 가능합니다."
+  "uploadTooLarge": "이미지가 너무 큽니다. 이미지는 최대 {{size}}MB까지 가능합니다.",
+  "editorSettings": "편집기 설정",
+  "resetToDefaults": "기본값으로 재설정",
+  "lineWidth": "줄 너비",
+  "lineWidthNarrow": "좁게",
+  "lineWidthComfortable": "편안하게",
+  "lineWidthWide": "넓게",
+  "lineWidthFull": "아주 넓게",
+  "textSize": "글자 크기",
+  "focusWidthSame": "같은 너비",
+  "focusWidthCustom": "별도 너비",
+  "focusWidthSlider": "집중 모드 줄 너비",
+  "focusDim": "다른 단락 흐리게",
+  "unitRem": "{{value}} rem",
+  "unitPercent": "{{value}}%"
 }
