@@ -155,3 +155,43 @@ test('the demo build still writes no .env, whatever operator the environment set
     await setup(root, { DEMO_MODE: 'true', VIEWCOUNTER_OPERATOR: 'Jane Doe' });
     assert.equal(exists(root, '.env'), false);
 });
+
+test('setup carries the sign-in length into .env, from the environment or the .env that is there', async () => {
+    const fromEnvironment = checkout({ '.env': DEVELOPER_ENV });
+    await setup(fromEnvironment, { ...BUILD_ENV, SESSION_MAX_AGE_HOURS: '12' });
+    assert.match(read(fromEnvironment, '.env'), /^SESSION_MAX_AGE_HOURS=12$/m);
+
+    // A restart runs setup again: the value an operator wrote into .env must still be there after.
+    const kept = checkout({ '.env': `${DEVELOPER_ENV}SESSION_MAX_AGE_HOURS=0.5\n` });
+    await setup(kept, BUILD_ENV);
+    assert.match(read(kept, '.env'), /^SESSION_MAX_AGE_HOURS=0\.5$/m);
+
+    // The environment wins over the file, as for every other setting.
+    const overridden = checkout({ '.env': `${DEVELOPER_ENV}SESSION_MAX_AGE_HOURS=0.5\n` });
+    await setup(overridden, { ...BUILD_ENV, SESSION_MAX_AGE_HOURS: '6' });
+    assert.match(read(overridden, '.env'), /^SESSION_MAX_AGE_HOURS=6$/m);
+});
+
+test('setup writes the sign-in length empty when none is set, which is the default', async () => {
+    const root = checkout({ '.env': DEVELOPER_ENV });
+    await setup(root, BUILD_ENV);
+    assert.match(read(root, '.env'), /^SESSION_MAX_AGE_HOURS=$/m);
+});
+
+test('setup refuses a sign-in length that is not a number of hours, and leaves .env as it was', async () => {
+    for (const SESSION_MAX_AGE_HOURS of ['soon', '0', '1e3']) {
+        const root = checkout({ '.env': DEVELOPER_ENV });
+        await assert.rejects(
+            setup(root, { ...BUILD_ENV, SESSION_MAX_AGE_HOURS }),
+            (err) => /SESSION_MAX_AGE_HOURS/.test(err.stderr),
+            SESSION_MAX_AGE_HOURS,
+        );
+        assert.equal(read(root, '.env'), DEVELOPER_ENV);
+    }
+});
+
+test('the demo build writes no .env, whatever sign-in length the environment sets', async () => {
+    const root = checkout({ '.env.demo': DEMO_ENV });
+    await setup(root, { DEMO_MODE: 'true', SESSION_MAX_AGE_HOURS: '12' });
+    assert.equal(exists(root, '.env'), false);
+});

@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import { FOOTER_KEYS, footerConfigErrors } from '../src/lib/footerConfig.js';
 import { VIEW_COUNTING_KEYS, viewCountingErrors } from '../src/lib/viewCounting.js';
 import { envValue } from './env-value.js';
-import { corsOrigins } from './server-config.js';
+import { corsOrigins, sessionMaxAgeMs } from './server-config.js';
 import { FAVICON_FILE, webManifest } from './manifest.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -102,6 +102,11 @@ async function setup() {
     // fails setup instead of the server.
     const corsOriginList = (process.env.CORS_ORIGINS ?? existingConfig.CORS_ORIGINS ?? '').trim();
     corsOrigins(corsOriginList);
+
+    // How long a sign-in lasts is optional and never prompted for. Kept from the environment or
+    // the existing .env, and checked by the validator the server uses, so a typo fails setup.
+    const sessionMaxAgeHours = (process.env.SESSION_MAX_AGE_HOURS ?? existingConfig.SESSION_MAX_AGE_HOURS ?? '').trim();
+    sessionMaxAgeMs({ SESSION_MAX_AGE_HOURS: sessionMaxAgeHours });
 
     // Sign-in and .env are not for the demo build, which has no sign-in and keeps its settings in
     // .env.demo.
@@ -204,6 +209,11 @@ AUTH_PASSWORD_HASH=${escapedHash}
 # Secret for signing session cookies. Required while AUTH_ENABLED is true: the server
 # refuses to start without it. Setup generates one.
 SESSION_SECRET=${escapedSecret}
+
+# How long a sign-in lasts, in hours: a number from 0.25 to 8760 (a year), such as 12 or 0.5.
+# Default: 24. The sign-in ends that long after it began, however much you use the editor.
+# The server refuses to start on any other value.
+SESSION_MAX_AGE_HOURS=${envValue(sessionMaxAgeHours, 'SESSION_MAX_AGE_HOURS')}
 
 # Other sites allowed to call the API (comma-separated origins such as https://cms.example.com).
 # Default: none. The editor reaches the API through its own address and needs no entry.

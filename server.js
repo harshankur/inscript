@@ -16,7 +16,7 @@ import { createTurndownService, markdownToHtml } from './scripts/markdown.js';
 import { commitAll, push, repoStatus } from './scripts/git.js';
 import { publishStatus } from './scripts/publish-status.js';
 import { draftPath, postPath } from './scripts/post-path.js';
-import { corsOrigins, pushAllowed, sessionSecret } from './scripts/server-config.js';
+import { corsOrigins, pushAllowed, sessionMaxAgeMs, sessionSecret } from './scripts/server-config.js';
 import { imageExtension, MAX_IMAGE_UPLOAD_BYTES } from './scripts/image-upload.js';
 
 const execAsync = promisify(exec);
@@ -53,6 +53,8 @@ const AUTH_USERNAME = process.env.AUTH_USERNAME;
 const AUTH_PASSWORD_HASH = process.env.AUTH_PASSWORD_HASH?.replace(/\$\$/g, '$');
 // Refuses to start when authentication is on and no secret is set.
 const SESSION_SECRET = sessionSecret(process.env);
+// How long a sign-in lasts (SESSION_MAX_AGE_HOURS, 24 hours by default). A bad value stops the server.
+const SESSION_MAX_AGE_MS = sessionMaxAgeMs(process.env);
 
 // Auth Middleware
 const authGuard = (req, res, next) => {
@@ -73,7 +75,7 @@ if (AUTH_ENABLED) {
         cookie: {
             secure: false, // Set to true if using HTTPS
             httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            maxAge: SESSION_MAX_AGE_MS
         }
     }));
 }

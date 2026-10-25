@@ -154,7 +154,7 @@
                     <ul class="feature-list">
                         <li>Local username & password auth</li>
                         <li>Industry-standard BCrypt hashing</li>
-                        <li>Secure session management (24h)</li>
+                        <li>Secure session management (24h by default, up to a year)</li>
                         <li>Logout with confirmation modal</li>
                     </ul>
                 </div>
@@ -421,6 +421,11 @@
                             <td><code>SESSION_SECRET</code></td>
                             <td><span class="tag tag-optional">Optional</span></td>
                             <td>Random string for signing session cookies.</td>
+                        </tr>
+                        <tr>
+                            <td><code>SESSION_MAX_AGE_HOURS</code></td>
+                            <td><span class="tag tag-optional">Optional</span></td>
+                            <td>How long a sign-in lasts, in hours (default: <code>24</code>, up to <code>8760</code>).</td>
                         </tr>
                         <tr>
                             <td><code>ALLOW_PUSH</code></td>

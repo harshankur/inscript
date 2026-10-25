@@ -41,3 +41,30 @@ export function corsOrigins(value) {
 export function pushAllowed(env) {
     return env.ALLOW_PUSH === 'true';
 }
+
+// How long a sign-in lasts. Hours, as that is how a person thinks of it; the cookie takes
+// milliseconds.
+export const DEFAULT_SESSION_MAX_AGE_HOURS = 24;
+// Under a quarter of an hour a sign-in would end while a post is being written; over a year is a
+// credential nobody has to renew. A year is as long as a sign-in may last.
+export const MIN_SESSION_MAX_AGE_HOURS = 0.25;
+export const MAX_SESSION_MAX_AGE_HOURS = 8760;
+const MS_PER_HOUR = 60 * 60 * 1000;
+// Plain decimal numbers only: no signs, exponents, hex, units or thousands separators.
+const HOURS_PATTERN = /^\d+(\.\d+)?$/;
+
+/**
+ * How long a sign-in lasts, in milliseconds, from SESSION_MAX_AGE_HOURS (a number of hours such
+ * as 12 or 0.5). 24 hours when it is unset or blank. Throws on anything else, or a value outside
+ * 0.25 to 8760 hours (a year), so a typo stops the server instead of quietly keeping or shortening every
+ * sign-in. Checked even when authentication is off, so a mistake shows up before it is turned on.
+ */
+export function sessionMaxAgeMs(env) {
+    const text = (env.SESSION_MAX_AGE_HOURS ?? '').trim();
+    if (text === '') return DEFAULT_SESSION_MAX_AGE_HOURS * MS_PER_HOUR;
+    const hours = HOURS_PATTERN.test(text) ? Number(text) : NaN;
+    if (!Number.isFinite(hours) || hours < MIN_SESSION_MAX_AGE_HOURS || hours > MAX_SESSION_MAX_AGE_HOURS) {
+        throw new Error(`SESSION_MAX_AGE_HOURS: "${text}" is not a number of hours from ${MIN_SESSION_MAX_AGE_HOURS} to ${MAX_SESSION_MAX_AGE_HOURS} (for example 12, or 0.5 for half an hour).`);
+    }
+    return Math.round(hours * MS_PER_HOUR);
+}

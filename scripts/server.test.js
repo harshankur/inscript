@@ -7,6 +7,7 @@ import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import bcrypt from 'bcryptjs';
 import { MAX_IMAGE_UPLOAD_BYTES } from './image-upload.js';
 
 const SERVER = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'server.js');
@@ -244,4 +245,62 @@ test('the status routes are for a signed-in author only', async (t) => {
     const { base } = await startServer(t, { AUTH_ENABLED: 'true', SESSION_SECRET: 'test-secret-for-this-run', AUTH_USERNAME: 'a', AUTH_PASSWORD_HASH: 'x' });
     assert.equal((await fetch(`${base}/api/publish/status`)).status, 401);
     assert.equal((await fetch(`${base}/api/git/status`)).status, 401);
+});
+
+// A server with sign-in on and one author, and the cookie the server sets when they sign in.
+const SIGN_IN_USER = 'author';
+const SIGN_IN_PASSWORD = 'correct horse battery staple';
+const BCRYPT_TEST_COST = 4;
+async function signInCookie(t, env = {}) {
+    const AUTH_PASSWORD_HASH = await bcrypt.hash(SIGN_IN_PASSWORD, BCRYPT_TEST_COST);
+    const { base } = await startServer(t, {
+        AUTH_ENABLED: 'true',
+        AUTH_USERNAME: SIGN_IN_USER,
+        AUTH_PASSWORD_HASH,
+        SESSION_SECRET: 'a-secret-for-this-test-run',
+        ...env,
+    });
+    const res = await fetch(`${base}/auth/login`, json({ username: SIGN_IN_USER, password: SIGN_IN_PASSWORD }));
+    assert.equal(res.status, 200);
+    const cookie = res.headers.getSetCookie().find(line => line.startsWith('connect.sid='));
+    assert.ok(cookie, 'signing in sets the session cookie');
+    return cookie;
+}
+// How long from now the cookie lasts, in seconds, from its Expires date (express-session sends
+// the lifetime as a date).
+const cookieLifetime = (cookie) => Math.round((Date.parse(/Expires=([^;]+)/i.exec(cookie)?.[1]) - Date.now()) / 1000);
+// The cookie is made a moment before it is read, so a few seconds either way are the same lifetime.
+const SAME_LIFETIME_TOLERANCE_SECONDS = 10;
+const assertLifetime = (cookie, seconds) => {
+    const lifetime = cookieLifetime(cookie);
+    assert.ok(Math.abs(lifetime - seconds) <= SAME_LIFETIME_TOLERANCE_SECONDS, `the cookie lasts ${lifetime}s, expected ${seconds}s`);
+};
+
+test('a sign-in lasts 24 hours when SESSION_MAX_AGE_HOURS is not set', async (t) => {
+    assertLifetime(await signInCookie(t), 24 * 60 * 60);
+});
+
+test('SESSION_MAX_AGE_HOURS sets how long a sign-in lasts', async (t) => {
+    assertLifetime(await signInCookie(t, { SESSION_MAX_AGE_HOURS: '2' }), 2 * 60 * 60);
+    assertLifetime(await signInCookie(t, { SESSION_MAX_AGE_HOURS: '0.5' }), 30 * 60);
+});
+
+test('a blank SESSION_MAX_AGE_HOURS is the default, not zero', async (t) => {
+    assertLifetime(await signInCookie(t, { SESSION_MAX_AGE_HOURS: '  ' }), 24 * 60 * 60);
+});
+
+test('a SESSION_MAX_AGE_HOURS that is not a sensible number stops the server, signed in or not', async (t) => {
+    for (const AUTH_ENABLED of ['false', 'true']) {
+        for (const SESSION_MAX_AGE_HOURS of ['soon', '0', '-3', '99999', '1e2']) {
+            const folders = blogFolders(t);
+            const server = runServer(t, folders, {
+                SERVER_PORT: String(await freePort()),
+                AUTH_ENABLED,
+                SESSION_SECRET: 'a-secret-for-this-test-run',
+                SESSION_MAX_AGE_HOURS,
+            });
+            assert.notEqual(await exitCode(server), 0, `${AUTH_ENABLED} ${SESSION_MAX_AGE_HOURS}`);
+            assert.match(server.output(), /SESSION_MAX_AGE_HOURS/);
+        }
+    }
 });

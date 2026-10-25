@@ -17,7 +17,7 @@ Try the editor in your browser without installing anything!
 ### 🛡️ Production-Grade Security
 -   **Local Auth**: Secure your CMS with a local username and password.
 -   **BCrypt Hashing**: Passwords are securely hashed using industry-standard BCrypt.
--   **Session Management**: Secure, HTTP-only session cookies with 24-hour persistence.
+-   **Session Management**: Secure, HTTP-only session cookies. A sign-in lasts 24 hours unless `SESSION_MAX_AGE_HOURS` sets another time, up to a year.
 -   **Interactive Logout**: Robust logout flow with a confirmation modal to prevents accidental sign-outs.
 
 ### 📝 Rich Text Editor
@@ -265,6 +265,7 @@ The build script `npm run setup` validates these before building.
 | `AUTH_USERNAME` | No | Admin username for login. | `admin` |
 | `AUTH_PASSWORD_HASH` | No | BCrypt hash of your password. | `$2b$10$...` |
 | `SESSION_SECRET` | With auth | Secret for signing session cookies. Setup generates it; the server will not start with authentication on and no secret. | `(any random string)` |
+| `SESSION_MAX_AGE_HOURS` | No | How long a sign-in lasts, in hours (0.25 to 8760, which is a year; such as `12` or `0.5`). It ends that long after it began, however much you use the editor, and everyone is signed out when the server restarts. The server will not start on any other value. | `24` |
 | `CORS_ORIGINS` | No | Other sites allowed to call the API, as comma-separated origins. None by default; the editor itself needs none. | `https://cms.me.com` |
 | `ALLOW_PUSH` | No | Enable Git Push from the UI. The server refuses a push unless this is exactly `true`. | `false` |
 | `FOOTER_COPYRIGHT_HOLDER` | No | Name in the footer's copyright line `<TITLE> © <year> <holder>`. | `Jane Doe` |

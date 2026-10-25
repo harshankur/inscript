@@ -8,6 +8,11 @@ the [GitHub releases page](https://github.com/harshankur/inscript/releases).
 ## [2.3.0] - 2026-10-25
 
 ### Added
+- **`SESSION_MAX_AGE_HOURS` sets how long a sign-in lasts**, from 0.25 to 8760 hours (a year), and
+  24 by default as before. Setup keeps it in `.env` when it rewrites the file, and the server
+  refuses to start on a value that is not a number of hours in that range, signed in or not, so a
+  typo cannot quietly change every sign-in. The sign-in ends that long after it began, however much
+  the editor is used, and a restart of the server still ends every sign-in.
 - **The save, publish, commit and push steps are independent.** The button in the editor header does
   the next step that has work left (Save, then Publish, Commit, Push), and its menu lists all four
   with what each has left, runs any one of them on its own, or finishes everything left. What each
