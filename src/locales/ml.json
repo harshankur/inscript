@@ -76,5 +76,20 @@
   "focusWidthSlider": "ഫോക്കസ് മോഡിലെ വരിയുടെ വീതി",
   "focusDim": "മറ്റ് ഖണ്ഡികകൾ മങ്ങിക്കുക",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "കമ്മിറ്റ്",
+  "push": "പുഷ്",
+  "saveStepPending": "സൂക്ഷിക്കാത്ത മാറ്റങ്ങൾ",
+  "saveStepDone": "സൂക്ഷിച്ചു",
+  "publishStepPending": "മാറ്റങ്ങൾ പ്രസിദ്ധീകരിച്ചിട്ടില്ല",
+  "publishStepDone": "സൈറ്റ് ഏറ്റവും പുതിയതാണ്",
+  "commitStepPending": "കമ്മിറ്റ് ചെയ്യാനുള്ള മാറ്റങ്ങൾ",
+  "commitStepDone": "കമ്മിറ്റ് ചെയ്യാൻ ഒന്നുമില്ല",
+  "pushStepPending": "പുഷ് ചെയ്യാനുള്ള കമ്മിറ്റുകൾ",
+  "pushStepDone": "പുഷ് ചെയ്യാൻ ഒന്നുമില്ല",
+  "stepUnknown": "നില ലഭ്യമല്ല",
+  "runPendingSteps": "ബാക്കിയെല്ലാം പൂർത്തിയാക്കുക",
+  "allStepsDone": "എല്ലാം ഏറ്റവും പുതിയതാണ്",
+  "upToDate": "ഏറ്റവും പുതിയത്",
+  "publishMenuLabel": "സൂക്ഷിക്കുക, പ്രസിദ്ധീകരിക്കുക, കമ്മിറ്റ്, പുഷ്"
 }

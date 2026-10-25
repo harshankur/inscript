@@ -76,5 +76,20 @@
   "focusWidthSlider": "ఫోకస్ మోడ్‌లో పంక్తి వెడల్పు",
   "focusDim": "ఇతర పేరాలను మసకబార్చు",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "కమిట్",
+  "push": "పుష్",
+  "saveStepPending": "సేవ్ చేయని మార్పులు",
+  "saveStepDone": "సేవ్ చేయబడింది",
+  "publishStepPending": "మార్పులు ప్రచురించబడలేదు",
+  "publishStepDone": "సైట్ తాజాగా ఉంది",
+  "commitStepPending": "కమిట్ చేయాల్సిన మార్పులు",
+  "commitStepDone": "కమిట్ చేయడానికి ఏమీ లేదు",
+  "pushStepPending": "పుష్ చేయాల్సిన కమిట్‌లు",
+  "pushStepDone": "పుష్ చేయడానికి ఏమీ లేదు",
+  "stepUnknown": "స్థితి అందుబాటులో లేదు",
+  "runPendingSteps": "మిగిలినవన్నీ పూర్తి చేయి",
+  "allStepsDone": "అన్నీ తాజాగా ఉన్నాయి",
+  "upToDate": "తాజాగా ఉంది",
+  "publishMenuLabel": "సేవ్, ప్రచురణ, కమిట్ మరియు పుష్"
 }

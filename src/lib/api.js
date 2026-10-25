@@ -102,6 +102,14 @@ const mockApi = {
             return { data: getDemoPosts().map(({ content, ...meta }) => meta) };
         }
 
+        // The demo publishes, commits and pushes nothing, so nothing is ever left to do.
+        if (url === '/api/publish/status') {
+            return { data: { stale: false, publishedAt: Date.now() } };
+        }
+        if (url === '/api/git/status') {
+            return { data: { dirty: false, ahead: 0, hasUpstream: true } };
+        }
+
         // Strip query parameters for filename matching
         const cleanUrl = url.split('?')[0];
 

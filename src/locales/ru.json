@@ -76,5 +76,20 @@
   "focusWidthSlider": "Ширина строки в режиме фокусировки",
   "focusDim": "Приглушать остальные абзацы",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "Зафиксировать",
+  "push": "Отправить",
+  "saveStepPending": "Несохранённые изменения",
+  "saveStepDone": "Сохранено",
+  "publishStepPending": "Изменения не опубликованы",
+  "publishStepDone": "Сайт актуален",
+  "commitStepPending": "Изменения для фиксации",
+  "commitStepDone": "Нечего фиксировать",
+  "pushStepPending": "Коммиты для отправки",
+  "pushStepDone": "Нечего отправлять",
+  "stepUnknown": "Состояние недоступно",
+  "runPendingSteps": "Выполнить всё оставшееся",
+  "allStepsDone": "Всё актуально",
+  "upToDate": "Актуально",
+  "publishMenuLabel": "Сохранить, опубликовать, зафиксировать и отправить"
 }

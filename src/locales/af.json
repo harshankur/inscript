@@ -76,5 +76,20 @@
   "focusWidthSlider": "Lynwydte in fokusmodus",
   "focusDim": "Verdof die ander paragrawe",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "Commit",
+  "push": "Laai op",
+  "saveStepPending": "Ongestoorde veranderinge",
+  "saveStepDone": "Gestoor",
+  "publishStepPending": "Veranderinge nie gepubliseer nie",
+  "publishStepDone": "Werf is op datum",
+  "commitStepPending": "Veranderinge om te commit",
+  "commitStepDone": "Niks om te commit nie",
+  "pushStepPending": "Commits om op te laai",
+  "pushStepDone": "Niks om op te laai nie",
+  "stepUnknown": "Status nie beskikbaar nie",
+  "runPendingSteps": "Voltooi alles wat oor is",
+  "allStepsDone": "Alles is op datum",
+  "upToDate": "Op datum",
+  "publishMenuLabel": "Stoor, publiseer, commit en laai op"
 }

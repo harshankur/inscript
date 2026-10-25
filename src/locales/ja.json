@@ -76,5 +76,20 @@
   "focusWidthSlider": "集中モードの行の幅",
   "focusDim": "ほかの段落を暗くする",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "コミット",
+  "push": "プッシュ",
+  "saveStepPending": "未保存の変更",
+  "saveStepDone": "保存済み",
+  "publishStepPending": "未公開の変更",
+  "publishStepDone": "サイトは最新です",
+  "commitStepPending": "コミットする変更",
+  "commitStepDone": "コミットするものはありません",
+  "pushStepPending": "プッシュするコミット",
+  "pushStepDone": "プッシュするものはありません",
+  "stepUnknown": "状態を取得できません",
+  "runPendingSteps": "残りをすべて実行",
+  "allStepsDone": "すべて最新です",
+  "upToDate": "最新",
+  "publishMenuLabel": "保存、公開、コミット、プッシュ"
 }

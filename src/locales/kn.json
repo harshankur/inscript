@@ -76,5 +76,20 @@
   "focusWidthSlider": "ಫೋಕಸ್ ಮೋಡ್‌ನಲ್ಲಿ ಸಾಲಿನ ಅಗಲ",
   "focusDim": "ಉಳಿದ ಪ್ಯಾರಾಗಳನ್ನು ಮಂದಗೊಳಿಸಿ",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "ಕಮಿಟ್",
+  "push": "ಪುಶ್",
+  "saveStepPending": "ಉಳಿಸದ ಬದಲಾವಣೆಗಳು",
+  "saveStepDone": "ಉಳಿಸಲಾಗಿದೆ",
+  "publishStepPending": "ಬದಲಾವಣೆಗಳನ್ನು ಪ್ರಕಟಿಸಿಲ್ಲ",
+  "publishStepDone": "ಸೈಟ್ ನವೀಕೃತವಾಗಿದೆ",
+  "commitStepPending": "ಕಮಿಟ್ ಮಾಡಬೇಕಾದ ಬದಲಾವಣೆಗಳು",
+  "commitStepDone": "ಕಮಿಟ್ ಮಾಡಲು ಏನೂ ಇಲ್ಲ",
+  "pushStepPending": "ಪುಶ್ ಮಾಡಬೇಕಾದ ಕಮಿಟ್‌ಗಳು",
+  "pushStepDone": "ಪುಶ್ ಮಾಡಲು ಏನೂ ಇಲ್ಲ",
+  "stepUnknown": "ಸ್ಥಿತಿ ಲಭ್ಯವಿಲ್ಲ",
+  "runPendingSteps": "ಉಳಿದೆಲ್ಲವನ್ನೂ ಪೂರ್ಣಗೊಳಿಸಿ",
+  "allStepsDone": "ಎಲ್ಲವೂ ನವೀಕೃತವಾಗಿದೆ",
+  "upToDate": "ನವೀಕೃತ",
+  "publishMenuLabel": "ಉಳಿಸಿ, ಪ್ರಕಟಿಸಿ, ಕಮಿಟ್ ಮತ್ತು ಪುಶ್"
 }

@@ -76,5 +76,20 @@
   "focusWidthSlider": "专注模式行宽",
   "focusDim": "淡化其他段落",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "提交",
+  "push": "推送",
+  "saveStepPending": "有未保存的更改",
+  "saveStepDone": "已保存",
+  "publishStepPending": "更改尚未发布",
+  "publishStepDone": "站点已是最新",
+  "commitStepPending": "有待提交的更改",
+  "commitStepDone": "没有可提交的内容",
+  "pushStepPending": "有待推送的提交",
+  "pushStepDone": "没有可推送的内容",
+  "stepUnknown": "状态不可用",
+  "runPendingSteps": "完成所有剩余步骤",
+  "allStepsDone": "一切都是最新的",
+  "upToDate": "已是最新",
+  "publishMenuLabel": "保存、发布、提交和推送"
 }

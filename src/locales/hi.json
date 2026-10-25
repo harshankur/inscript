@@ -76,5 +76,20 @@
   "focusWidthSlider": "फ़ोकस मोड में पंक्ति की चौड़ाई",
   "focusDim": "बाकी अनुच्छेद धुंधले करें",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "कमिट",
+  "push": "पुश",
+  "saveStepPending": "बिना सहेजे बदलाव",
+  "saveStepDone": "सहेजा गया",
+  "publishStepPending": "बदलाव प्रकाशित नहीं हुए",
+  "publishStepDone": "साइट अद्यतित है",
+  "commitStepPending": "कमिट करने योग्य बदलाव",
+  "commitStepDone": "कमिट करने के लिए कुछ नहीं",
+  "pushStepPending": "पुश करने के लिए कमिट",
+  "pushStepDone": "पुश करने के लिए कुछ नहीं",
+  "stepUnknown": "स्थिति उपलब्ध नहीं",
+  "runPendingSteps": "बाकी सब पूरा करें",
+  "allStepsDone": "सब कुछ अद्यतित है",
+  "upToDate": "अद्यतित",
+  "publishMenuLabel": "सहेजें, प्रकाशित करें, कमिट करें और पुश करें"
 }

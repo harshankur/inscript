@@ -29,6 +29,7 @@ import {
     Info,
     Layout,
     List,
+    ListChecks,
     ListTree,
     Map as MapIcon,
     Monitor,
@@ -58,12 +59,19 @@ import { loadViewCounting, resolveViewCounting, setViewCountingLanguage, viewCou
 import { siteTitle } from './lib/siteTitle';
 import { displayTitle, editableTitle } from './lib/postTitle';
 import {
+    nextStep, pipelineSteps, readPipelineStatus, remainingChain,
+    STEP_COMMIT, STEP_KEYS, STEP_PUBLISH, STEP_PUSH, STEP_SAVE, stepStatusKey,
+} from './lib/pipeline';
+import {
     clearEditorSettings, DEFAULT_EDITOR_SETTINGS, editorViewFor, isDefaultEditorSettings,
     readEditorSettings, updateEditorSettings, writeEditorSettings,
 } from './lib/editorSettings';
 import { measureColumnWidth } from './lib/editorColumn';
 import EditorSettings from './components/EditorSettings';
 import { withUploadReason } from './lib/uploadError';
+
+// Whether the editor may push to the remote (the server enforces the same setting).
+const PUSH_ALLOWED = import.meta.env.ALLOW_PUSH === 'true';
 
 // The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
 // Named keys only: passing import.meta.env itself makes Vite write every exposed variable into
@@ -569,94 +577,168 @@ const NewPostModal = ({ isOpen, onClose, onConfirm }) => {
     );
 };
 
-const SaveSplitButton = ({ onSave, onAction, isSaving, isDirty, deployStatus }) => {
+// How each step looks in the menu.
+const STEP_ICONS = { [STEP_SAVE]: Save, [STEP_PUBLISH]: Globe, [STEP_COMMIT]: GitCommit, [STEP_PUSH]: UploadCloud };
+const STEP_COLORS = { [STEP_SAVE]: 'text-yellow-400', [STEP_PUBLISH]: 'text-blue-400', [STEP_COMMIT]: 'text-purple-400', [STEP_PUSH]: 'text-emerald-400' };
+
+// Takes an edit from the editor to the world in four steps: save, publish, commit, push. The main
+// button does the next step that has work left, so the label follows the work (Save, then Publish,
+// Commit, Push). The menu lists every step with what it has left and runs any one of them on its
+// own, or everything that is left. A step is never taken away by another being done or not done
+// (lib/pipeline.js); only Save needs something unsaved. The button and the menu keep their size.
+const SaveSplitButton = ({ steps, isSaving, deployStatus, onRun }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = React.useRef(null);
+    const rootRef = React.useRef(null);
+    const toggleRef = React.useRef(null);
+    const itemRefs = React.useRef([]);
+    const busy = isSaving || !!deployStatus;
+    const next = nextStep(steps);
+    const chain = remainingChain(steps);
 
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsOpen(false);
-            }
+        if (!isOpen) return undefined;
+        const handleMouseDown = (event) => {
+            if (rootRef.current && !rootRef.current.contains(event.target)) setIsOpen(false);
         };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        const handleKeyDown = (event) => {
+            if (event.key !== 'Escape') return;
+            setIsOpen(false);
+            toggleRef.current?.focus();
+        };
+        document.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('mousedown', handleMouseDown);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen]);
 
-    const options = [
-        { label: 'Save & Publish', icon: Globe, steps: ['save', 'publish'], color: 'text-blue-400' },
-        { label: 'Save, Publish & Commit', icon: GitCommit, steps: ['save', 'publish', 'commit'], color: 'text-purple-400' },
-    ];
+    // Something started running: the menu has done its job.
+    useEffect(() => {
+        if (busy) setIsOpen(false);
+    }, [busy]);
 
-    if (import.meta.env.ALLOW_PUSH == 'true')
-        options.push({ label: 'Save, Publish, Commit & Push', icon: UploadCloud, steps: ['save', 'publish', 'commit', 'push'], color: 'text-emerald-400' });
+    // Opening the menu puts the keyboard in it.
+    useEffect(() => {
+        if (isOpen) itemRefs.current.find(item => item && !item.disabled)?.focus();
+    }, [isOpen]);
 
-    const getStatusText = () => {
-        if (deployStatus === 'publishing') return t('publishing');
-        if (deployStatus === 'committing') return t('committing');
-        if (deployStatus === 'pushing') return t('pushing');
-        if (isSaving) return t('saving');
-        return t('save');
+    const run = (ids) => {
+        setIsOpen(false);
+        onRun(ids);
     };
 
+    const handleMenuKeyDown = (event) => {
+        const items = itemRefs.current.filter(item => item && !item.disabled);
+        if (!items.length) return;
+        const at = items.indexOf(document.activeElement);
+        const target = {
+            ArrowDown: items[(at + 1) % items.length],
+            ArrowUp: items[(at - 1 + items.length) % items.length],
+            Home: items[0],
+            End: items[items.length - 1],
+        }[event.key];
+        if (!target) return;
+        event.preventDefault();
+        target.focus();
+    };
+
+    const busyText = deployStatus === 'publishing' ? t('publishing')
+        : deployStatus === 'committing' ? t('committing')
+            : deployStatus === 'pushing' ? t('pushing')
+                : isSaving ? t('saving') : null;
+    const MainIcon = next ? STEP_ICONS[next.id] : CheckCircle;
+    const mainLabel = busyText ?? (next ? t(STEP_KEYS[next.id].label) : t('upToDate'));
+    const needsAttention = Boolean(next);
+    const mainDisabled = busy || !next;
+
+    itemRefs.current = [];
+    const itemClass = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors group enabled:hover:bg-zinc-100 dark:enabled:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-800';
+
     return (
-        <div className="relative flex items-stretch h-10" ref={dropdownRef}>
-            {/* Main Action Button */}
+        <div className="relative flex items-stretch h-10" ref={rootRef}>
             <button
                 type="button"
-                onClick={onSave}
-                disabled={isSaving || !!deployStatus || !isDirty}
-                className={`flex items-center gap-2 pl-4 pr-3 rounded-l-lg font-bold transition-all justify-center text-sm border-r border-black/10 ${isDirty
-                    ? 'bg-yellow-400 text-zinc-950 hover:bg-yellow-300 shadow-[0_0_20px_rgba(250,204,21,0.2)]'
-                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
-                    }`}
-                title={isSaving ? 'Saving...' : 'Save Changes'}
+                onClick={() => next && run([next.id])}
+                disabled={mainDisabled}
+                className={`flex items-center justify-center gap-2 w-10 md:w-36 px-2 md:px-3 rounded-l-lg font-bold transition-colors text-sm border-r border-black/10 ${needsAttention
+                    ? 'bg-yellow-400 text-zinc-950 hover:bg-yellow-300 shadow-[0_0_20px_rgba(250,204,21,0.2)] disabled:hover:bg-yellow-400'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                    } ${mainDisabled ? 'cursor-not-allowed opacity-60' : ''}`}
+                title={mainLabel}
+                aria-label={mainLabel}
             >
-                <Save size={18} />
-                <span className="hidden md:inline">{getStatusText()}</span>
+                <MainIcon size={18} className="shrink-0" />
+                <span className="hidden md:inline truncate">{mainLabel}</span>
             </button>
 
-            {/* Dropdown Toggle */}
             <button
+                ref={toggleRef}
                 type="button"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    if (!deployStatus && !isSaving && isDirty) setIsOpen(!isOpen);
-                }}
-                disabled={!!deployStatus || isSaving || !isDirty}
-                className={`px-2 rounded-r-lg transition-all border-l border-white/10 ${isDirty
+                onClick={() => setIsOpen(open => !open)}
+                disabled={busy}
+                className={`px-2 rounded-r-lg transition-colors border-l border-white/10 disabled:cursor-not-allowed disabled:opacity-60 ${needsAttention
                     ? 'bg-yellow-400 text-zinc-950 hover:bg-yellow-300'
-                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
                     }`}
+                title={t('publishMenuLabel')}
+                aria-label={t('publishMenuLabel')}
+                aria-haspopup="menu"
+                aria-expanded={isOpen}
             >
                 <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 w-72 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[200] overflow-hidden">
+                <div
+                    role="menu"
+                    aria-label={t('publishMenuLabel')}
+                    onKeyDown={handleMenuKeyDown}
+                    className="absolute top-full right-0 mt-2 w-72 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[200] overflow-hidden"
+                >
                     <div className="p-2 space-y-1">
-                        {options.map((opt) => (
-                            <button
-                                key={opt.label}
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onAction(opt.steps);
-                                    setIsOpen(false);
-                                }}
-                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition-colors group"
-                            >
-                                <div className={`p-1.5 rounded-md bg-zinc-100 dark:bg-zinc-800 group-hover:bg-zinc-700 ${opt.color}`}>
-                                    <opt.icon size={16} />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200">{opt.label}</span>
-                                    <span className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter">Workflow</span>
-                                </div>
-                            </button>
-                        ))}
+                        <button
+                            ref={element => { itemRefs.current[0] = element; }}
+                            type="button"
+                            role="menuitem"
+                            disabled={chain.length === 0}
+                            onClick={() => run(chain)}
+                            className={itemClass}
+                        >
+                            <div className="p-1.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-emerald-400"><ListChecks size={16} /></div>
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 truncate">{t('runPendingSteps')}</span>
+                                <span className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">
+                                    {chain.length ? chain.map(id => t(STEP_KEYS[id].label)).join(' → ') : t('allStepsDone')}
+                                </span>
+                            </div>
+                        </button>
+                        <div role="separator" className="h-px my-1 bg-zinc-200 dark:bg-zinc-800" />
+                        {steps.map((step, index) => {
+                            const Icon = STEP_ICONS[step.id];
+                            return (
+                                <button
+                                    key={step.id}
+                                    ref={element => { itemRefs.current[index + 1] = element; }}
+                                    type="button"
+                                    role="menuitem"
+                                    disabled={!step.runnable}
+                                    onClick={() => run([step.id])}
+                                    className={itemClass}
+                                >
+                                    <div className={`p-1.5 rounded-md bg-zinc-100 dark:bg-zinc-800 ${STEP_COLORS[step.id]}`}><Icon size={16} /></div>
+                                    <div className="flex flex-col min-w-0 flex-1">
+                                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 truncate">{t(STEP_KEYS[step.id].label)}</span>
+                                        <span className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">{t(stepStatusKey(step))}</span>
+                                    </div>
+                                    <span className="w-4 shrink-0 flex justify-center" aria-hidden="true">
+                                        {step.pending === true && <span className="w-2 h-2 rounded-full bg-yellow-400 shadow-[0_0_8px_currentColor] text-yellow-400" />}
+                                        {step.pending === false && <CheckCircle size={14} className="text-emerald-500" />}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -1090,6 +1172,8 @@ const App = () => {
     const [showMetadataModal, setShowMetadataModal] = useState(false);
     const [showYoutubeModal, setShowYoutubeModal] = useState(false);
     const [deployStatus, setDeployStatus] = useState(null); // 'publishing', 'committing', 'pushing'
+    // What publish, commit and push each have left to do (lib/pipeline.js); null where not known.
+    const [pipeline, setPipeline] = useState({ publishStale: null, gitDirty: null, ahead: null });
     const [workflow, setWorkflow] = useState(null); // { steps: [], currentIndex: 0, status: 'active'|'paused'|'completed'|'error', error: null, commitMessage: null }
 
     // Advanced Filtering States
@@ -1480,6 +1564,11 @@ const App = () => {
     }, [countingReady, filename, loading]);
 
     useEffect(() => {
+        window.addEventListener('focus', refreshPipeline);
+        return () => window.removeEventListener('focus', refreshPipeline);
+    }, []);
+
+    useEffect(() => {
         checkAuth();
         fetchPosts();
     }, []);
@@ -1500,6 +1589,18 @@ const App = () => {
         }
     };
 
+    // Asks the server what publishing, committing and pushing have left to do. Called wherever
+    // that may have changed: the post list is fetched after a save, a delete and every step, and
+    // the window regaining focus catches work done outside the editor (a pull, a push).
+    const refreshPipeline = async () => {
+        if (isReadonlyEnv) return;
+        const [publish, git] = await Promise.allSettled([api.get('/api/publish/status'), api.get('/api/git/status')]);
+        setPipeline(readPipelineStatus(
+            publish.status === 'fulfilled' ? publish.value.data : null,
+            git.status === 'fulfilled' ? git.value.data : null,
+        ));
+    };
+
     const fetchPosts = async () => {
         try {
             let loadedPosts = (await api.get(isReadonlyEnv ? '/data.json' : '/api/posts')).data;
@@ -1515,6 +1616,7 @@ const App = () => {
                     .filter(Boolean)
             }));
             setPosts(loadedPosts);
+            refreshPipeline();
 
             // Handle Deep Linking on Initial Load
             // Handle Deep Linking on Initial Load using captured Ref
@@ -1794,16 +1896,19 @@ const App = () => {
 
             try {
                 if (currentStep === 'save') {
-                    setSaveStatus('saving');
-                    const html = editor.getHTML();
-                    const res = await api.post('/api/posts', {
-                        filename,
-                        frontmatter: { ...currentPost?.frontmatter, title, tags: postTags, categories: postCategories },
-                        html
-                    });
-                    setSaveStatus('success');
-                    rememberSaved(res, html);
-                    setTimeout(() => setSaveStatus('saved'), 2000);
+                    // Nothing unsaved means nothing to write, so the step is done.
+                    if (isDirty) {
+                        setSaveStatus('saving');
+                        const html = editor.getHTML();
+                        const res = await api.post('/api/posts', {
+                            filename,
+                            frontmatter: { ...currentPost?.frontmatter, title, tags: postTags, categories: postCategories },
+                            html
+                        });
+                        setSaveStatus('success');
+                        rememberSaved(res, html);
+                        setTimeout(() => setSaveStatus('saved'), 2000);
+                    }
                 } else if (currentStep === 'publish') {
                     setDeployStatus('publishing');
                     await api.post('/api/publish');
@@ -1849,6 +1954,16 @@ const App = () => {
 
         executeStep();
     }, [workflow, filename, title, postTags, postCategories, editor, currentPost]);
+
+    // Runs the steps the menu asked for. Saving alone needs no progress window: the badge in the
+    // header says how it went. Any other step, or several, run in the workflow window.
+    const runSteps = (stepIds) => {
+        if (stepIds.length === 1 && stepIds[0] === STEP_SAVE) {
+            savePost();
+            return;
+        }
+        handleSaveWorkflowAction(stepIds);
+    };
 
     const handleSaveWorkflowAction = (steps) => {
         if (!filename || loading || !!deployStatus) return;
@@ -2691,11 +2806,10 @@ const App = () => {
                                         <Trash2 size={20} />
                                     </button>
                                     <SaveSplitButton
+                                        steps={pipelineSteps({ isDirty, ...pipeline, pushAllowed: PUSH_ALLOWED })}
                                         isSaving={saveStatus === 'saving'}
-                                        isDirty={isDirty || !!deployStatus}
                                         deployStatus={deployStatus}
-                                        onSave={savePost}
-                                        onAction={handleSaveWorkflowAction}
+                                        onRun={runSteps}
                                     />
                                 </div>
                             )}

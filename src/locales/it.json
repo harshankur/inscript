@@ -76,5 +76,20 @@
   "focusWidthSlider": "Larghezza riga in modalità focus",
   "focusDim": "Attenua gli altri paragrafi",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "Commit",
+  "push": "Invia",
+  "saveStepPending": "Modifiche non salvate",
+  "saveStepDone": "Salvato",
+  "publishStepPending": "Modifiche non pubblicate",
+  "publishStepDone": "Il sito è aggiornato",
+  "commitStepPending": "Modifiche da committare",
+  "commitStepDone": "Niente da committare",
+  "pushStepPending": "Commit da inviare",
+  "pushStepDone": "Niente da inviare",
+  "stepUnknown": "Stato non disponibile",
+  "runPendingSteps": "Completa tutto il resto",
+  "allStepsDone": "Tutto è aggiornato",
+  "upToDate": "Aggiornato",
+  "publishMenuLabel": "Salva, pubblica, committa e invia"
 }

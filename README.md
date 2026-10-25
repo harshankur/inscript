@@ -58,10 +58,11 @@ Try the editor in your browser without installing anything!
     -   **Version History**: Every change is a version you can undo, redo, compare and restore, and versions persist across sessions. Restoring an old version adds it as a new one, so nothing is ever lost.
     -   **Conflict Resolution**: If a post's file changes outside Inscript (a `git pull`, another editor) while it has a draft, the file's new content opens as a "Changed outside the app" version, with your draft's versions still there to restore.
 -   **Faithful Markdown**: Posts are saved as clean Markdown: checklists as `- [x]` task items, tables as GFM tables, and anything Markdown can't express (embeds, citations, resized images) as HTML, so a post reads back exactly as you left it.
--   **Publishing Flow**:
+-   **Publishing Flow**: Four steps, each of which can be done on its own from the button in the editor header:
     -   **Save**: Updates the markdown file locally.
     -   **Publish**: Generates a static API (`data.json`) for your frontend.
-    -   **Commit & Push**: (Optional) Commits changes to Git and pushes to your remote repo directly from the UI.
+    -   **Commit**: Commits the changes to Git.
+    -   **Push**: (Optional) Pushes the commits to your remote repo directly from the UI.
 
 ### 🛠️ Architecture
 -   **FileSystem Based**: 100% flat-file based. No database required.
@@ -345,6 +346,15 @@ volumes:
   # Share your SSH keys for pushing to GitHub/GitLab
   - ${HOME:-~}/.ssh:/root/.ssh:ro
 ```
+
+### 4. Save, Publish, Commit and Push
+The button in the editor header does the next step that has work left: **Save**, then **Publish**, **Commit**, **Push**. Its menu lists all four with what each has left, runs any one of them on its own, or finishes everything left. A step is never taken away because another is done: a saved post can still be published, and you can commit without publishing.
+
+What each step has left is read from your files and Git, so it stays right after a reload, a pull, or work done outside the editor:
+-   **Save** has work when the open post has unsaved changes.
+-   **Publish** has work when a post or a file in `STATIC_DIR` is newer than `data.json` in `DIST_DIR`, or the site was never built.
+-   **Commit** has work when Git sees changes (a submodule whose own files changed but whose commit did not is not one).
+-   **Push** has work when the branch is ahead of its upstream. It is offered only when `ALLOW_PUSH=true`.
 
 > [!TIP]
 > **Submodule Awareness**: When Inscript is a submodule, it automatically detects the parent repository. Your commits and pushes will apply to the **Parent Blog Repository**, keeping your content and engine perfectly synced.

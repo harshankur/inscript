@@ -76,5 +76,20 @@
   "focusWidthSlider": "Ancho de línea en modo concentración",
   "focusDim": "Atenuar los demás párrafos",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}} %"
+  "unitPercent": "{{value}} %",
+  "commit": "Confirmar",
+  "push": "Subir",
+  "saveStepPending": "Cambios sin guardar",
+  "saveStepDone": "Guardado",
+  "publishStepPending": "Cambios sin publicar",
+  "publishStepDone": "El sitio está al día",
+  "commitStepPending": "Cambios por confirmar",
+  "commitStepDone": "Nada que confirmar",
+  "pushStepPending": "Commits por subir",
+  "pushStepDone": "Nada que subir",
+  "stepUnknown": "Estado no disponible",
+  "runPendingSteps": "Completar todo lo pendiente",
+  "allStepsDone": "Todo está al día",
+  "upToDate": "Al día",
+  "publishMenuLabel": "Guardar, publicar, confirmar y subir"
 }

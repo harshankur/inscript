@@ -27,7 +27,7 @@ const freePort = () => new Promise((resolve, reject) => {
 function blogFolders(t) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'inscript-server-'));
     t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-    const dirs = Object.fromEntries(['content', 'static', 'drafts'].map(name => [name, path.join(root, name)]));
+    const dirs = Object.fromEntries(['content', 'static', 'drafts', 'dist'].map(name => [name, path.join(root, name)]));
     Object.values(dirs).forEach(dir => fs.mkdirSync(dir));
     return { root, ...dirs };
 }
@@ -41,6 +41,7 @@ function runServer(t, folders, env) {
             CONTENT_DIR: folders.content,
             STATIC_DIR: folders.static,
             DRAFTS_DIR: folders.drafts,
+            DIST_DIR: folders.dist,
             AUTH_ENABLED: 'false',
             // Any git command the server runs points at nothing, so a regression in a test can
             // never commit to or push the repository this checkout sits in.
@@ -210,4 +211,37 @@ test('the push route refuses unless ALLOW_PUSH is true', async (t) => {
         const { base } = await startServer(t, ALLOW_PUSH === undefined ? {} : { ALLOW_PUSH });
         assert.equal((await fetch(`${base}/api/git/push`, { method: 'POST' })).status, 403, String(ALLOW_PUSH));
     }
+});
+
+test('the publish status says the site is out of date until it is built, and again after a post is saved', async (t) => {
+    const { base, folders } = await startServer(t);
+    const status = async () => (await fetch(`${base}/api/publish/status`)).json();
+
+    assert.deepEqual(await status(), { stale: true, publishedAt: null }, 'never built');
+
+    // A built site, older than nothing.
+    const marker = path.join(folders.dist, 'data.json');
+    fs.writeFileSync(marker, '[]');
+    const builtAt = new Date(Date.now() - 60000);
+    fs.utimesSync(marker, builtAt, builtAt);
+    const built = await status();
+    assert.equal(built.stale, false);
+    assert.ok(Math.abs(built.publishedAt - builtAt.getTime()) < 1, 'it reports when the site was built');
+
+    assert.equal((await fetch(`${base}/api/posts`, json({ filename: 'new.md', frontmatter: { title: 'New' }, html: '<p>x</p>' }))).status, 200);
+    assert.equal((await status()).stale, true, 'a post was saved after the build');
+});
+
+test('the git status route answers with the error, not a hang, when the folder is no repository', async (t) => {
+    // runServer points GIT_DIR at nothing, so git has no repository to read.
+    const { base } = await startServer(t);
+    const res = await fetch(`${base}/api/git/status`);
+    assert.equal(res.status, 500);
+    assert.equal(typeof (await res.json()).error, 'string');
+});
+
+test('the status routes are for a signed-in author only', async (t) => {
+    const { base } = await startServer(t, { AUTH_ENABLED: 'true', SESSION_SECRET: 'test-secret-for-this-run', AUTH_USERNAME: 'a', AUTH_PASSWORD_HASH: 'x' });
+    assert.equal((await fetch(`${base}/api/publish/status`)).status, 401);
+    assert.equal((await fetch(`${base}/api/git/status`)).status, 401);
 });

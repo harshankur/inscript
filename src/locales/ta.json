@@ -76,5 +76,20 @@
   "focusWidthSlider": "கவன முறையில் வரி அகலம்",
   "focusDim": "மற்ற பத்திகளை மங்கலாக்கு",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "பதிவு செய்",
+  "push": "பதிவேற்று",
+  "saveStepPending": "சேமிக்கப்படாத மாற்றங்கள்",
+  "saveStepDone": "சேமிக்கப்பட்டது",
+  "publishStepPending": "வெளியிடப்படாத மாற்றங்கள்",
+  "publishStepDone": "தளம் புதுப்பித்த நிலையில் உள்ளது",
+  "commitStepPending": "பதிவு செய்ய வேண்டிய மாற்றங்கள்",
+  "commitStepDone": "பதிவு செய்ய எதுவும் இல்லை",
+  "pushStepPending": "பதிவேற்ற வேண்டிய கமிட்கள்",
+  "pushStepDone": "பதிவேற்ற எதுவும் இல்லை",
+  "stepUnknown": "நிலை கிடைக்கவில்லை",
+  "runPendingSteps": "மீதமுள்ளவை அனைத்தையும் முடி",
+  "allStepsDone": "அனைத்தும் புதுப்பித்த நிலையில் உள்ளன",
+  "upToDate": "புதுப்பித்த நிலை",
+  "publishMenuLabel": "சேமி, வெளியிடு, பதிவு செய், பதிவேற்று"
 }

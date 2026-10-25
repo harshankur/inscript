@@ -76,5 +76,20 @@
   "focusWidthSlider": "專注模式行寬",
   "focusDim": "淡化其他段落",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "提交",
+  "push": "推送",
+  "saveStepPending": "有未保存的變更",
+  "saveStepDone": "已保存",
+  "publishStepPending": "變更尚未發佈",
+  "publishStepDone": "網站已是最新",
+  "commitStepPending": "有待提交的變更",
+  "commitStepDone": "沒有可提交的內容",
+  "pushStepPending": "有待推送的提交",
+  "pushStepDone": "沒有可推送的內容",
+  "stepUnknown": "狀態無法取得",
+  "runPendingSteps": "完成所有剩餘步驟",
+  "allStepsDone": "一切都是最新的",
+  "upToDate": "已是最新",
+  "publishMenuLabel": "保存、發佈、提交和推送"
 }

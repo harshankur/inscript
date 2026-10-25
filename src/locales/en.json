@@ -76,5 +76,20 @@
   "focusWidthSlider": "Focus mode line width",
   "focusDim": "Dim the other paragraphs",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "Commit",
+  "push": "Push",
+  "saveStepPending": "Unsaved changes",
+  "saveStepDone": "Saved",
+  "publishStepPending": "Changes not published",
+  "publishStepDone": "Site is up to date",
+  "commitStepPending": "Changes to commit",
+  "commitStepDone": "Nothing to commit",
+  "pushStepPending": "Commits to push",
+  "pushStepDone": "Nothing to push",
+  "stepUnknown": "Status unavailable",
+  "runPendingSteps": "Finish everything left",
+  "allStepsDone": "Everything is up to date",
+  "upToDate": "Up to date",
+  "publishMenuLabel": "Save, publish, commit and push"
 }

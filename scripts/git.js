@@ -44,3 +44,24 @@ export async function push(cwd) {
     const { stdout } = await execFileAsync(GIT, ['push'], { cwd });
     return stdout;
 }
+
+// A status check that takes longer than this is a stuck repository, not a slow one.
+export const GIT_STATUS_TIMEOUT_MS = 10000;
+
+/**
+ * What is left to do in the repository at `cwd`: `dirty` (a change a commit would take) and
+ * `ahead` (commits the remote does not have yet; 0 with no upstream, which `hasUpstream` says).
+ * A submodule whose own files changed but whose commit did not is not a change here: a commit
+ * records the submodule's commit and takes nothing from its files.
+ */
+export async function repoStatus(cwd) {
+    const options = { cwd, timeout: GIT_STATUS_TIMEOUT_MS };
+    const { stdout } = await execFileAsync(GIT, ['status', '--porcelain', '--ignore-submodules=dirty'], options);
+    const dirty = stdout.trim() !== '';
+    try {
+        const { stdout: count } = await execFileAsync(GIT, ['rev-list', '--count', '@{upstream}..HEAD'], options);
+        return { dirty, ahead: Number.parseInt(count, 10) || 0, hasUpstream: true };
+    } catch {
+        return { dirty, ahead: 0, hasUpstream: false };
+    }
+}

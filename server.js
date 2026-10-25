@@ -13,7 +13,8 @@ import { promisify } from 'util';
 import bcrypt from 'bcryptjs';
 import session from 'express-session';
 import { createTurndownService, markdownToHtml } from './scripts/markdown.js';
-import { commitAll, push } from './scripts/git.js';
+import { commitAll, push, repoStatus } from './scripts/git.js';
+import { publishStatus } from './scripts/publish-status.js';
 import { draftPath, postPath } from './scripts/post-path.js';
 import { corsOrigins, pushAllowed, sessionSecret } from './scripts/server-config.js';
 import { imageExtension, MAX_IMAGE_UPLOAD_BYTES } from './scripts/image-upload.js';
@@ -37,10 +38,13 @@ app.use(express.json({ limit: '50mb' }));
 const CONTENT_DIR_REL = process.env.CONTENT_DIR;
 const STATIC_DIR_REL = process.env.STATIC_DIR;
 const DRAFTS_DIR_REL = process.env.DRAFTS_DIR;
+// Where a publish writes the site. Its default is the one in .env.example.
+const DIST_DIR_REL = process.env.DIST_DIR || '../dist';
 
 const POSTS_DIR = path.resolve(__dirname, CONTENT_DIR_REL);
 const STATIC_DIR = path.resolve(__dirname, STATIC_DIR_REL);
 const DRAFTS_DIR = path.resolve(__dirname, DRAFTS_DIR_REL);
+const DIST_DIR = path.resolve(__dirname, DIST_DIR_REL);
 
 // Auth Configuration
 const AUTH_ENABLED = process.env.AUTH_ENABLED === 'true';
@@ -449,6 +453,26 @@ app.post('/api/publish', async (req, res) => {
         // Include stderr in the error response if available for better debugging
         const errorMessage = err.stderr ? `${err.message}\n\nStderr: ${err.stderr}` : err.message;
         res.status(500).json({ error: errorMessage });
+    }
+});
+
+// What publishing still has to do: whether the published site is behind the posts and static
+// files it is built from.
+app.get('/api/publish/status', async (req, res) => {
+    try {
+        res.json(await publishStatus({ sourceDirs: [POSTS_DIR, STATIC_DIR], distDir: DIST_DIR }));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// What committing and pushing still have to do: whether there is a change to commit, and how
+// many commits the remote does not have.
+app.get('/api/git/status', async (req, res) => {
+    try {
+        res.json(await repoStatus(path.join(__dirname, '..')));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

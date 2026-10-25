@@ -76,5 +76,20 @@
   "focusWidthSlider": "Zeilenbreite im Fokusmodus",
   "focusDim": "Andere Absätze abdunkeln",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}} %"
+  "unitPercent": "{{value}} %",
+  "commit": "Commit",
+  "push": "Hochladen",
+  "saveStepPending": "Ungespeicherte Änderungen",
+  "saveStepDone": "Gespeichert",
+  "publishStepPending": "Änderungen nicht veröffentlicht",
+  "publishStepDone": "Website ist aktuell",
+  "commitStepPending": "Änderungen zum Committen",
+  "commitStepDone": "Nichts zu committen",
+  "pushStepPending": "Commits zum Hochladen",
+  "pushStepDone": "Nichts hochzuladen",
+  "stepUnknown": "Status nicht verfügbar",
+  "runPendingSteps": "Alles Übrige erledigen",
+  "allStepsDone": "Alles ist aktuell",
+  "upToDate": "Aktuell",
+  "publishMenuLabel": "Speichern, Veröffentlichen, Committen und Hochladen"
 }

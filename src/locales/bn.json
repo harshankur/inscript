@@ -76,5 +76,20 @@
   "focusWidthSlider": "ফোকাস মোডে লাইনের প্রস্থ",
   "focusDim": "অন্য অনুচ্ছেদ ঝাপসা করুন",
   "unitRem": "{{value}} rem",
-  "unitPercent": "{{value}}%"
+  "unitPercent": "{{value}}%",
+  "commit": "কমিট",
+  "push": "পুশ",
+  "saveStepPending": "অসংরক্ষিত পরিবর্তন",
+  "saveStepDone": "সংরক্ষণ করা হয়েছে",
+  "publishStepPending": "পরিবর্তন প্রকাশ করা হয়নি",
+  "publishStepDone": "সাইট হালনাগাদ আছে",
+  "commitStepPending": "কমিট করার মতো পরিবর্তন",
+  "commitStepDone": "কমিট করার কিছু নেই",
+  "pushStepPending": "পুশ করার মতো কমিট",
+  "pushStepDone": "পুশ করার কিছু নেই",
+  "stepUnknown": "অবস্থা পাওয়া যায়নি",
+  "runPendingSteps": "বাকি সব সম্পন্ন করুন",
+  "allStepsDone": "সবকিছু হালনাগাদ আছে",
+  "upToDate": "হালনাগাদ",
+  "publishMenuLabel": "সংরক্ষণ, প্রকাশ, কমিট ও পুশ"
 }
