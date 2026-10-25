@@ -56,6 +56,7 @@ import SiteFooter from './components/SiteFooter';
 import { httpUrl, parseLanguageUrls, resolveFooterConfig, urlForLanguage } from './lib/footerConfig';
 import { loadViewCounting, resolveViewCounting, setViewCountingLanguage, viewCountingOn } from './lib/viewCounting';
 import { siteTitle } from './lib/siteTitle';
+import { displayTitle, editableTitle } from './lib/postTitle';
 import { withUploadReason } from './lib/uploadError';
 
 // The footer's legal links and copyright line, from the build's TITLE and FOOTER_* settings.
@@ -1056,6 +1057,9 @@ const App = () => {
     const [isCopied, setIsCopied] = useState(false);
     const [currentPost, setCurrentPost] = useState(null);
     const [title, setTitle] = useState('');
+    // The post `title` belongs to. Choosing a post changes `filename` at once, but its title only
+    // arrives with the post, so until then `title` is still the previous post's (lib/postTitle.js).
+    const [titleOwner, setTitleOwner] = useState(null);
     const [postTags, setPostTags] = useState([]);
     const [postCategories, setPostCategories] = useState([]);
     const [filename, setFilename] = useState('');
@@ -1214,6 +1218,15 @@ const App = () => {
         editorOptions,
         onContentChange: handleContentChange,
     });
+
+    // The title of the open post for the header and the browser tab, and for the title box. Both
+    // are the post's saved title until the post has loaded (lib/postTitle.js).
+    const savedTitleOfOpenPost = posts.find(post => post.filename === filename)?.title;
+    const shownTitle = displayTitle({ postFilename: filename, activeFilename: filename, titleOwner, liveTitle: title, savedTitle: savedTitleOfOpenPost });
+    const titleBoxValue = editableTitle({ filename, titleOwner, liveTitle: title, savedTitle: savedTitleOfOpenPost });
+    const titleBoxReady = filename === titleOwner;
+    // The title a sidebar row shows (and its tooltip).
+    const rowTitle = (post) => displayTitle({ postFilename: post.filename, activeFilename: filename, titleOwner, liveTitle: title, savedTitle: post.title });
 
     // Imperative handle for the editor render component
     const editorRef = React.useRef(null);
@@ -1421,7 +1434,7 @@ const App = () => {
         if (filename) {
             const url = new URL(window.location);
             url.searchParams.set('post', filename.replace('.md', ''));
-            document.title = `${title} | ${appTitle}`;
+            document.title = `${shownTitle} | ${appTitle}`;
             window.history.replaceState({}, '', url);
         } else {
             // Only clear if we didn't start with a post param (prevent race condition wipe)
@@ -1433,7 +1446,7 @@ const App = () => {
                 window.history.replaceState({}, '', url);
             }
         }
-    }, [filename, title]);
+    }, [filename, shownTitle]);
 
     // The post opened by the page's address is shown, with its title: counting may start.
     useEffect(() => {
@@ -1616,6 +1629,7 @@ const App = () => {
             setShowDiff(false);
             setCurrentPost(data);
             setTitle(load.title);
+            setTitleOwner(file);
             setPostTags(load.tags);
             setPostCategories(load.categories);
             sourceHashRef.current = data.sourceHash ?? null;
@@ -1835,6 +1849,7 @@ const App = () => {
         setShowDiff(false);
         setFilename(finalName);
         setTitle(name);
+        setTitleOwner(finalName);
         setPostTags([]);
         setPostCategories([]);
         setCurrentPost({ frontmatter: { title: name, ...metadata }, hasDraft: false });
@@ -2380,7 +2395,7 @@ const App = () => {
                                         onClick={() => loadPost(post.filename)}
                                         className={`w-full text-left p-3 rounded-lg transition-all flex items-start gap-3 relative group ${filename === post.filename ? 'bg-zinc-100 dark:bg-zinc-800 shadow-lg border border-zinc-300 dark:border-zinc-700' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border border-transparent'
                                             }`}
-                                        title={filename === post.filename ? (title || post.title) : post.title}
+                                        title={rowTitle(post)}
                                     >
                                         <FileText size={18} className="text-zinc-400 dark:text-zinc-500 mt-1 flex-shrink-0" />
                                         {/* Show yellow dot if unsaved changes in editor OR if there's a saved draft on disk */}
@@ -2388,8 +2403,9 @@ const App = () => {
                                             <div className={`absolute top-3 right-3 w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${post.isUnpublished ? 'bg-purple-400 text-purple-400' : 'bg-yellow-400 text-yellow-400'}`} title={post.isUnpublished ? "Unpublished Draft" : "Unsaved changes (Draft)"} />
                                         )}
                                         <div className="min-w-0 flex-1">
-                                            {/* Live title for the post currently being edited, so a rename shows immediately. */}
-                                            <div className="text-sm font-medium truncate">{filename === post.filename ? (title || post.title) : post.title}</div>
+                                            {/* Live title for the post currently being edited, so a rename shows immediately;
+                                                never the previous post's while this one loads. */}
+                                            <div className="text-sm font-medium truncate">{rowTitle(post)}</div>
                                             <div className="flex items-center gap-3 mt-1.5 opacity-60">
                                                 <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono" title={`Created: ${new Date(post.created).toLocaleString(i18n.language)}`}>
                                                     <Calendar size={10} />
@@ -2516,11 +2532,12 @@ const App = () => {
                                         </>
                                     )}
                                     {isReadonly ? (
-                                        <h1 className="text-lg md:text-xl font-bold w-full truncate mb-0 flex justify-between items-center">{title}</h1>
+                                        <h1 className="text-lg md:text-xl font-bold w-full truncate mb-0 flex justify-between items-center">{shownTitle}</h1>
                                     ) : (
                                         <input
                                             type="text"
-                                            value={title}
+                                            value={titleBoxValue}
+                                            readOnly={!titleBoxReady}
                                             onChange={(e) => setTitle(e.target.value)}
                                             className="bg-transparent text-lg md:text-xl font-bold outline-none w-full min-w-0 mb-0"
                                             placeholder="Post Title"

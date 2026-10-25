@@ -9,3 +9,9 @@ the [GitHub releases page](https://github.com/harshankur/inscript/releases).
 
 ### Changed
 - Vite is 8.3.5, with Rolldown 1.2.15.
+
+### Fixed
+- **A post that has just been chosen no longer shows the title of the post before it.** Until the
+  chosen post arrived, its row in the sidebar, the title box and the browser tab (which the view
+  counter reads) showed the previous post's title. They show the chosen post's own saved title until
+  its draft arrives.
