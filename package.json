@@ -1,6 +1,6 @@
 {
   "name": "inscript",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "A modern, plug-and-play CMS for markdown-based blogs. Built with React, Vite, and Express.",
   "author": "Harsh Ankur <harshankur@outlook.com>",
   "license": "MIT",
@@ -107,6 +107,6 @@
     "husky": "^9.1.7",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
-    "vite": "^8.0.1"
+    "vite": "^8.3.5"
   }
 }
