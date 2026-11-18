@@ -5,7 +5,7 @@ All notable changes to Inscript are documented here. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Releases before 2.3.0 are described on
 the [GitHub releases page](https://github.com/harshankur/inscript/releases).
 
-## [2.3.0] - 2026-10-25
+## [2.3.0] - 2026-11-18
 
 ### Added
 - **`SESSION_MAX_AGE_HOURS` sets how long a sign-in lasts**, from 0.25 to 8760 hours (a year), and
