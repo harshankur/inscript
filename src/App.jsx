@@ -2,7 +2,7 @@ import {
     useInscriptEditor, InscriptEditor,
     ImageSelectorModal, YoutubeEmbedModal,
     DocumentOutline, MiniMap,
-    sanitizeToolConfig,
+    sanitizeToolConfig, INSCRIPT_EDITOR_VERSION,
 } from 'inscript-editor';
 import api from './lib/api';
 import {
@@ -68,7 +68,8 @@ import {
 } from './lib/editorSettings';
 import { measureColumnWidth } from './lib/editorColumn';
 import EditorSettings from './components/EditorSettings';
-import { withUploadReason } from './lib/uploadError';
+import { withUploadReason, uploadErrorMessage } from './lib/uploadError';
+import { uploadedImageSrc } from './lib/imageUpload';
 
 // Whether the editor may push to the remote (the server enforces the same setting).
 const PUSH_ALLOWED = import.meta.env.ALLOW_PUSH === 'true';
@@ -1059,6 +1060,31 @@ const loadToolConfig = (storageKey, surface) => {
     }
 };
 
+// The inscript-editor release a saved layout was saved with (the editor's `configSavedWith`), so
+// one that was a built-in preset follows that preset when a later release adds tools to it.
+// Layouts saved before Inscript stored the release came from inscript-editor 0.7.0 at the latest.
+const TOOL_CONFIG_SAVED_WITH_KEYS = {
+    toolbar: 'inscript:toolbar-config-saved-with',
+    bubble: 'inscript:bubble-menu-config-saved-with',
+};
+const UNRECORDED_TOOL_CONFIG_RELEASE = '0.7.0';
+
+const loadToolConfigSavedWith = (surface) => {
+    try {
+        return localStorage.getItem(TOOL_CONFIG_SAVED_WITH_KEYS[surface]) || UNRECORDED_TOOL_CONFIG_RELEASE;
+    } catch (e) {
+        return UNRECORDED_TOOL_CONFIG_RELEASE;
+    }
+};
+
+// Stores a layout the customizer saved, with the release it was saved with.
+const saveToolConfig = (storageKey, surface, config) => {
+    try {
+        localStorage.setItem(storageKey, JSON.stringify(config));
+        localStorage.setItem(TOOL_CONFIG_SAVED_WITH_KEYS[surface], INSCRIPT_EDITOR_VERSION);
+    } catch (e) { /* storage unavailable: the layout lasts until the page is closed */ }
+};
+
 // Right-hand editor tools: a narrow rail of icon buttons with at most one panel open
 // beside it. Labels come from inscript-editor's own (translated) strings.
 const EDITOR_PANELS = {
@@ -1206,6 +1232,10 @@ const App = () => {
     const isReadonly = isReadonlyEnv || isReadonlyUser;
     const [toolbarConfig, setToolbarConfig] = useState(() => loadToolConfig('inscript:toolbar-config', 'toolbar'));
     const [bubbleMenuConfig, setBubbleMenuConfig] = useState(() => loadToolConfig('inscript:bubble-menu-config', 'bubble'));
+    const [toolConfigSavedWith, setToolConfigSavedWith] = useState(() => ({
+        toolbar: loadToolConfigSavedWith('toolbar'),
+        bubble: loadToolConfigSavedWith('bubble'),
+    }));
 
     // Right rail panel ('outline' | 'minimap' | null), remembered per browser.
     const [editorPanel, setEditorPanel] = useState(() => {
@@ -1264,6 +1294,27 @@ const App = () => {
     }, []);
     const openYoutubeModal = React.useCallback(() => setShowYoutubeModal(true), []);
 
+    // Image files dropped, pasted or picked in the editor are uploaded as the media library's are,
+    // and go in from where the server stored them. A refused file says why, as the library does.
+    const { t: tEditor } = useTranslation('inscript-editor');
+    const uploadMessagesRef = React.useRef(null);
+    uploadMessagesRef.current = { t, tEditor };
+    const uploadImageFile = React.useCallback(async (file, { signal } = {}) => {
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            const { data } = await api.post('/api/upload', formData, { signal });
+            fetchLibraryImagesRef.current?.();
+            return uploadedImageSrc(data?.url);
+        } catch (err) {
+            // Aborted: the image's spot is gone, so there is nothing to tell.
+            if (signal?.aborted) return null;
+            const { t: tApp, tEditor: tLibrary } = uploadMessagesRef.current;
+            alert(uploadErrorMessage(err?.response?.status, tApp) ?? tLibrary('uploadFailedMessage'));
+            return null;
+        }
+    }, []);
+
     // A wikilink's target resolves to a post by title or by filename (what `?post=`
     // carries) and opens it in place; the href keeps it a working link on the published site.
     const resolveWikilink = React.useCallback((target) => {
@@ -1292,8 +1343,9 @@ const App = () => {
         wikilink: { enabled: true, resolver: resolveWikilink },
         onShowMediaLibrary: openMediaLibrary,
         onAddYoutube: openYoutubeModal,
+        onImageFile: uploadImageFile,
         // A change of language changes the privacy link, which rebuilds the editor; it keeps the document.
-    }), [resolveWikilink, openMediaLibrary, openYoutubeModal, privacyUrl]);
+    }), [resolveWikilink, openMediaLibrary, openYoutubeModal, uploadImageFile, privacyUrl]);
 
     // Undo, redo and restores put another version in the editor, and its title, tags and
     // categories come back with it. An edit leaves them as they are.
@@ -2842,14 +2894,17 @@ const App = () => {
                                     flush={flush}
                                     markSaved={markSaved}
                                     toolbarConfig={toolbarConfig ?? undefined}
+                                    configSavedWith={toolConfigSavedWith}
                                     onToolbarConfigChange={(newConfig) => {
                                         setToolbarConfig(newConfig);
-                                        localStorage.setItem('inscript:toolbar-config', JSON.stringify(newConfig));
+                                        setToolConfigSavedWith(prev => ({ ...prev, toolbar: INSCRIPT_EDITOR_VERSION }));
+                                        saveToolConfig('inscript:toolbar-config', 'toolbar', newConfig);
                                     }}
                                     bubbleMenuConfig={bubbleMenuConfig ?? undefined}
                                     onBubbleMenuConfigChange={(newConfig) => {
                                         setBubbleMenuConfig(newConfig);
-                                        localStorage.setItem('inscript:bubble-menu-config', JSON.stringify(newConfig));
+                                        setToolConfigSavedWith(prev => ({ ...prev, bubble: INSCRIPT_EDITOR_VERSION }));
+                                        saveToolConfig('inscript:bubble-menu-config', 'bubble', newConfig);
                                     }}
                                 />
                             </div>
